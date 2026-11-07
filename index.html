@@ -71,13 +71,12 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-500 selection:text-white">
 
-  <!-- PANTALLA DE ACCESO Y SEGURIDAD (MEJORADA NEGRO Y NARANJA) -->
+  <!-- PANTALLA DE ACCESO Y SEGURIDAD -->
   <div id="pin-lock-screen" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08)_0,transparent_70%)] pointer-events-none"></div>
     
-    <div class="relative bg-slate-900 border border-slate-800/80 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center space-y-6 shadow-brand-500/5">
-      <!-- Icono superior con brillo naranja -->
-      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center mx-auto shadow-lg shadow-brand-500/30 transform hover:scale-105 transition-transform">
+    <div class="relative bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center space-y-6">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center mx-auto shadow-lg shadow-brand-500/30">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
         </svg>
@@ -89,39 +88,28 @@
       </div>
 
       <!-- Botón Google Auth -->
-      <button onclick="loginWithGoogle()" class="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm shadow-md transition-all flex items-center justify-center gap-3 group">
+      <button onclick="loginWithGoogle()" class="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm shadow-md transition-all flex items-center justify-center gap-3">
         <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.15 21.33 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.18C.43 8.13 0 9.85 0 12s.43 3.87 1.18 5.39l4.09-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.15 2.67 1.18 6.61l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
         <span>Continuar con mi correo Google</span>
       </button>
 
       <div class="relative flex py-1 items-center">
         <div class="flex-grow border-t border-slate-800"></div>
-        <span class="flex-shrink mx-4 text-xs text-slate-500 uppercase font-medium">o ingresa con PIN</span>
+        <span class="flex-shrink mx-4 text-xs text-slate-500 uppercase font-medium">o ingresa PIN (2626 / 1234)</span>
         <div class="flex-grow border-t border-slate-800"></div>
       </div>
 
-      <!-- Formulario de PIN -->
-      <form onsubmit="verifyPin(event)" class="space-y-3">
-        <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="w-full text-center tracking-[1em] text-xl py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono shadow-inner" />
-        <button type="submit" class="w-full py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-brand-500/20 transition-all">
-          Desbloquear Acceso
-        </button>
-      </form>
-      <p id="pin-error" class="text-xs text-rose-500 font-medium hidden">PIN incorrecto (Admin: 2626 | Visor: 1234).</p>
-      
-      <div class="text-[11px] text-slate-500 pt-2 border-t border-slate-800/60">
-        Control de Inventario y Pedidos en Tiempo Real
+      <!-- Input PIN con detección automática al escribir 4 dígitos -->
+      <div class="space-y-3">
+        <input type="password" id="pin-input" maxlength="4" autofocus oninput="checkPinInput(this)" placeholder="••••" class="w-full text-center tracking-[1em] text-2xl py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono shadow-inner" />
       </div>
+      <p id="pin-error" class="text-xs text-rose-500 font-medium hidden">PIN incorrecto. (Admin: 2626 | Visor: 1234)</p>
     </div>
   </div>
 
-  <!-- Toast Notification Container -->
-  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
-
-  <!-- Contenedor principal (Oculto hasta iniciar sesión) -->
+  <!-- Contenedor principal de la app -->
   <div id="app-container" class="hidden bg-slate-900 min-h-screen">
-    <!-- Mobile Top Header -->
-    <header id="mobile-header" class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-slate-900 text-white px-4 py-3 border-b border-slate-800 shadow-md">
+    <header class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-slate-900 text-white px-4 py-3 border-b border-slate-800 shadow-md">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center font-bold">JB</div>
         <span class="font-bold text-lg">JadeverBodega</span>
@@ -131,10 +119,8 @@
       </button>
     </header>
 
-    <!-- Mobile Sidebar Backdrop -->
     <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden"></div>
 
-    <!-- Left Dark Sidebar -->
     <aside id="sidebar" class="fixed top-0 left-0 z-40 h-screen w-68 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0" style="width: 272px;">
       <div class="p-5 overflow-y-auto">
         <div class="flex items-center justify-between mb-8">
@@ -150,7 +136,6 @@
           </button>
         </div>
 
-        <!-- Navigation Menu -->
         <nav class="space-y-1.5" id="sidebar-nav">
           <button onclick="switchTab('inventario')" data-tab="inventario" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-500 text-white shadow-md shadow-brand-500/20">
             <span>Inventario</span>
@@ -187,7 +172,6 @@
       </div>
     </aside>
 
-    <!-- Main Workspace -->
     <main id="main-wrapper" class="lg:ml-[272px] min-h-screen p-4 sm:p-6 lg:p-8 transition-all bg-slate-950">
       <div class="max-w-7xl mx-auto">
 
@@ -195,52 +179,39 @@
         <section id="screen-inventario" class="app-screen space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <p id="dynamic-date-header" class="text-xs font-bold tracking-widest uppercase text-brand-500 mb-1">GESTIÓN DE BODEGA</p>
+              <p class="text-xs font-bold tracking-widest uppercase text-brand-500 mb-1">GESTIÓN DE BODEGA</p>
               <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Inventario</h2>
             </div>
             <div id="admin-action-buttons" class="flex flex-wrap items-center gap-3">
-              <button onclick="switchTab('carga')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-900 text-slate-200 border border-slate-800 hover:border-brand-500 shadow-xs">
-                Cargar Excel
-              </button>
-              <button onclick="openProductModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25">
-                + Producto
-              </button>
+              <button onclick="switchTab('carga')" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-900 text-slate-200 border border-slate-800 hover:border-brand-500">Cargar Excel</button>
+              <button onclick="openProductModal()" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md">+ Producto</button>
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Referencias</p>
-                <p id="metric-total-refs" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">0</p>
-              </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Referencias</p>
+              <p id="metric-total-refs" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">0</p>
             </div>
-            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Unidades en Stock</p>
-                <p id="metric-total-units" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">0</p>
-              </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Unidades en Stock</p>
+              <p id="metric-total-units" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">0</p>
             </div>
-            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Alertas de Reorden</p>
-                <p id="metric-reorder-count" class="text-2xl sm:text-3xl font-extrabold text-amber-400 mt-1">0</p>
-              </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Alertas de Reorden</p>
+              <p id="metric-reorder-count" class="text-2xl sm:text-3xl font-extrabold text-amber-400 mt-1">0</p>
             </div>
-            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex items-center justify-between">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Movimientos Hoy</p>
-                <p id="metric-today-movs" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1">0</p>
-              </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Movimientos Hoy</p>
+              <p id="metric-today-movs" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1">0</p>
             </div>
           </div>
 
-          <div class="bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xs space-y-4">
-            <input type="text" id="inv-search-input" oninput="renderInventory()" placeholder="Buscar por SKU, nombre, categoría..." class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-            <div id="category-chips" class="flex items-center gap-2 overflow-x-auto pb-1"></div>
+          <div class="bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-4">
+            <input type="text" id="inv-search-input" oninput="renderInventory()" placeholder="Buscar por SKU, nombre, categoría..." class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
-          <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xs overflow-hidden">
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
@@ -250,7 +221,6 @@
                     <th class="py-3.5 px-4">Categoría</th>
                     <th class="py-3.5 px-4">Ubicación</th>
                     <th class="py-3.5 px-4 text-right">Cantidad</th>
-                    <th id="th-actions" class="py-3.5 px-4 text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="inventory-tbody" class="divide-y divide-slate-800 text-sm"></tbody>
@@ -279,9 +249,7 @@
               <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Control de Pedidos</h2>
             </div>
             <div id="admin-order-btn">
-              <button onclick="openOrderModal()" class="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm shadow-md">
-                + Nuevo Pedido / Separado
-              </button>
+              <button onclick="openOrderModal()" class="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm shadow-md">+ Nuevo Pedido / Separado</button>
             </div>
           </div>
 
@@ -294,7 +262,7 @@
             </select>
           </div>
 
-          <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xs overflow-hidden">
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
@@ -341,6 +309,26 @@
     const PIN_ADMIN = "2626";
     const PIN_VIEWER = "1234";
 
+    function checkPinInput(input) {
+      const val = input.value.trim();
+      const error = document.getElementById('pin-error');
+      
+      if (val.length === 4) {
+        if (val === PIN_ADMIN) {
+          currentUserRole = 'admin';
+          unlockApp("Wendy Hernandez", "Administrador (PIN)");
+        } else if (val === PIN_VIEWER) {
+          currentUserRole = 'viewer';
+          unlockApp("Modo Consulta", "Solo Visualización");
+        } else {
+          error.classList.remove('hidden');
+          input.value = '';
+        }
+      } else {
+        error.classList.add('hidden');
+      }
+    }
+
     async function loginWithGoogle() {
       if (!window.signInWithPopup) {
         alert("Firebase Auth cargando. Inténtalo de nuevo.");
@@ -352,23 +340,6 @@
         unlockApp(user.displayName || user.email, "Administrador (Google)");
       } catch (error) {
         alert("Error de inicio de sesión: " + error.message);
-      }
-    }
-
-    function verifyPin(event) {
-      event.preventDefault();
-      const input = document.getElementById('pin-input').value.trim();
-      const error = document.getElementById('pin-error');
-      
-      if (input === PIN_ADMIN) {
-        currentUserRole = 'admin';
-        unlockApp("Wendy Hernandez", "Administrador (PIN)");
-      } else if (input === PIN_VIEWER) {
-        currentUserRole = 'viewer';
-        unlockApp("Modo Consulta", "Solo Visualización");
-      } else {
-        error.classList.remove('hidden');
-        document.getElementById('pin-input').value = '';
       }
     }
 
@@ -449,7 +420,6 @@
           <td class="py-3 px-4 text-slate-300">${item.category || ''}</td>
           <td class="py-3 px-4 text-slate-300">${item.location || ''}</td>
           <td class="py-3 px-4 text-right font-bold text-white">${item.qty || 0}</td>
-          ${currentUserRole === 'admin' ? '<td class="py-3 px-4 text-right"></td>' : ''}
         </tr>
       `).join('');
       
@@ -496,7 +466,7 @@
             </span>
           </td>
           <td class="py-3 px-4 text-right">
-            ${currentUserRole === 'admin' ? `<button onclick="alert('Función de gestionar pedido')" class="text-xs text-brand-400 font-semibold hover:underline">Gestionar</button>` : ''}
+            ${currentUserRole === 'admin' ? `<button onclick="alert('Gestionar pedido')" class="text-xs text-brand-400 font-semibold hover:underline">Gestionar</button>` : ''}
           </td>
         </tr>
       `).join('');
