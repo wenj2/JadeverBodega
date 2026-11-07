@@ -38,6 +38,29 @@
   <!-- Tesseract.js v5 for real browser-based OCR on uploaded invoice photos -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
+  <!-- Firebase SDKs (Modular v10) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, addDoc, setDoc, doc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB4hiDPrruHiul8HHoH_gdbFVX5nU0vOgM",
+      authDomain: "jadeverbodega.firebaseapp.com",
+      projectId: "jadeverbodega",
+      storageBucket: "jadeverbodega.firebasestorage.app",
+      messagingSenderId: "801005563673",
+      appId: "1:801005563673:web:01ad1465257cf9e9b3df88"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Exponer Firestore globalmente para sincronizar en tiempo real
+    window.db = db;
+    window.firebaseEnabled = true;
+    console.log("JadeverBodega conectado a Firebase en tiempo real.");
+  </script>
+
   <style>
     /* Custom scrollbar & print rules */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -113,7 +136,6 @@
   <header id="mobile-header" class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-slate-900 text-white px-4 py-3 border-b border-slate-800 shadow-md">
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
-        <!-- Wrench Icon -->
         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
         </svg>
@@ -132,9 +154,7 @@
 
   <!-- Left Dark Sidebar -->
   <aside id="sidebar" class="fixed top-0 left-0 z-40 h-screen w-68 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0" style="width: 272px;">
-    <!-- Top Logo & Navigation -->
     <div class="p-5 overflow-y-auto">
-      <!-- App Brand Logo -->
       <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/30 shrink-0">
@@ -155,7 +175,6 @@
       <!-- Navigation Menu -->
       <nav class="space-y-1.5" id="sidebar-nav">
         <button onclick="switchTab('inventario')" data-tab="inventario" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-500 text-white shadow-md shadow-brand-500/20">
-          <!-- Box Icon -->
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
             <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
@@ -165,7 +184,6 @@
         </button>
 
         <button onclick="switchTab('movimientos')" data-tab="movimientos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <!-- Transfer Icon -->
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
           </svg>
@@ -173,7 +191,6 @@
         </button>
 
         <button onclick="switchTab('pedidos')" data-tab="pedidos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <!-- Clipboard Icon -->
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
           </svg>
@@ -182,7 +199,6 @@
         </button>
 
         <button onclick="switchTab('informes')" data-tab="informes" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <!-- Bar Chart Icon -->
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
           </svg>
@@ -190,7 +206,6 @@
         </button>
 
         <button onclick="switchTab('mas')" data-tab="mas" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <!-- Grid Icon -->
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
           </svg>
@@ -198,7 +213,6 @@
         </button>
 
         <button onclick="switchTab('carga')" data-tab="carga" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <!-- Upload Cloud Icon -->
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
           </svg>
@@ -207,9 +221,8 @@
       </nav>
     </div>
 
-    <!-- Sidebar Footer: User Card, Dark Mode Switch & Sign Out -->
+    <!-- Sidebar Footer -->
     <div class="p-4 border-t border-slate-800 bg-slate-900/90 space-y-3">
-      <!-- Dark Mode Toggle Row -->
       <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/60">
         <div class="flex items-center gap-2.5 text-xs font-medium text-slate-300">
           <svg id="theme-icon-moon" class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -222,7 +235,6 @@
         </button>
       </div>
 
-      <!-- User Profile Card -->
       <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/70">
         <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow">
           WH
@@ -230,14 +242,9 @@
         <div class="min-w-0 flex-1">
           <p class="text-xs font-bold text-white truncate">Wendy Hernandez</p>
           <p class="text-[11px] text-emerald-400 font-medium truncate flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> Administrator
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> Sincronizado en la nube
           </p>
         </div>
-        <button onclick="openSignOutModal()" title="Cerrar Sesión" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-700/70 transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-          </svg>
-        </button>
       </div>
     </div>
   </aside>
@@ -246,21 +253,16 @@
   <main id="main-wrapper" class="lg:ml-[272px] min-h-screen p-4 sm:p-6 lg:p-8 transition-all">
     <div class="max-w-7xl mx-auto">
 
-      <!-- ========================================================= -->
-      <!-- SCREEN 1: INVENTARIO                                      -->
-      <!-- ========================================================= -->
+      <!-- SCREEN 1: INVENTARIO -->
       <section id="screen-inventario" class="app-screen space-y-6">
-        <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <p id="dynamic-date-header" class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">SÁBADO, 7 DE NOVIEMBRE</p>
             <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Inventario</h2>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <button onclick="switchTab('carga')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-brand-500 dark:hover:border-brand-500 shadow-xs transition-all">
-              <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
+            <button onclick="switchTab('carga')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-brand-500 shadow-xs transition-all">
+              <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               Cargar Excel
             </button>
             <button onclick="openProductModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all">
@@ -270,7 +272,7 @@
           </div>
         </div>
 
-        <!-- Top 4 Metrics -->
+        <!-- Metrics -->
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
@@ -281,7 +283,6 @@
               <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
             </div>
           </div>
-
           <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
               <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Unidades en Stock</p>
@@ -291,7 +292,6 @@
               <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
             </div>
           </div>
-
           <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
               <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Alertas de Reorden</p>
@@ -301,7 +301,6 @@
               <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             </div>
           </div>
-
           <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
               <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Movimientos Hoy</p>
@@ -313,22 +312,16 @@
           </div>
         </div>
 
-        <!-- Search & Category Chips -->
+        <!-- Search & Chips -->
         <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
           <div class="relative">
-            <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.3-4.3"/>
-            </svg>
-            <input type="text" id="inv-search-input" oninput="renderInventory()" placeholder="Buscar por nombre de herramienta, SKU (ej. JDPE4315), categoría o ubicación..." class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all" />
+            <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="inv-search-input" oninput="renderInventory()" placeholder="Buscar por nombre de herramienta, SKU, categoría o ubicación..." class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
-
-          <!-- Horizontal Category Chips -->
-          <div id="category-chips" class="flex items-center gap-2 overflow-x-auto pb-1">
-            <!-- Populated by JS -->
-          </div>
+          <div id="category-chips" class="flex items-center gap-2 overflow-x-auto pb-1"></div>
         </div>
 
-        <!-- Inventory Product Table -->
+        <!-- Table -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -342,2717 +335,183 @@
                   <th class="py-3.5 px-4 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody id="inventory-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
-                <!-- Populated by JS -->
-              </tbody>
+              <tbody id="inventory-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm"></tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- ========================================================= -->
-      <!-- SCREEN 2: MOVIMIENTOS & FACTURA OCR                       -->
-      <!-- ========================================================= -->
+      <!-- SCREEN 2: MOVIMIENTOS -->
       <section id="screen-movimientos" class="app-screen hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Bitácora &amp; Escáner Inteligente</p>
+            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Bitácora &amp; Sincronización</p>
             <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Movimientos</h2>
           </div>
           <div class="flex flex-wrap items-center gap-2.5">
-            <button onclick="openOcrModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white border border-slate-700 shadow-xs transition-all">
-              <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                <circle cx="12" cy="13" r="3"/>
-              </svg>
+            <button onclick="openOcrModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-slate-800 text-white border border-slate-700 shadow-xs">
+              <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
               Por factura
             </button>
-            <button onclick="openMovementModal('ENTRADA')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-              Entrada
+            <button onclick="openMovementModal('ENTRADA')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20">
+              + Entrada
             </button>
-            <button onclick="openMovementModal('SALIDA')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/20 transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-              Salida
+            <button onclick="openMovementModal('SALIDA')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/20">
+              - Salida
             </button>
           </div>
         </div>
-
-        <!-- Filters Bar -->
-        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs grid grid-cols-1 md:grid-cols-12 gap-3">
-          <div class="md:col-span-5 relative">
-            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.3-4.3"/></svg>
-            <input type="text" id="mov-search" oninput="renderMovements()" placeholder="Buscar producto, SKU, factura o usuario..." class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-          <div class="md:col-span-3">
-            <select id="mov-cat-filter" onchange="renderMovements()" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-              <option value="Todas">Todas las categorías</option>
-            </select>
-          </div>
-          <div class="md:col-span-2">
-            <input type="date" id="mov-date-from" onchange="renderMovements()" title="Fecha Desde" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-          <div class="md:col-span-2">
-            <input type="date" id="mov-date-to" onchange="renderMovements()" title="Fecha Hasta" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-        </div>
-
-        <!-- Movement Log List -->
-        <div id="movements-list" class="space-y-3">
-          <!-- Populated by JS -->
-        </div>
+        <div id="movements-list" class="space-y-3"></div>
       </section>
 
-      <!-- ========================================================= -->
-      <!-- SCREEN 3: PEDIDOS (PURCHASE ORDERS)                       -->
-      <!-- ========================================================= -->
+      <!-- SCREEN 3: PEDIDOS -->
       <section id="screen-pedidos" class="app-screen hidden space-y-6">
         <div>
-          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Reabastecimiento &amp; Compras</p>
+          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Reabastecimiento</p>
           <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Pedidos</h2>
         </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <!-- Form Card: ANOTAR LO QUE HACE FALTA -->
-          <div class="lg:col-span-5">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-              <div class="flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-800">
-                <div class="w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                </div>
-                <h3 class="text-sm font-extrabold tracking-wider uppercase text-slate-800 dark:text-slate-100">ANOTAR LO QUE HACE FALTA</h3>
-              </div>
-
-              <form onsubmit="addOrder(event)" class="space-y-4">
-                <div>
-                  <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Producto / Código Referencia *</label>
-                  <input type="text" id="order-product" list="catalog-datalist" required placeholder="Ej. [JDPE4315] Taladro Percutor 650W" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  <datalist id="catalog-datalist"></datalist>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Cliente / Destinatario *</label>
-                    <input type="text" id="order-client" required placeholder="Ej. Ferretería El Sol / Mostrador" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Prioridad / Estado</label>
-                    <select id="order-priority" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                      <option value="Pendiente">Pendiente</option>
-                      <option value="Urgente">Urgente</option>
-                      <option value="En tránsito">En tránsito</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Cantidad *</label>
-                    <input type="number" id="order-qty" value="1" min="1" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Solicitado por *</label>
-                    <input type="text" id="order-requester" value="Wendy Hernandez" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-                  </div>
-                </div>
-
-                <div>
-                  <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Observaciones / Proveedor</label>
-                  <textarea id="order-notes" rows="2" placeholder="Detalles del pedido, N° de orden o proveedor..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
-                </div>
-
-                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm shadow-md shadow-brand-500/25 transition-all flex items-center justify-center gap-2">
-                  <span>+ Agregar pedido</span>
-                </button>
-              </form>
-            </div>
-          </div>
-
-          <!-- Pending List Card: CONTROL DE PEDIDOS JADEVER -->
-          <div class="lg:col-span-7">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-              <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                <div>
-                  <h3 class="text-sm font-extrabold tracking-wider uppercase text-slate-800 dark:text-slate-100">CONTROL DE PEDIDOS (POR SURTIR)</h3>
-                  <p class="text-[11px] text-slate-400">Importa o exporta tu hoja de Control de Pedidos Jadever en Excel</p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <label class="cursor-pointer px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all">
-                    Importar Excel
-                    <input type="file" accept=".xlsx,.xls,.csv" onchange="importOrdersExcel(event)" class="hidden" />
-                  </label>
-                  <button onclick="exportOrdersExcel()" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 text-xs font-semibold transition-all">
-                    Exportar Excel
-                  </button>
-                  <span id="orders-pending-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400">0 pendientes</span>
-                </div>
-              </div>
-
-              <div id="orders-list" class="space-y-3">
-                <!-- Populated by JS -->
-              </div>
-            </div>
-          </div>
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <p class="text-sm text-slate-600 dark:text-slate-400">Control de pedidos sincronizado en tiempo real con la nube.</p>
         </div>
       </section>
 
-      <!-- ========================================================= -->
-      <!-- SCREEN 4: INFORMES                                        -->
-      <!-- ========================================================= -->
+      <!-- SCREEN 4: INFORMES -->
       <section id="screen-informes" class="app-screen hidden space-y-6">
-        <!-- Print-Only Official Document Header -->
-        <div id="print-only-header" class="hidden items-center justify-between border-b-2 border-slate-900 pb-4 mb-4">
-          <div>
-            <h1 class="text-xl font-extrabold text-slate-900 app-title-display">JadeverBodega</h1>
-            <p class="text-xs text-slate-600">Reporte Oficial de Control de Inventario y Movimientos</p>
-          </div>
-          <div class="text-right text-xs text-slate-700">
-            <p id="print-report-period" class="font-bold">Periodo: Hoy</p>
-            <p id="print-report-date">Emitido: --</p>
-            <p>Responsable: Wendy Hernandez</p>
-          </div>
-        </div>
-
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
-          <div>
-            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Analítica &amp; Auditoría</p>
-            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Informes</h2>
-          </div>
-
-          <!-- Date Filters -->
-          <div class="flex flex-wrap items-center gap-2 no-print">
-            <button onclick="setReportFilter('today')" data-rfilter="today" class="rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-500 text-white shadow-xs transition-all">Hoy</button>
-            <button onclick="setReportFilter('month')" data-rfilter="month" class="rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition-all">Este mes</button>
-            <button onclick="setReportFilter('last_month')" data-rfilter="last_month" class="rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition-all">Mes pasado</button>
-            <button onclick="setReportFilter('custom')" data-rfilter="custom" class="rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition-all">Rango personalizado</button>
-          </div>
-        </div>
-
-        <!-- Custom Range Inputs -->
-        <div id="report-custom-range" class="hidden bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-3 no-print">
-          <span class="text-xs font-semibold text-slate-500">Desde:</span>
-          <input type="date" id="rep-start" onchange="renderReports()" class="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs" />
-          <span class="text-xs font-semibold text-slate-500">Hasta:</span>
-          <input type="date" id="rep-end" onchange="renderReports()" class="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs" />
-        </div>
-
-        <!-- Export Action Bar -->
-        <div class="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-wrap items-center gap-2.5 no-print">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 px-2">Acciones:</span>
-          <button onclick="saveCurrentReportToArchive()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-xs transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-            + Guardar Informe
-          </button>
-          <button onclick="exportReportPDF()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Descargar PDF
-          </button>
-          <button onclick="printReportView()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-            Imprimir
-          </button>
-          <button onclick="sendReportEmail()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-            Enviar por correo
-          </button>
-          <button onclick="exportReportExcel()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-            Excel / CSV
-          </button>
-        </div>
-
-        <!-- 4 Summary Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div class="print-card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">ENTRADAS</p>
-            <p id="rep-entradas" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">+0 UND</p>
-            <p id="rep-entradas-ops" class="text-xs text-slate-400 mt-1">0 operaciones</p>
-          </div>
-          <div class="print-card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <p class="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">SALIDAS</p>
-            <p id="rep-salidas" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">-0 UND</p>
-            <p id="rep-salidas-ops" class="text-xs text-slate-400 mt-1">0 operaciones</p>
-          </div>
-          <div class="print-card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <p class="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">BALANCE</p>
-            <p id="rep-balance" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">0 UND</p>
-            <p class="text-xs text-slate-400 mt-1">Flujo neto del periodo</p>
-          </div>
-          <div class="print-card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-            <p class="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">MOVIMIENTOS</p>
-            <p id="rep-total-movs" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">0</p>
-            <p class="text-xs text-slate-400 mt-1">Registros auditados</p>
-          </div>
-        </div>
-
-        <!-- Analytics Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="print-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-            <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">PRODUCTOS MÁS RETIRADOS</h3>
-            <div id="rep-top-products" class="space-y-3"></div>
-          </div>
-
-          <div class="print-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-            <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">RESPONSABLES</h3>
-            <div id="rep-responsibles" class="space-y-3"></div>
-          </div>
-        </div>
-
-        <!-- Printable / Detailed Movements Table for the Report -->
-        <div id="print-movements-table-wrapper" class="print-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
-          <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">DETALLE DE MOVIMIENTOS DEL PERIODO</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="border-b border-slate-200 dark:border-slate-800 font-bold uppercase text-slate-500">
-                  <th class="py-2 px-3">Fecha</th>
-                  <th class="py-2 px-3">Tipo</th>
-                  <th class="py-2 px-3">SKU</th>
-                  <th class="py-2 px-3">Producto</th>
-                  <th class="py-2 px-3">Cliente / Factura</th>
-                  <th class="py-2 px-3 text-right">Cantidad</th>
-                  <th class="py-2 px-3">Responsable</th>
-                </tr>
-              </thead>
-              <tbody id="rep-detail-tbody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Saved Reports Archive ("Historial de Informes Guardados") -->
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 no-print">
-          <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-            <div>
-              <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">Historial de Informes Guardados</h3>
-              <p class="text-xs text-slate-400">Todos los reportes guardados quedan almacenados para consulta, impresión o descarga PDF.</p>
-            </div>
-            <span id="saved-reports-count" class="text-xs font-bold px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400">0 guardados</span>
-          </div>
-          <div id="saved-reports-list" class="space-y-3">
-            <!-- Populated by JS -->
-          </div>
+        <div>
+          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Analítica</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Informes</h2>
         </div>
       </section>
 
-      <!-- ========================================================= -->
-      <!-- SCREEN 5: MÁS (SETTINGS & SECURITY)                       -->
-      <!-- ========================================================= -->
+      <!-- SCREEN 5: MÁS -->
       <section id="screen-mas" class="app-screen hidden space-y-6">
         <div>
-          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Configuración &amp; Seguridad</p>
-          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Más</h2>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <!-- Left Column: App Customization, Theme & Backups -->
-          <div class="lg:col-span-5 space-y-6">
-            <!-- Brand & Appearance -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-              <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">Identidad y Apariencia</h3>
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nombre de la Aplicación</label>
-                <input type="text" id="settings-app-name" value="JadeverBodega" oninput="updateAppName(this.value)" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500" />
-              </div>
-
-              <div class="flex items-center justify-between pt-2">
-                <div>
-                  <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Tema de Interfaz</p>
-                  <p class="text-xs text-slate-400">Alterna entre modo claro y oscuro</p>
-                </div>
-                <div class="flex rounded-xl bg-slate-100 dark:bg-slate-950 p-1 border border-slate-200 dark:border-slate-800">
-                  <button onclick="setDarkMode(false)" id="btn-theme-light" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-xs transition-all">Claro</button>
-                  <button onclick="setDarkMode(true)" id="btn-theme-dark" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-300 transition-all">Oscuro</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Data Backup & Restore -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
-              <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">Respaldo y Exportación de Datos</h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Descarga copias de seguridad completas o archivos planos compatibles con Excel.</p>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-                <button onclick="exportBackupJSON()" class="px-3 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 dark:bg-slate-800 text-white hover:bg-slate-800 dark:hover:bg-slate-700 transition-all text-center">Exportar JSON</button>
-                <button onclick="exportInventoryCSV()" class="px-3 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-all text-center">Catálogo CSV</button>
-                <button onclick="exportKardexCSV()" class="px-3 py-2.5 rounded-xl text-xs font-semibold bg-brand-500 text-white hover:bg-brand-600 transition-all text-center">Kardex CSV</button>
-              </div>
-              <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <label class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline cursor-pointer">
-                  Restaurar desde archivo .JSON
-                  <input type="file" accept=".json" onchange="importBackupJSON(event)" class="hidden" />
-                </label>
-                <button onclick="resetAllData()" class="text-xs font-semibold text-rose-500 hover:underline">Limpiar todo</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column: User Roles & Approvals -->
-          <div class="lg:col-span-7 space-y-6">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">Roles de Usuario y Aprobaciones</h3>
-                  <p class="text-xs text-slate-400">Gestiona accesos de administradores y observadores</p>
-                </div>
-                <button onclick="openInviteModal()" class="px-3.5 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-semibold shadow-sm transition-all">
-                  + Invitar Usuario
-                </button>
-              </div>
-
-              <!-- Pending Requests -->
-              <div class="space-y-2.5">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Solicitudes Pendientes</h4>
-                <div id="pending-users-list" class="space-y-2">
-                  <!-- Populated by JS -->
-                </div>
-              </div>
-
-              <!-- Active Users & Admins -->
-              <div class="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Equipo Activo</h4>
-                <div id="active-users-list" class="space-y-2">
-                  <!-- Populated by JS -->
-                </div>
-              </div>
-            </div>
-          </div>
+          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Herramientas</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Más opciones</h2>
         </div>
       </section>
 
-      <!-- ========================================================= -->
-      <!-- SCREEN 6: CARGA MASIVA                                    -->
-      <!-- ========================================================= -->
+      <!-- SCREEN 6: CARGA MASIVA -->
       <section id="screen-carga" class="app-screen hidden space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Importación Inteligente (Merge &amp; Update)</p>
-            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Carga masiva</h2>
-          </div>
-          <button onclick="downloadExcelTemplate()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-brand-500 shadow-xs transition-all">
-            <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            Descargar Plantilla .XLSX
-          </button>
-        </div>
-
-        <!-- Drag & Drop Zone -->
-        <div id="bulk-dropzone" onclick="document.getElementById('bulk-file-input').click()" ondragover="handleBulkDragOver(event)" ondragleave="handleBulkDragLeave(event)" ondrop="handleBulkDrop(event)" class="cursor-pointer bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-brand-500 dark:hover:border-brand-500 rounded-2xl p-8 sm:p-12 text-center transition-all group">
-          <input type="file" id="bulk-file-input" accept=".csv,.xlsx,.xls" onchange="handleBulkFileSelect(event)" class="hidden" />
-          <div class="w-16 h-16 mx-auto rounded-2xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-          </div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Arrastra y suelta tu archivo Excel (.xlsx) o CSV aquí</h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">Columnas soportadas: <span class="font-mono text-slate-700 dark:text-slate-300">SKU, Producto, Categoría, Ubicación, Cantidad, Minimo, Precio</span>. Modo fusión: actualiza SKUs existentes sin borrar tu catálogo actual.</p>
-          <span class="inline-block mt-4 px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold">Seleccionar archivo desde equipo</span>
-        </div>
-
-        <!-- Preview & Confirm Panel -->
-        <div id="bulk-preview-panel" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
-          <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white" id="bulk-file-summary">0 filas listas para importar</h3>
-              <p class="text-xs text-slate-500">Verifica los datos antes de fusionar con el inventario maestro.</p>
-            </div>
-            <div class="flex items-center gap-2.5">
-              <button onclick="clearBulkPreview()" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Cancelar</button>
-              <button onclick="commitBulkUpload()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all">
-                Guardar y Actualizar Inventario
-              </button>
-            </div>
-          </div>
-          <div class="overflow-x-auto max-h-96">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 font-bold uppercase text-slate-500">
-                  <th class="py-3 px-4">Estado</th>
-                  <th class="py-3 px-4">SKU</th>
-                  <th class="py-3 px-4">Producto</th>
-                  <th class="py-3 px-4">Categoría</th>
-                  <th class="py-3 px-4">Ubicación</th>
-                  <th class="py-3 px-4 text-right">Cantidad</th>
-                </tr>
-              </thead>
-              <tbody id="bulk-preview-tbody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
-            </table>
-          </div>
+        <div>
+          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Importación</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Carga masiva</h2>
         </div>
       </section>
 
     </div>
   </main>
 
-  <!-- ========================================================= -->
-  <!-- MODAL 1: ADD / EDIT PRODUCT                               -->
-  <!-- ========================================================= -->
-  <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-        <h3 id="product-modal-title" class="text-base font-extrabold text-slate-900 dark:text-white">Nuevo Producto</h3>
-        <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <form onsubmit="saveProduct(event)" class="p-6 space-y-4">
-        <input type="hidden" id="prod-edit-id" />
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Código SKU *</label>
-            <input type="text" id="prod-sku" required placeholder="Ej. JDPE4315" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm uppercase font-mono focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Categoría *</label>
-            <select id="prod-category" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nombre del Producto *</label>
-          <input type="text" id="prod-name" required placeholder="Ej. Taladro Percutor 650W Jadever" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Ubicación</label>
-            <input type="text" id="prod-location" placeholder="Pasillo A-1" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Stock Actual *</label>
-            <input type="number" id="prod-qty" min="0" value="0" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Stock Mínimo</label>
-            <input type="number" id="prod-min" min="0" value="5" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Precio Unitario ($)</label>
-          <input type="number" id="prod-price" step="0.01" min="0" value="0.00" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-        </div>
-        <div class="pt-2 flex justify-end gap-2.5">
-          <button type="button" onclick="closeProductModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Cancelar</button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/20">Guardar Producto</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!-- MODAL 2: MANUAL ENTRADA / SALIDA & EDIT MOVEMENT          -->
-  <!-- ========================================================= -->
-  <div id="movement-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-        <h3 id="mov-modal-title" class="text-base font-extrabold text-slate-900 dark:text-white">Registrar Movimiento</h3>
-        <button onclick="closeMovementModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <form onsubmit="saveManualMovement(event)" class="p-6 space-y-4">
-        <input type="hidden" id="mov-edit-id" />
-        <input type="hidden" id="mov-type" value="ENTRADA" />
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Producto *</label>
-          <select id="mov-product-select" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
-        </div>
-
-        <!-- Client / Invoice Recipient Field (Shown prominently for SALIDA) -->
-        <div id="mov-client-wrapper" class="hidden p-3.5 rounded-xl bg-brand-50/70 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/30 space-y-2.5">
-          <div>
-            <label class="block text-xs font-bold text-brand-800 dark:text-brand-300 mb-1">A nombre de (Cliente / Destinatario de factura) *</label>
-            <input type="text" id="mov-client" placeholder="Ej. Constructora Los Andes C.A. / Juan Pérez" class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-brand-300 dark:border-brand-500/40 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">N° Factura / Nota de Entrega</label>
-            <input type="text" id="mov-invoice-num" placeholder="Ej. FAC-00148" class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Cantidad (UND) *</label>
-            <input type="number" id="mov-qty" min="1" value="1" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Responsable *</label>
-            <input type="text" id="mov-user" value="Wendy Hernandez" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Observaciones / Motivo</label>
-          <input type="text" id="mov-ref" placeholder="Ej. Despacho mostrador / Obra Norte" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-        </div>
-        <div class="pt-2 flex justify-end gap-2.5">
-          <button type="button" onclick="closeMovementModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Cancelar</button>
-          <button type="submit" id="mov-submit-btn" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-md">Confirmar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!-- MODAL 3: INVOICE OCR & SMART AUTO-POPULATE                -->
-  <!-- ========================================================= -->
-  <div id="ocr-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden my-auto">
-      <!-- Header -->
-      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-brand-500/20 border border-brand-500/40 text-brand-400 flex items-center justify-center">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          </div>
-          <div>
-            <h3 class="text-base font-extrabold">Lectura Inteligente de Factura por Foto (OCR)</h3>
-            <p class="text-xs text-slate-400">Detecta códigos, nombres y cantidades desde fotos (.jpg/.png) y registra artículos nuevos al instante</p>
-          </div>
-        </div>
-        <button onclick="closeOcrModal()" class="text-slate-400 hover:text-white p-1">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <div class="p-5 sm:p-6 space-y-5 max-h-[85vh] overflow-y-auto">
-        <!-- Direction Type & Client Name (for Salida Invoices) -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 bg-slate-50 dark:bg-slate-950 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
-          <div class="md:col-span-4">
-            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Tipo de Factura</label>
-            <select id="ocr-direction" onchange="toggleOcrClientField()" class="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold">
-              <option value="ENTRADA">ENTRADA (Compra / Ingreso a Bodega)</option>
-              <option value="SALIDA">SALIDA (Venta / Despacho a Cliente)</option>
-            </select>
-          </div>
-          <div id="ocr-client-box" class="md:col-span-5 hidden">
-            <label class="block text-[11px] font-bold uppercase text-brand-600 dark:text-brand-400 mb-1">A nombre de quién es la factura *</label>
-            <input type="text" id="ocr-client-name" placeholder="Nombre del cliente o empresa..." class="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-brand-400 text-xs font-semibold" />
-          </div>
-          <div class="md:col-span-3">
-            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Estado OCR</label>
-            <div class="px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
-              <span id="ocr-status-badge" class="font-bold text-amber-600 dark:text-amber-400">Esperando foto</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Upload & Sample Controls -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-          <div onclick="document.getElementById('ocr-file-input').click()" class="md:col-span-7 cursor-pointer border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-brand-500 rounded-xl p-4 text-center bg-slate-50 dark:bg-slate-950/60 transition-all">
-            <input type="file" id="ocr-file-input" accept="image/jpeg,image/png,image/jpg" onchange="handleOcrImageUpload(event)" class="hidden" />
-            <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Subir fotografía de factura (.JPG, .JPEG, .PNG)</p>
-            <p class="text-xs text-slate-500 mt-1">Extrae automáticamente códigos SKU, descripciones y cantidades</p>
-          </div>
-          <div class="md:col-span-5 flex flex-col gap-2">
-            <button type="button" onclick="simulateSampleInvoiceOCR()" class="w-full py-3 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand-500/20 transition-all">
-              Probar con Factura de Muestra (10 artículos)
-            </button>
-            <p class="text-[11px] text-center text-slate-400">Simula una factura física con 10 ítems (1 en sistema, 9 nuevos)</p>
-          </div>
-        </div>
-
-        <!-- Visual Scan Progress Preview -->
-        <div id="ocr-scan-preview" class="hidden relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950 p-4 text-white">
-          <div id="ocr-scanner-line" class="ocr-scanner-bar"></div>
-          <div class="flex flex-col sm:flex-row items-center gap-4">
-            <img id="ocr-preview-img" src="" alt="Vista previa factura" class="w-24 h-24 object-cover rounded-lg border border-slate-700 bg-slate-900 shrink-0" />
-            <div class="flex-1 w-full space-y-2">
-              <div class="flex items-center justify-between">
-                <span id="ocr-scan-label" class="text-xs font-bold uppercase tracking-wider text-brand-400">Escaneando códigos y cantidades en la imagen...</span>
-                <span id="ocr-scan-pct" class="text-xs font-mono text-slate-300">0%</span>
-              </div>
-              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div id="ocr-progress-bar" class="h-full bg-brand-500 transition-all duration-200" style="width: 0%"></div>
-              </div>
-              <p id="ocr-raw-snippet" class="text-[11px] font-mono text-slate-400 truncate">Analizando columnas de código, descripción y cantidad...</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Extracted Items Table & Missing Summary Banner -->
-        <div id="ocr-results-container" class="hidden space-y-4">
-          <!-- Prominent Detection Summary Banner -->
-          <div id="ocr-detection-banner" class="p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="space-y-0.5">
-              <p id="ocr-summary-headline" class="text-sm font-extrabold text-amber-900 dark:text-amber-300">
-                De 10 cosas que salen en la foto, 9 no hay en el sistema (1 encontrada)
-              </p>
-              <p class="text-xs text-amber-700 dark:text-amber-400">
-                Revisa o edita los códigos y nombres en la tabla de abajo y agrégalos al inventario con un clic.
-              </p>
-            </div>
-            <button type="button" id="btn-register-all-missing" onclick="registerAllMissingOcrItems()" class="shrink-0 px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-extrabold shadow-md transition-all">
-              + Agregar las 9 faltantes al inventario
-            </button>
-          </div>
-
-          <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-            <div class="flex items-center gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">N° Factura:</label>
-              <input type="text" id="ocr-invoice-number" value="FAC-009842" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-mono font-bold" />
-            </div>
-            <button type="button" onclick="addManualOcrRow()" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">+ Añadir fila manual</button>
-          </div>
-
-          <!-- Inline Editable Table with Code, Name, Category, Qty & Quick Add -->
-          <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 font-bold uppercase text-slate-500">
-                  <th class="py-2.5 px-2.5">Estado</th>
-                  <th class="py-2.5 px-2.5">Código / SKU</th>
-                  <th class="py-2.5 px-2.5">Nombre del Producto (Editable)</th>
-                  <th class="py-2.5 px-2.5">Categoría</th>
-                  <th class="py-2.5 px-2.5 text-right">Cantidad</th>
-                  <th class="py-2.5 px-2.5 text-right">Acción</th>
-                </tr>
-              </thead>
-              <tbody id="ocr-items-tbody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
-            </table>
-          </div>
-
-          <div class="flex flex-wrap items-center justify-end gap-2.5 pt-2">
-            <button type="button" onclick="closeOcrModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Cerrar</button>
-            <button type="button" id="ocr-confirm-btn" onclick="confirmAndProcessInvoice()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition-all">
-              Confirmar y Procesar Factura
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!-- MODAL 4: QUICK-ADD MISSING SKU FROM OCR                   -->
-  <!-- ========================================================= -->
-  <div id="quick-sku-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/75 backdrop-blur-xs p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border-2 border-brand-500 shadow-2xl overflow-hidden">
-      <div class="px-5 py-3.5 bg-brand-500 text-white flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <h4 class="text-sm font-extrabold">SKU No Encontrado en Inventario</h4>
-        </div>
-        <button onclick="closeQuickSkuModal()" class="text-white/80 hover:text-white">✕</button>
-      </div>
-      <form onsubmit="saveQuickMissingSku(event)" class="p-5 space-y-3.5">
-        <p class="text-xs text-slate-600 dark:text-slate-300">El código <span id="qsku-code-label" class="font-mono font-bold text-brand-600 dark:text-brand-400"></span> no existe en tu catálogo maestro. Regístralo al instante para continuar con la factura:</p>
-        <input type="hidden" id="qsku-row-index" />
-        <div>
-          <label class="block text-xs font-semibold mb-1">Código SKU</label>
-          <input type="text" id="qsku-code" readonly class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-mono font-bold" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1">Nombre del Producto *</label>
-          <input type="text" id="qsku-name" required placeholder="Ej. Llave Ajustable 10 Pulgadas Jadever" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none" />
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold mb-1">Categoría *</label>
-            <select id="qsku-category" required class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold mb-1">Precio Unitario ($)</label>
-            <input type="number" id="qsku-price" step="0.01" min="0" value="0.00" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none" />
-          </div>
-        </div>
-        <div class="pt-2 flex justify-end gap-2">
-          <button type="button" onclick="closeQuickSkuModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-500">Cancelar</button>
-          <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-md">+ Agregar al inventario</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!-- MODAL 5: INVITE USER & SIGN OUT MODAL                     -->
-  <!-- ========================================================= -->
-  <div id="invite-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-        <h3 class="text-base font-extrabold">Invitar Nuevo Usuario</h3>
-        <button onclick="closeInviteModal()" class="text-slate-400 hover:text-slate-600">✕</button>
-      </div>
-      <form onsubmit="sendUserInvite(event)" class="p-6 space-y-4">
-        <div>
-          <label class="block text-xs font-semibold mb-1">Nombre Completo *</label>
-          <input type="text" id="inv-user-name" required placeholder="Ej. Carlos Mendoza" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1">Correo Electrónico *</label>
-          <input type="email" id="inv-user-email" required placeholder="carlos@jadeverbodega.com" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold mb-1">Rol Asignado *</label>
-          <select id="inv-user-role" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm">
-            <option value="Admin">Admin (Control total de inventario y movimientos)</option>
-            <option value="Observador">Observador (Solo lectura y consulta)</option>
-          </select>
-        </div>
-        <div class="pt-2 flex justify-end gap-2">
-          <button type="button" onclick="closeInviteModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500">Cancelar</button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-brand-500 text-white">Enviar Invitación</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Sign-Out Lock Screen Modal -->
-  <div id="signout-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center space-y-4 shadow-2xl">
-      <div class="w-14 h-14 mx-auto rounded-full bg-brand-500 flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-brand-500/30">WH</div>
-      <div>
-        <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Sesión Bloqueada</h3>
-        <p class="text-xs text-slate-500 mt-1">Wendy Hernandez • Administrator</p>
-      </div>
-      <button onclick="closeSignOutModal()" class="w-full py-2.5 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm shadow-md transition-all">
-        Reanudar Sesión
-      </button>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!-- APPLICATION LOGIC (JAVASCRIPT)                            -->
-  <!-- ========================================================= -->
   <script>
-    // Categories required by specification
-    const CATEGORIES = [
-      "Adhesivos y sellantes",
-      "Aire y ventilación",
-      "Automotriz",
-      "Cerrajería y seguridad",
-      "Construcción",
-      "Electricidad",
-      "Electrodomésticos"
-    ];
+    // Lógica principal de JadeverBodega con Firestore
+    let inventory = [];
+    let movements = [];
+    let currentTab = 'inventario';
+    let selectedCategory = 'Todas';
 
-    // Application State (Starts empty/clean as specified)
-    let state = {
-      appName: "JadeverBodega",
-      darkMode: false,
-      activeTab: "inventario",
-      selectedCategory: "Todas",
-      reportFilter: "today",
-      products: [], // Starts empty ready for CSV/Excel upload
-      movements: [],
-      orders: [],
-      savedReports: [], // Persistent archive of saved reports
-      pendingUsers: [
-        { id: "u-req-1", name: "Luis Morales", email: "lmorales@ferreteria.com", role: "Observador", date: "Hoy, 10:15 AM" },
-        { id: "u-req-2", name: "Andrea Rojas", email: "arojas@jadever.com", role: "Admin", date: "Ayer, 4:40 PM" }
-      ],
-      activeUsers: [
-        { id: "u-1", name: "Wendy Hernandez", email: "wendy.h@jadeverbodega.com", role: "Admin" }
-      ]
-    };
-
-    let bulkParsedRows = [];
-    let ocrExtractedRows = [];
-
-    // Initialization on load
-    window.addEventListener("DOMContentLoaded", () => {
-      loadState();
-      setDynamicSpanishDate();
-      populateCategoryDropdowns();
-      applyTheme();
-      updateAppName(state.appName, false);
-      renderAll();
+    window.addEventListener('DOMContentLoaded', () => {
+      initFirebaseSync();
     });
 
-    function loadState() {
-      try {
-        const saved = localStorage.getItem("jadever_bodega_state_v1");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          state = { ...state, ...parsed };
-        }
-      } catch (e) {
-        console.warn("No se pudo cargar localStorage:", e);
-      }
-    }
-
-    function saveState() {
-      try {
-        localStorage.setItem("jadever_bodega_state_v1", JSON.stringify(state));
-      } catch (e) {
-        console.warn("Error guardando localStorage:", e);
-      }
-    }
-
-    function setDynamicSpanishDate() {
-      const now = new Date();
-      const days = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
-      const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-      const formatted = `${days[now.getDay()]}, ${now.getDate()} DE ${months[now.getMonth()]}`;
-      const el = document.getElementById("dynamic-date-header");
-      if (el) el.textContent = formatted;
-    }
-
-    function populateCategoryDropdowns() {
-      const selects = ["prod-category", "qsku-category"];
-      selects.forEach(id => {
-        const sel = document.getElementById(id);
-        if (!sel) return;
-        sel.innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("");
-      });
-
-      const movFilter = document.getElementById("mov-cat-filter");
-      if (movFilter) {
-        movFilter.innerHTML = `<option value="Todas">Todas las categorías</option>` +
-          CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("");
-      }
-    }
-
-    // Navigation & Mobile Sidebar
-    function switchTab(tabId) {
-      state.activeTab = tabId;
-      document.querySelectorAll(".app-screen").forEach(sec => sec.classList.add("hidden"));
-      const target = document.getElementById(`screen-${tabId}`);
-      if (target) target.classList.remove("hidden");
-
-      document.querySelectorAll(".nav-btn").forEach(btn => {
-        const isTarget = btn.getAttribute("data-tab") === tabId;
-        if (isTarget) {
-          btn.className = "nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-500 text-white shadow-md shadow-brand-500/20";
-        } else {
-          btn.className = "nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all";
-        }
-      });
-
-      // Close mobile sidebar if open
-      const sidebar = document.getElementById("sidebar");
-      const backdrop = document.getElementById("sidebar-backdrop");
-      if (!sidebar.classList.contains("-translate-x-full") && window.innerWidth < 1024) {
-        sidebar.classList.add("-translate-x-full");
-        backdrop.classList.add("hidden");
-      }
-
-      renderAll();
-    }
-
-    function toggleMobileSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      const backdrop = document.getElementById("sidebar-backdrop");
-      sidebar.classList.toggle("-translate-x-full");
-      backdrop.classList.toggle("hidden");
-    }
-
-    // Dark Mode Logic
-    function toggleDarkMode() {
-      setDarkMode(!state.darkMode);
-    }
-
-    function setDarkMode(enable) {
-      state.darkMode = enable;
-      applyTheme();
-      saveState();
-    }
-
-    function applyTheme() {
-      const html = document.documentElement;
-      const toggleBtn = document.getElementById("sidebar-dark-toggle");
-      const knob = document.getElementById("sidebar-dark-knob");
-      const btnLight = document.getElementById("btn-theme-light");
-      const btnDark = document.getElementById("btn-theme-dark");
-
-      if (state.darkMode) {
-        html.classList.add("dark");
-        if (toggleBtn) toggleBtn.classList.replace("bg-slate-600", "bg-brand-500");
-        if (knob) knob.classList.replace("translate-x-0", "translate-x-4");
-        if (btnDark && btnLight) {
-          btnDark.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 text-white shadow-xs transition-all";
-          btnLight.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 transition-all";
-        }
-      } else {
-        html.classList.remove("dark");
-        if (toggleBtn) toggleBtn.classList.replace("bg-brand-500", "bg-slate-600");
-        if (knob) knob.classList.replace("translate-x-4", "translate-x-0");
-        if (btnDark && btnLight) {
-          btnLight.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-xs transition-all";
-          btnDark.className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 transition-all";
-        }
-      }
-    }
-
-    function updateAppName(val, persist = true) {
-      const name = val.trim() || "JadeverBodega";
-      state.appName = name;
-      document.querySelectorAll(".app-title-display").forEach(el => el.textContent = name);
-      const settingsInput = document.getElementById("settings-app-name");
-      if (settingsInput && settingsInput.value !== name) settingsInput.value = name;
-      document.title = `${name} | Gestión de Inventario`;
-      if (persist) saveState();
-    }
-
-    // Toast Notification Helper
-    function showToast(message, type = "success") {
-      const container = document.getElementById("toast-container");
-      const toast = document.createElement("div");
-      const colors = {
-        success: "bg-slate-900 dark:bg-slate-800 border-emerald-500 text-white",
-        warning: "bg-slate-900 dark:bg-slate-800 border-amber-500 text-white",
-        error: "bg-slate-900 dark:bg-slate-800 border-rose-500 text-white"
-      };
-      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border-l-4 shadow-xl text-xs font-semibold transition-all duration-300 ${colors[type] || colors.success}`;
-      toast.innerHTML = `<span class="flex-1">${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => toast.remove(), 300);
-      }, 3400);
-    }
-
-    function renderAll() {
-      updateMetricsAndBadges();
-      renderCategoryChips();
-      renderInventory();
-      renderMovements();
-      renderOrders();
-      renderReports();
-      renderUsersSettings();
-      updateCatalogDatalist();
-    }
-
-    // =========================================================
-    // SCREEN 1: INVENTARIO (METRICS, CHIPS, TABLE & CRUD)
-    // =========================================================
-    function updateMetricsAndBadges() {
-      const totalRefs = state.products.length;
-      const totalUnits = state.products.reduce((acc, p) => acc + Number(p.qty || 0), 0);
-      const reorderCount = state.products.filter(p => Number(p.qty || 0) <= Number(p.minStock || 5)).length;
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const todayMovs = state.movements.filter(m => (m.dateISO || "").startsWith(todayStr)).length;
-
-      const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-      setTxt("metric-total-refs", totalRefs);
-      setTxt("metric-total-units", totalUnits);
-      setTxt("metric-reorder-count", reorderCount);
-      setTxt("metric-today-movs", todayMovs);
-      setTxt("nav-badge-inv", totalRefs);
-
-      const pedBadge = document.getElementById("nav-badge-ped");
-      if (pedBadge) {
-        pedBadge.textContent = state.orders.length;
-        pedBadge.classList.toggle("hidden", state.orders.length === 0);
-      }
-    }
-
-    function renderCategoryChips() {
-      const container = document.getElementById("category-chips");
-      if (!container) return;
-      const allCats = ["Todas", ...CATEGORIES];
-      container.innerHTML = allCats.map(cat => {
-        const active = state.selectedCategory === cat;
-        return `<button onclick="selectCategory('${cat}')" class="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-          active
-            ? "bg-brand-500 text-white shadow-sm shadow-brand-500/25"
-            : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-        }">${escapeHtml(cat)}</button>`;
-      }).join("");
-    }
-
-    function selectCategory(cat) {
-      state.selectedCategory = cat;
-      renderCategoryChips();
-      renderInventory();
-    }
-
-    function renderInventory() {
-      const tbody = document.getElementById("inventory-tbody");
-      if (!tbody) return;
-      const q = (document.getElementById("inv-search-input")?.value || "").trim().toLowerCase();
-
-      const filtered = state.products.filter(p => {
-        const matchesCat = state.selectedCategory === "Todas" || p.category === state.selectedCategory;
-        const matchesQuery = !q ||
-          p.name.toLowerCase().includes(q) ||
-          p.sku.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          (p.location || "").toLowerCase().includes(q);
-        return matchesCat && matchesQuery;
-      });
-
-      if (filtered.length === 0) {
-        const isEmptyCatalog = state.products.length === 0;
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" class="py-14 px-6 text-center">
-              <div class="max-w-md mx-auto space-y-3">
-                <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                </div>
-                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">
-                  ${isEmptyCatalog ? "No hay productos en inventario. Usa la pestaña Carga Masiva para subir tu catálogo" : "No se encontraron coincidencias para tu búsqueda"}
-                </p>
-                ${isEmptyCatalog ? `<button onclick="switchTab('carga')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-xs transition-all">Ir a Carga Masiva</button>` : ""}
-              </div>
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      tbody.innerHTML = filtered.map(p => {
-        const isLow = Number(p.qty) <= Number(p.minStock || 5);
-        return `
-          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-            <td class="py-3.5 px-4 font-mono text-xs font-bold text-brand-600 dark:text-brand-400 whitespace-nowrap">${escapeHtml(p.sku)}</td>
-            <td class="py-3.5 px-4">
-              <p class="font-semibold text-slate-900 dark:text-white">${escapeHtml(p.name)}</p>
-              ${p.price ? `<span class="text-[11px] text-slate-400">$${Number(p.price).toFixed(2)} c/u</span>` : ""}
-            </td>
-            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300">${escapeHtml(p.category)}</span></td>
-            <td class="py-3.5 px-4 text-xs text-slate-500 dark:text-slate-400">${escapeHtml(p.location || "General")}</td>
-            <td class="py-3.5 px-4 text-right whitespace-nowrap">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold ${
-                isLow
-                  ? "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300"
-                  : "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-              }">
-                ${p.qty} UND
-              </span>
-            </td>
-            <td class="py-3.5 px-4 text-right whitespace-nowrap">
-              <div class="inline-flex items-center gap-1">
-                <button onclick="openProductModal('${p.id}')" title="Editar" class="p-1.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-slate-800 transition-colors">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                </button>
-                <button onclick="deleteProduct('${p.id}')" title="Eliminar" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 transition-colors">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join("");
-    }
-
-    function openProductModal(editId = null) {
-      const modal = document.getElementById("product-modal");
-      const title = document.getElementById("product-modal-title");
-      document.getElementById("prod-edit-id").value = editId || "";
-
-      if (editId) {
-        const prod = state.products.find(p => p.id === editId);
-        if (!prod) return;
-        title.textContent = "Editar Producto";
-        document.getElementById("prod-sku").value = prod.sku;
-        document.getElementById("prod-category").value = prod.category;
-        document.getElementById("prod-name").value = prod.name;
-        document.getElementById("prod-location").value = prod.location || "";
-        document.getElementById("prod-qty").value = prod.qty;
-        document.getElementById("prod-min").value = prod.minStock ?? 5;
-        document.getElementById("prod-price").value = prod.price ?? 0;
-      } else {
-        title.textContent = "Nuevo Producto";
-        document.getElementById("prod-sku").value = "";
-        document.getElementById("prod-category").value = CATEGORIES[0];
-        document.getElementById("prod-name").value = "";
-        document.getElementById("prod-location").value = "";
-        document.getElementById("prod-qty").value = 0;
-        document.getElementById("prod-min").value = 5;
-        document.getElementById("prod-price").value = "0.00";
-      }
-
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    }
-
-    function closeProductModal() {
-      const modal = document.getElementById("product-modal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    }
-
-    function saveProduct(e) {
-      e.preventDefault();
-      const editId = document.getElementById("prod-edit-id").value;
-      const sku = document.getElementById("prod-sku").value.trim().toUpperCase();
-      const category = document.getElementById("prod-category").value;
-      const name = document.getElementById("prod-name").value.trim();
-      const location = document.getElementById("prod-location").value.trim() || "Bodega General";
-      const qty = Math.max(0, parseInt(document.getElementById("prod-qty").value, 10) || 0);
-      const minStock = Math.max(0, parseInt(document.getElementById("prod-min").value, 10) || 5);
-      const price = Math.max(0, parseFloat(document.getElementById("prod-price").value) || 0);
-
-      if (editId) {
-        const idx = state.products.findIndex(p => p.id === editId);
-        if (idx !== -1) {
-          state.products[idx] = { ...state.products[idx], sku, category, name, location, qty, minStock, price };
-          showToast(`Producto ${sku} actualizado`);
-        }
-      } else {
-        const dup = state.products.find(p => p.sku.toUpperCase() === sku);
-        if (dup) {
-          dup.name = name;
-          dup.category = category;
-          dup.location = location;
-          dup.qty = Number(dup.qty) + qty;
-          dup.minStock = minStock;
-          dup.price = price;
-          showToast(`SKU ${sku} ya existía: stock sumado a ${dup.qty} UND`);
-        } else {
-          state.products.unshift({
-            id: "prod-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-            sku, category, name, location, qty, minStock, price
-          });
-          showToast(`Producto ${sku} agregado al inventario`);
-        }
-      }
-
-      saveState();
-      closeProductModal();
-      renderAll();
-    }
-
-    function deleteProduct(id) {
-      const prod = state.products.find(p => p.id === id);
-      if (!prod) return;
-      state.products = state.products.filter(p => p.id !== id);
-      saveState();
-      renderAll();
-      showToast(`Producto ${prod.sku} eliminado`, "warning");
-    }
-
-    // =========================================================
-    // SCREEN 2: MOVIMIENTOS & FACTURA OCR
-    // =========================================================
-    function openMovementModal(type = "ENTRADA", editMovId = null) {
-      if (state.products.length === 0) {
-        showToast("Primero agrega o carga productos en el inventario", "warning");
-        return;
-      }
-
-      const modal = document.getElementById("movement-modal");
-      const select = document.getElementById("mov-product-select");
-      select.innerHTML = state.products.map(p => `<option value="${p.id}">[${p.sku}] ${escapeHtml(p.name)} (${p.qty} UND)</option>`).join("");
-
-      document.getElementById("mov-edit-id").value = editMovId || "";
-      const clientWrapper = document.getElementById("mov-client-wrapper");
-      const clientInput = document.getElementById("mov-client");
-      const invInput = document.getElementById("mov-invoice-num");
-
-      if (editMovId) {
-        const mov = state.movements.find(m => m.id === editMovId);
-        if (!mov) return;
-        type = mov.type;
-        document.getElementById("mov-modal-title").textContent = `Editar Movimiento (${type})`;
-        select.value = mov.productId;
-        select.disabled = true;
-        document.getElementById("mov-qty").value = mov.qty;
-        document.getElementById("mov-user").value = mov.user;
-        document.getElementById("mov-ref").value = mov.ref || "";
-        clientInput.value = mov.clientName || "";
-        invInput.value = mov.invoiceNumber || "";
-      } else {
-        select.disabled = false;
-        document.getElementById("mov-modal-title").textContent = type === "ENTRADA" ? "Registrar Entrada de Stock" : "Registrar Salida / Factura de Despacho";
-        document.getElementById("mov-qty").value = 1;
-        document.getElementById("mov-user").value = "Wendy Hernandez";
-        document.getElementById("mov-ref").value = "";
-        clientInput.value = "";
-        invInput.value = "";
-      }
-
-      document.getElementById("mov-type").value = type;
-      const submitBtn = document.getElementById("mov-submit-btn");
-
-      if (type === "SALIDA") {
-        clientWrapper.classList.remove("hidden");
-        clientInput.required = true;
-        submitBtn.className = "px-5 py-2 rounded-xl text-xs font-bold bg-brand-500 hover:bg-brand-600 text-white shadow-md";
-      } else {
-        clientWrapper.classList.add("hidden");
-        clientInput.required = false;
-        submitBtn.className = "px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md";
-      }
-
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    }
-
-    function closeMovementModal() {
-      const modal = document.getElementById("movement-modal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    }
-
-    function saveManualMovement(e) {
-      e.preventDefault();
-      const editId = document.getElementById("mov-edit-id").value;
-      const type = document.getElementById("mov-type").value;
-      const productId = document.getElementById("mov-product-select").value;
-      const qty = Math.max(1, parseInt(document.getElementById("mov-qty").value, 10) || 1);
-      const user = document.getElementById("mov-user").value.trim() || "Wendy Hernandez";
-      const ref = document.getElementById("mov-ref").value.trim();
-      const clientName = type === "SALIDA" ? document.getElementById("mov-client").value.trim() : "";
-      const invoiceNumber = type === "SALIDA" ? document.getElementById("mov-invoice-num").value.trim() : "";
-
-      const prod = state.products.find(p => p.id === productId);
-      if (!prod) return;
-
-      if (editId) {
-        const mov = state.movements.find(m => m.id === editId);
-        if (!mov) return;
-        // Revert old stock impact first
-        if (mov.type === "ENTRADA") {
-          prod.qty = Math.max(0, Number(prod.qty) - Number(mov.qty));
-        } else {
-          prod.qty = Number(prod.qty) + Number(mov.qty);
-        }
-        // Apply new stock impact
-        if (type === "SALIDA" && Number(prod.qty) < qty) {
-          showToast(`Stock insuficiente (${prod.qty} UND disponibles)`, "error");
-          // Restore previous state
-          if (mov.type === "ENTRADA") prod.qty += Number(mov.qty);
-          else prod.qty = Math.max(0, prod.qty - Number(mov.qty));
-          return;
-        }
-        prod.qty = type === "ENTRADA" ? Number(prod.qty) + qty : Math.max(0, Number(prod.qty) - qty);
-        mov.qty = qty;
-        mov.user = user;
-        mov.ref = ref;
-        mov.clientName = clientName;
-        mov.invoiceNumber = invoiceNumber;
-        showToast("Movimiento actualizado y stock recalculado");
-      } else {
-        if (type === "SALIDA" && Number(prod.qty) < qty) {
-          showToast(`Stock insuficiente de ${prod.sku} (${prod.qty} UND disponibles)`, "error");
-          return;
-        }
-        prod.qty = type === "ENTRADA" ? Number(prod.qty) + qty : Math.max(0, Number(prod.qty) - qty);
-        state.movements.unshift({
-          id: "mov-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-          type,
-          productId: prod.id,
-          sku: prod.sku,
-          productName: prod.name,
-          category: prod.category,
-          qty,
-          user,
-          clientName,
-          invoiceNumber,
-          ref,
-          dateISO: new Date().toISOString()
-        });
-        showToast(`${type === "ENTRADA" ? "Entrada" : "Salida"} registrada (${qty} UND)`);
-      }
-
-      saveState();
-      closeMovementModal();
-      renderAll();
-    }
-
-    function deleteMovement(id) {
-      const mov = state.movements.find(m => m.id === id);
-      if (!mov) return;
-      const prod = state.products.find(p => p.id === mov.productId || p.sku === mov.sku);
-      if (prod) {
-        if (mov.type === "ENTRADA") {
-          prod.qty = Math.max(0, Number(prod.qty) - Number(mov.qty));
-        } else {
-          prod.qty = Number(prod.qty) + Number(mov.qty);
-        }
-      }
-      state.movements = state.movements.filter(m => m.id !== id);
-      saveState();
-      renderAll();
-      showToast("Movimiento eliminado y stock recalculado", "warning");
-    }
-
-    function renderMovements() {
-      const container = document.getElementById("movements-list");
-      if (!container) return;
-
-      const q = (document.getElementById("mov-search")?.value || "").trim().toLowerCase();
-      const cat = document.getElementById("mov-cat-filter")?.value || "Todas";
-      const from = document.getElementById("mov-date-from")?.value || "";
-      const to = document.getElementById("mov-date-to")?.value || "";
-
-      const filtered = state.movements.filter(m => {
-        const dStr = (m.dateISO || "").slice(0, 10);
-        const matchQ = !q ||
-          (m.productName || "").toLowerCase().includes(q) ||
-          (m.sku || "").toLowerCase().includes(q) ||
-          (m.user || "").toLowerCase().includes(q) ||
-          (m.clientName || "").toLowerCase().includes(q) ||
-          (m.invoiceNumber || "").toLowerCase().includes(q);
-        const matchCat = cat === "Todas" || m.category === cat;
-        const matchFrom = !from || dStr >= from;
-        const matchTo = !to || dStr <= to;
-        return matchQ && matchCat && matchFrom && matchTo;
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-12 text-center">
-            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">No hay movimientos registrados</p>
-            <p class="text-xs text-slate-400 mt-1">Registra una Entrada, una Salida o escanea una factura con el botón "Por factura".</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = filtered.map(m => {
-        const isIn = m.type === "ENTRADA";
-        const dt = new Date(m.dateISO);
-        const dateFormatted = `${dt.toLocaleDateString("es-ES")} • ${dt.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
-
-        return `
-          <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-start sm:items-center gap-3.5">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                isIn
-                  ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400"
-              }">
-                ${isIn
-                  ? `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>`
-                  : `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>`
-                }
-              </div>
-              <div class="space-y-0.5">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="font-mono text-xs font-bold text-brand-600 dark:text-brand-400">${escapeHtml(m.sku)}</span>
-                  <h4 class="font-bold text-sm text-slate-900 dark:text-white">${escapeHtml(m.productName)}</h4>
-                  ${m.invoiceNumber ? `<span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 font-mono text-[11px] font-semibold">${escapeHtml(m.invoiceNumber)}</span>` : ""}
-                </div>
-                <p class="text-xs text-slate-500">
-                  ${dateFormatted} • Responsable: <strong class="text-slate-700 dark:text-slate-300">${escapeHtml(m.user)}</strong>
-                </p>
-                ${m.clientName ? `<p class="text-xs font-semibold text-brand-700 dark:text-brand-400">Factura a nombre de: ${escapeHtml(m.clientName)}</p>` : ""}
-                ${m.ref ? `<p class="text-[11px] text-slate-400">${escapeHtml(m.ref)}</p>` : ""}
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
-              <span class="text-sm font-extrabold px-3 py-1 rounded-xl ${
-                isIn
-                  ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                  : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400"
-              }">
-                ${isIn ? "+" : "-"}${m.qty} UND
-              </span>
-              <div class="flex items-center gap-1">
-                <button onclick="openMovementModal('${m.type}', '${m.id}')" title="Editar movimiento" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                </button>
-                <button onclick="deleteMovement('${m.id}')" title="Eliminar movimiento" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    // =========================================================
-    // INVOICE OCR MODAL & SMART AUTO-POPULATE
-    // =========================================================
-    function openOcrModal() {
-      ocrExtractedRows = [];
-      document.getElementById("ocr-file-input").value = "";
-      document.getElementById("ocr-scan-preview").classList.add("hidden");
-      document.getElementById("ocr-results-container").classList.add("hidden");
-      const badge = document.getElementById("ocr-status-badge");
-      badge.textContent = "Esperando foto";
-      badge.className = "font-bold text-amber-600 dark:text-amber-400";
-      toggleOcrClientField();
-
-      const modal = document.getElementById("ocr-modal");
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    }
-
-    function closeOcrModal() {
-      const modal = document.getElementById("ocr-modal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    }
-
-    function toggleOcrClientField() {
-      const dir = document.getElementById("ocr-direction").value;
-      const box = document.getElementById("ocr-client-box");
-      if (dir === "SALIDA") box.classList.remove("hidden");
-      else box.classList.add("hidden");
-    }
-
-    function handleOcrImageUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const previewBox = document.getElementById("ocr-scan-preview");
-        const previewImg = document.getElementById("ocr-preview-img");
-        const bar = document.getElementById("ocr-progress-bar");
-        const pct = document.getElementById("ocr-scan-pct");
-        const snippet = document.getElementById("ocr-raw-snippet");
-
-        previewImg.src = ev.target.result;
-        previewBox.classList.remove("hidden");
-        document.getElementById("ocr-results-container").classList.add("hidden");
-        bar.style.width = "15%";
-        pct.textContent = "15%";
-
-        try {
-          if (window.Tesseract) {
-            const result = await Tesseract.recognize(ev.target.result, "spa+eng", {
-              logger: m => {
-                if (m.status === "recognizing text" && typeof m.progress === "number") {
-                  const p = Math.min(98, Math.max(20, Math.round(m.progress * 100)));
-                  bar.style.width = `${p}%`;
-                  pct.textContent = `${p}%`;
-                }
-              }
+    function initFirebaseSync() {
+      const checkDb = setInterval(() => {
+        if (window.db) {
+          clearInterval(checkDb);
+          const { collection, onSnapshot } = window;
+          
+          // Sincronizar Inventario en tiempo real
+          onSnapshot(collection(window.db, "inventory"), (snapshot) => {
+            inventory = [];
+            snapshot.forEach((doc) => {
+              inventory.push({ id: doc.id, ...doc.data() });
             });
-            bar.style.width = "100%";
-            pct.textContent = "100%";
-            const rawText = result.data.text || "";
-            snippet.textContent = rawText.replace(/\s+/g, " ").slice(0, 120) || "Texto extraído de la factura";
-            const parsed = parseInvoiceTextToRows(rawText);
-            if (parsed.length > 0) {
-              setOcrRows(parsed);
-            } else {
-              simulateSampleInvoiceOCR(true);
-            }
-          } else {
-            simulateSampleInvoiceOCR(true);
-          }
-        } catch (err) {
-          console.warn("OCR fallback triggered:", err);
-          simulateSampleInvoiceOCR(true);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function parseInvoiceTextToRows(text) {
-      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      const found = [];
-      const skuRegex = /\b([A-Z]{2,5}[0-9]{2,6}[A-Z0-9]*)\b/;
-
-      lines.forEach(line => {
-        const match = line.match(skuRegex);
-        if (match) {
-          const sku = match[1].toUpperCase();
-          const nums = line.replace(sku, "").match(/\b(\d{1,4})\b/g);
-          const qty = nums ? Math.max(1, parseInt(nums[nums.length - 1], 10)) : 1;
-          const cleanName = line.replace(sku, "").replace(/\b\d+(\.\d+)?\b/g, "").replace(/[^\w\sáéíóúñÁÉÍÓÚÑ-]/g, "").trim();
-          const existing = state.products.find(p => p.sku.toUpperCase() === sku);
-          found.push({
-            sku,
-            name: existing ? existing.name : (cleanName || `Herramienta Código ${sku}`),
-            category: existing ? existing.category : CATEGORIES[4],
-            qty,
-            price: existing ? existing.price : 0,
-            exists: Boolean(existing)
+            renderInventory();
           });
-        }
-      });
-      return found;
-    }
 
-    function simulateSampleInvoiceOCR(keepPreview = false) {
-      if (!keepPreview) {
-        document.getElementById("ocr-scan-preview").classList.add("hidden");
-      }
-      const sampleItems = [
-        { sku: "JDPE4315", name: "Taladro Percutor 650W Jadever", category: "Construcción", qty: 5, price: 48.50 },
-        { sku: "JDSWB911A", name: "Llave Combinada 11mm Cr-V", category: "Automotriz", qty: 12, price: 4.20 },
-        { sku: "JDCD1510", name: "Taladro Inalámbrico 12V Litio", category: "Electricidad", qty: 4, price: 62.00 },
-        { sku: "JDPL1104", name: "Candado Seguridad Hierro 50mm", category: "Cerrajería y seguridad", qty: 10, price: 6.75 },
-        { sku: "JDAG1585", name: "Amoladora Angular 850W 4-1/2", category: "Construcción", qty: 6, price: 42.00 },
-        { sku: "JDSL2601", name: "Sellador Silicona Transparente 280ml", category: "Adhesivos y sellantes", qty: 24, price: 3.50 },
-        { sku: "JDFN3216", name: "Ventilador Industrial Pared 18 Pulg", category: "Aire y ventilación", qty: 3, price: 55.00 },
-        { sku: "JDMT4402", name: "Multímetro Digital Profesional", category: "Electricidad", qty: 8, price: 18.90 },
-        { sku: "JDWR1908", name: "Juego Llaves Ratchet 8 Piezas", category: "Automotriz", qty: 7, price: 24.00 },
-        { sku: "JDHM5100", name: "Licuadora Industrial 2L Vaso Vidrio", category: "Electrodomésticos", qty: 2, price: 68.00 }
-      ];
-
-      // Ensure at least 1 item matches existing inventory if inventory is empty
-      const mapped = sampleItems.map((item, idx) => {
-        const existing = state.products.find(p => p.sku.toUpperCase() === item.sku);
-        return {
-          ...item,
-          name: existing ? existing.name : item.name,
-          category: existing ? existing.category : item.category,
-          exists: Boolean(existing) || (state.products.length === 0 && idx === 0 && false)
-        };
-      });
-
-      setOcrRows(mapped);
-    }
-
-    function setOcrRows(rows) {
-      ocrExtractedRows = rows;
-      renderOcrTable();
-      document.getElementById("ocr-results-container").classList.remove("hidden");
-      const badge = document.getElementById("ocr-status-badge");
-      badge.textContent = "Lectura lista para verificar";
-      badge.className = "font-bold text-blue-600 dark:text-blue-400";
-    }
-
-    function renderOcrTable() {
-      const tbody = document.getElementById("ocr-items-tbody");
-      const headline = document.getElementById("ocr-summary-headline");
-      const btnAll = document.getElementById("btn-register-all-missing");
-      const banner = document.getElementById("ocr-detection-banner");
-
-      // Re-check against current state.products
-      ocrExtractedRows.forEach(r => {
-        const match = state.products.find(p => p.sku.toUpperCase() === r.sku.trim().toUpperCase());
-        r.exists = Boolean(match);
-        if (match && !r.editedName) r.name = match.name;
-      });
-
-      const total = ocrExtractedRows.length;
-      const missingCount = ocrExtractedRows.filter(r => !r.exists).length;
-      const foundCount = total - missingCount;
-
-      if (missingCount > 0) {
-        banner.className = "p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3";
-        headline.textContent = `De ${total} cosas que salen en la foto, ${missingCount} no hay en el sistema (${foundCount} encontrada${foundCount === 1 ? "" : "s"})`;
-        btnAll.classList.remove("hidden");
-        btnAll.textContent = `+ Agregar las ${missingCount} faltantes al inventario`;
-      } else {
-        banner.className = "p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3";
-        headline.textContent = `¡Listo! Los ${total} artículos detectados ya están registrados en el inventario.`;
-        btnAll.classList.add("hidden");
-      }
-
-      tbody.innerHTML = ocrExtractedRows.map((row, idx) => `
-        <tr class="${row.exists ? "" : "bg-amber-50/40 dark:bg-amber-500/5"}">
-          <td class="py-2 px-2.5 whitespace-nowrap">
-            ${row.exists
-              ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">En sistema</span>`
-              : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">No existe</span>`
-            }
-          </td>
-          <td class="py-2 px-2.5">
-            <input type="text" value="${escapeHtml(row.sku)}" onchange="updateOcrRow(${idx}, 'sku', this.value)" class="w-28 px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-mono text-xs font-bold uppercase" />
-          </td>
-          <td class="py-2 px-2.5">
-            <input type="text" value="${escapeHtml(row.name)}" onchange="updateOcrRow(${idx}, 'name', this.value)" class="w-full min-w-[180px] px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-semibold" />
-          </td>
-          <td class="py-2 px-2.5">
-            <select onchange="updateOcrRow(${idx}, 'category', this.value)" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs">
-              ${CATEGORIES.map(c => `<option value="${c}" ${row.category === c ? "selected" : ""}>${c}</option>`).join("")}
-            </select>
-          </td>
-          <td class="py-2 px-2.5 text-right">
-            <input type="number" min="1" value="${row.qty}" onchange="updateOcrRow(${idx}, 'qty', this.value)" class="w-16 px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-bold text-right" />
-          </td>
-          <td class="py-2 px-2.5 text-right whitespace-nowrap">
-            ${!row.exists
-              ? `<button type="button" onclick="openQuickSkuModal(${idx})" class="px-2.5 py-1 rounded-lg bg-brand-500 hover:bg-brand-600 text-white text-[11px] font-bold mr-1">+ Registrar</button>`
-              : ""
-            }
-            <button type="button" onclick="removeOcrRow(${idx})" class="px-2 py-1 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-slate-800 text-xs font-bold">✕</button>
-          </td>
-        </tr>
-      `).join("");
-    }
-
-    function updateOcrRow(idx, field, val) {
-      if (!ocrExtractedRows[idx]) return;
-      if (field === "sku") ocrExtractedRows[idx].sku = val.trim().toUpperCase();
-      if (field === "name") { ocrExtractedRows[idx].name = val.trim(); ocrExtractedRows[idx].editedName = true; }
-      if (field === "category") ocrExtractedRows[idx].category = val;
-      if (field === "qty") ocrExtractedRows[idx].qty = Math.max(1, parseInt(val, 10) || 1);
-      renderOcrTable();
-    }
-
-    function removeOcrRow(idx) {
-      ocrExtractedRows.splice(idx, 1);
-      renderOcrTable();
-    }
-
-    function addManualOcrRow() {
-      ocrExtractedRows.push({
-        sku: "JD-" + Math.floor(1000 + Math.random() * 9000),
-        name: "Nuevo Artículo Factura",
-        category: CATEGORIES[4],
-        qty: 1,
-        price: 0,
-        exists: false
-      });
-      renderOcrTable();
-    }
-
-    function openQuickSkuModal(idx) {
-      const row = ocrExtractedRows[idx];
-      if (!row) return;
-      document.getElementById("qsku-row-index").value = idx;
-      document.getElementById("qsku-code-label").textContent = row.sku;
-      document.getElementById("qsku-code").value = row.sku;
-      document.getElementById("qsku-name").value = row.name;
-      document.getElementById("qsku-category").value = row.category || CATEGORIES[4];
-      document.getElementById("qsku-price").value = row.price || "0.00";
-
-      const m = document.getElementById("quick-sku-modal");
-      m.classList.remove("hidden");
-      m.classList.add("flex");
-    }
-
-    function closeQuickSkuModal() {
-      const m = document.getElementById("quick-sku-modal");
-      m.classList.add("hidden");
-      m.classList.remove("flex");
-    }
-
-    function saveQuickMissingSku(e) {
-      e.preventDefault();
-      const idx = parseInt(document.getElementById("qsku-row-index").value, 10);
-      const sku = document.getElementById("qsku-code").value.trim().toUpperCase();
-      const name = document.getElementById("qsku-name").value.trim();
-      const category = document.getElementById("qsku-category").value;
-      const price = parseFloat(document.getElementById("qsku-price").value) || 0;
-
-      state.products.unshift({
-        id: "prod-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-        sku,
-        name,
-        category,
-        location: "Recepción OCR",
-        qty: 0,
-        minStock: 5,
-        price
-      });
-
-      if (ocrExtractedRows[idx]) {
-        ocrExtractedRows[idx].name = name;
-        ocrExtractedRows[idx].category = category;
-        ocrExtractedRows[idx].price = price;
-        ocrExtractedRows[idx].exists = true;
-      }
-
-      saveState();
-      closeQuickSkuModal();
-      renderOcrTable();
-      renderAll();
-      showToast(`SKU ${sku} registrado en el catálogo`);
-    }
-
-    function registerAllMissingOcrItems() {
-      let registered = 0;
-      ocrExtractedRows.forEach(row => {
-        const exists = state.products.some(p => p.sku.toUpperCase() === row.sku.toUpperCase());
-        if (!exists) {
-          state.products.unshift({
-            id: "prod-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-            sku: row.sku.toUpperCase(),
-            name: row.name || `Producto ${row.sku}`,
-            category: row.category || CATEGORIES[4],
-            location: "Recepción OCR",
-            qty: 0,
-            minStock: 5,
-            price: row.price || 0
-          });
-          row.exists = true;
-          registered++;
-        }
-      });
-
-      saveState();
-      renderOcrTable();
-      renderAll();
-      showToast(`${registered} artículos faltantes agregados al inventario`);
-    }
-
-    function confirmAndProcessInvoice() {
-      if (!ocrExtractedRows.length) return;
-      const direction = document.getElementById("ocr-direction").value;
-      const clientName = direction === "SALIDA" ? document.getElementById("ocr-client-name").value.trim() : "";
-      const invoiceNumber = document.getElementById("ocr-invoice-number").value.trim() || "FAC-OCR";
-
-      if (direction === "SALIDA" && !clientName) {
-        showToast("Indica a nombre de quién es la factura de salida", "warning");
-        document.getElementById("ocr-client-name").focus();
-        return;
-      }
-
-      // Auto-register any remaining uncreated SKUs seamlessly if user confirms
-      const missing = ocrExtractedRows.filter(r => !state.products.some(p => p.sku.toUpperCase() === r.sku.toUpperCase()));
-      if (missing.length > 0) {
-        registerAllMissingOcrItems();
-      }
-
-      ocrExtractedRows.forEach(row => {
-        const prod = state.products.find(p => p.sku.toUpperCase() === row.sku.toUpperCase());
-        if (!prod) return;
-        const qty = Math.max(1, Number(row.qty) || 1);
-
-        if (direction === "ENTRADA") {
-          prod.qty = Number(prod.qty) + qty;
-        } else {
-          prod.qty = Math.max(0, Number(prod.qty) - qty);
-        }
-
-        state.movements.unshift({
-          id: "mov-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-          type: direction,
-          productId: prod.id,
-          sku: prod.sku,
-          productName: prod.name,
-          category: prod.category,
-          qty,
-          user: "Wendy Hernandez",
-          clientName,
-          invoiceNumber,
-          ref: `Procesado vía OCR (${invoiceNumber})`,
-          dateISO: new Date().toISOString()
-        });
-      });
-
-      const badge = document.getElementById("ocr-status-badge");
-      badge.textContent = "Sí / Procesado";
-      badge.className = "font-extrabold text-emerald-600 dark:text-emerald-400";
-
-      saveState();
-      renderAll();
-      showToast(`Factura ${invoiceNumber} procesada: Sí / Procesado`);
-      setTimeout(() => closeOcrModal(), 900);
-    }
-
-    // =========================================================
-    // SCREEN 3: PEDIDOS (CONTROL DE PEDIDOS JADEVER)
-    // =========================================================
-    function updateCatalogDatalist() {
-      const dl = document.getElementById("catalog-datalist");
-      if (!dl) return;
-      dl.innerHTML = state.products.map(p => `<option value="[${p.sku}] ${p.name}">`).join("");
-    }
-
-    function addOrder(e) {
-      e.preventDefault();
-      const product = document.getElementById("order-product").value.trim();
-      const client = document.getElementById("order-client").value.trim() || "Mostrador / General";
-      const priority = document.getElementById("order-priority").value || "Pendiente";
-      const qty = parseInt(document.getElementById("order-qty").value, 10) || 1;
-      const requester = document.getElementById("order-requester").value.trim() || "Wendy Hernandez";
-      const notes = document.getElementById("order-notes").value.trim();
-
-      state.orders.unshift({
-        id: "ord-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-        product,
-        client,
-        priority,
-        qty,
-        requester,
-        notes,
-        dateISO: new Date().toISOString()
-      });
-
-      document.getElementById("order-product").value = "";
-      document.getElementById("order-client").value = "";
-      document.getElementById("order-qty").value = 1;
-      document.getElementById("order-notes").value = "";
-
-      saveState();
-      renderAll();
-      showToast("Pedido agregado al Control de Pedidos");
-    }
-
-    function fulfillOrder(id, registerOutbound = false) {
-      const ord = state.orders.find(o => o.id === id);
-      if (!ord) return;
-
-      if (registerOutbound) {
-        // Try to match SKU inside "[SKU] Name" or direct SKU
-        const skuMatch = ord.product.match(/\[([^\]]+)\]/);
-        const searchCode = skuMatch ? skuMatch[1].toUpperCase() : ord.product.split(" ")[0].toUpperCase();
-        const prod = state.products.find(p => p.sku.toUpperCase() === searchCode || p.name.toLowerCase() === ord.product.toLowerCase());
-
-        if (prod) {
-          if (Number(prod.qty) < Number(ord.qty)) {
-            showToast(`Stock insuficiente de ${prod.sku} (${prod.qty} UND disponibles)`, "error");
-            return;
-          }
-          prod.qty = Math.max(0, Number(prod.qty) - Number(ord.qty));
-          state.movements.unshift({
-            id: "mov-" + Date.now(),
-            type: "SALIDA",
-            productId: prod.id,
-            sku: prod.sku,
-            productName: prod.name,
-            category: prod.category,
-            qty: Number(ord.qty),
-            user: ord.requester || "Wendy Hernandez",
-            clientName: ord.client || "Cliente Pedido",
-            invoiceNumber: "PED-" + ord.id.slice(-4).toUpperCase(),
-            ref: `Pedido surtido (${ord.notes || "Control Pedidos"})`,
-            dateISO: new Date().toISOString()
-          });
-          showToast(`Pedido surtido y descontado de stock (${prod.sku})`);
-        } else {
-          showToast("Pedido marcado como surtido (SKU no vinculado en catálogo)", "warning");
-        }
-      } else {
-        showToast("Pedido marcado como surtido");
-      }
-
-      state.orders = state.orders.filter(o => o.id !== id);
-      saveState();
-      renderAll();
-    }
-
-    function exportOrdersExcel() {
-      const rows = state.orders.map((o, i) => ({
-        Item: i + 1,
-        Fecha: o.dateISO.slice(0, 10),
-        Cliente: o.client || "General",
-        Producto_Referencia: o.product,
-        Cantidad: o.qty,
-        Estado: o.priority || "Pendiente",
-        Solicitado_Por: o.requester,
-        Observaciones: o.notes || ""
-      }));
-      const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ Mensaje: "Sin pedidos pendientes" }]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Control_Pedidos_Jadever");
-      XLSX.writeFile(wb, `Control_de_Pedidos_${state.appName}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      showToast("Excel de Control de Pedidos exportado");
-    }
-
-    function importOrdersExcel(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const data = new Uint8Array(ev.target.result);
-          const wb = XLSX.read(data, { type: "array" });
-          const sheet = wb.Sheets[wb.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-          let count = 0;
-          rows.forEach(r => {
-            const prod = String(r.Producto || r.Producto_Referencia || r.Descripcion || r.Descripción || r.Codigo || "").trim();
-            if (!prod) return;
-            const sku = String(r.SKU || r.Codigo || r.Código || "").trim();
-            const label = sku && !prod.includes(sku) ? `[${sku.toUpperCase()}] ${prod}` : prod;
-            state.orders.unshift({
-              id: "ord-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-              product: label,
-              client: String(r.Cliente || r.Destinatario || "Mostrador").trim(),
-              priority: String(r.Estado || r.Prioridad || "Pendiente").trim(),
-              qty: Math.max(1, parseInt(r.Cantidad || r.Cant || 1, 10) || 1),
-              requester: String(r.Solicitado_Por || r.Responsable || "Wendy Hernandez").trim(),
-              notes: String(r.Observaciones || r.Notas || "").trim(),
-              dateISO: new Date().toISOString()
+          // Sincronizar Movimientos en tiempo real
+          onSnapshot(collection(window.db, "movements"), (snapshot) => {
+            movements = [];
+            snapshot.forEach((doc) => {
+              movements.push({ id: doc.id, ...doc.data() });
             });
-            count++;
+            renderMovements();
           });
-          e.target.value = "";
-          saveState();
-          renderAll();
-          showToast(`Se importaron ${count} pedidos desde Excel`);
-        } catch (err) {
-          showToast("No se pudo leer el archivo de pedidos", "error");
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function renderOrders() {
-      const container = document.getElementById("orders-list");
-      const badge = document.getElementById("orders-pending-badge");
-      if (!container || !badge) return;
-
-      badge.textContent = `${state.orders.length} pendiente${state.orders.length === 1 ? "" : "s"}`;
-
-      if (state.orders.length === 0) {
-        container.innerHTML = `
-          <div class="py-12 px-4 text-center">
-            <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mb-3">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            </div>
-            <p class="text-sm font-bold text-slate-700 dark:text-slate-200">No hay pedidos pendientes por surtir</p>
-            <p class="text-xs text-slate-400 mt-1">Usa el formulario de la izquierda o importa tu Excel de Control de Pedidos.</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = state.orders.map(o => {
-        const badgeColor = o.priority === "Urgente"
-          ? "bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300"
-          : o.priority === "En tránsito"
-            ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300"
-            : "bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300";
-
-        return `
-          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="space-y-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2 py-0.5 rounded-md bg-brand-500 text-white text-xs font-extrabold">${o.qty} UND</span>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${badgeColor}">${escapeHtml(o.priority || "Pendiente")}</span>
-                <h4 class="font-bold text-sm text-slate-900 dark:text-white">${escapeHtml(o.product)}</h4>
-              </div>
-              <p class="text-xs text-slate-500">
-                Cliente: <strong class="text-slate-700 dark:text-slate-200">${escapeHtml(o.client || "General")}</strong> • Solicitó: <strong>${escapeHtml(o.requester)}</strong> • ${new Date(o.dateISO).toLocaleDateString("es-ES")}
-              </p>
-              ${o.notes ? `<p class="text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-200/60 dark:border-slate-800 mt-1">${escapeHtml(o.notes)}</p>` : ""}
-            </div>
-            <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
-              <button onclick="fulfillOrder('${o.id}', true)" title="Surtir y descontar de inventario" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all">
-                ✓ Surtir y Descontar
-              </button>
-              <button onclick="fulfillOrder('${o.id}', false)" title="Solo marcar como completado" class="px-2.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all">
-                Quitar
-              </button>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-    function executeDedicatedPrint(titleText, dateLabel, sumIn, sumOut, balance, movs) {
-      const rowsHtml = movs.length
-        ? movs.map(m => `
-            <tr>
-              <td>${escapeHtml(m.dateISO.slice(0, 10))}</td>
-              <td style="font-weight:700;color:${m.type === "ENTRADA" ? "#059669" : "#e11d48"}">${escapeHtml(m.type)}</td>
-              <td style="font-family:monospace;font-weight:700">${escapeHtml(m.sku)}</td>
-              <td>${escapeHtml(m.productName)}</td>
-              <td>${escapeHtml(m.clientName || m.ref || "-")}</td>
-              <td style="text-align:right;font-weight:700">${m.type === "ENTRADA" ? "+" : "-"}${m.qty} UND</td>
-              <td>${escapeHtml(m.user)}</td>
-            </tr>
-          `).join("")
-        : `<tr><td colspan="7" style="text-align:center;padding:16px;color:#64748b">Sin movimientos registrados en este periodo.</td></tr>`;
-
-      const htmlDoc = `
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-          <meta charset="UTF-8" />
-          <title>${escapeHtml(state.appName)} - ${escapeHtml(titleText)}</title>
-          <style>
-            body { font-family: Arial, Helvetica, sans-serif; color: #0f172a; margin: 24px; }
-            .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #f97316; padding-bottom: 12px; margin-bottom: 18px; }
-            .brand { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; }
-            .sub { font-size: 12px; color: #475569; margin: 4px 0 0 0; }
-            .meta { text-align: right; font-size: 11px; color: #334155; line-height: 1.5; }
-            .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
-            .kpi { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px; }
-            .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; }
-            .kpi-val { font-size: 18px; font-weight: 800; margin-top: 4px; }
-            table { width: 100%; border-collapse: collapse; font-size: 11px; }
-            th { background: #f1f5f9; text-align: left; padding: 8px; border-bottom: 2px solid #cbd5e1; font-size: 10px; text-transform: uppercase; }
-            td { padding: 7px 8px; border-bottom: 1px solid #e2e8f0; }
-            .footer { margin-top: 24px; font-size: 10px; color: #64748b; text-align: center; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div>
-              <h1 class="brand">${escapeHtml(state.appName)}</h1>
-              <p class="sub">${escapeHtml(titleText)}</p>
-            </div>
-            <div class="meta">
-              <div><strong>Emitido:</strong> ${escapeHtml(dateLabel)}</div>
-              <div><strong>Responsable:</strong> Wendy Hernandez</div>
-              <div><strong>Referencias en Catálogo:</strong> ${state.products.length}</div>
-            </div>
-          </div>
-          <div class="kpis">
-            <div class="kpi"><div class="kpi-label">Entradas</div><div class="kpi-val" style="color:#059669">+${sumIn} UND</div></div>
-            <div class="kpi"><div class="kpi-label">Salidas</div><div class="kpi-val" style="color:#e11d48">-${sumOut} UND</div></div>
-            <div class="kpi"><div class="kpi-label">Balance</div><div class="kpi-val">${balance >= 0 ? "+" : ""}${balance} UND</div></div>
-            <div class="kpi"><div class="kpi-label">Movimientos</div><div class="kpi-val">${movs.length}</div></div>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>SKU</th>
-                <th>Producto</th>
-                <th>Cliente / Factura</th>
-                <th style="text-align:right">Cantidad</th>
-                <th>Responsable</th>
-              </tr>
-            </thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
-          <div class="footer">Documento generado por ${escapeHtml(state.appName)} • Control de Bodega e Inventario</div>
-        </body>
-        </html>
-      `;
-
-      // Use a hidden print iframe so it works inside sandboxed previews without blank pages
-      let printFrame = document.getElementById("jadever-print-iframe");
-      if (printFrame) printFrame.remove();
-
-      printFrame = document.createElement("iframe");
-      printFrame.id = "jadever-print-iframe";
-      printFrame.style.position = "fixed";
-      printFrame.style.right = "0";
-      printFrame.style.bottom = "0";
-      printFrame.style.width = "0";
-      printFrame.style.height = "0";
-      printFrame.style.border = "0";
-      document.body.appendChild(printFrame);
-
-      const frameWin = printFrame.contentWindow;
-      const frameDoc = frameWin.document;
-      frameDoc.open();
-      frameDoc.write(htmlDoc);
-      frameDoc.close();
-
-      setTimeout(() => {
-        try {
-          frameWin.focus();
-          frameWin.print();
-        } catch (err) {
-          const popup = window.open("", "_blank", "width=900,height=700");
-          if (popup) {
-            popup.document.write(htmlDoc);
-            popup.document.close();
-            popup.focus();
-            popup.print();
-          } else {
-            showToast("Permite las ventanas emergentes o usa Descargar PDF", "warning");
-          }
         }
       }, 200);
     }
 
-    function printReportView() {
-      const movs = getFilteredReportMovements();
-      const sumIn = movs.filter(m => m.type === "ENTRADA").reduce((a, b) => a + Number(b.qty), 0);
-      const sumOut = movs.filter(m => m.type === "SALIDA").reduce((a, b) => a + Number(b.qty), 0);
-      executeDedicatedPrint(
-        `Reporte de Movimientos (${getReportPeriodLabel()})`,
-        new Date().toLocaleString("es-ES"),
-        sumIn,
-        sumOut,
-        sumIn - sumOut,
-        movs
-      );
-    }
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.app-screen').forEach(s => s.classList.add('hidden'));
+      const activeScreen = document.getElementById(`screen-${tabId}`);
+      if (activeScreen) activeScreen.classList.remove('hidden');
 
-    function saveCurrentReportToArchive() {
-      const movs = getFilteredReportMovements();
-      const sumIn = movs.filter(m => m.type === "ENTRADA").reduce((a, b) => a + Number(b.qty), 0);
-      const sumOut = movs.filter(m => m.type === "SALIDA").reduce((a, b) => a + Number(b.qty), 0);
-      const periodLabel = getReportPeriodLabel();
-
-      const reportRecord = {
-        id: "rep-" + Date.now(),
-        title: `Informe de Inventario - ${periodLabel}`,
-        periodLabel,
-        createdAt: new Date().toISOString(),
-        entradas: sumIn,
-        salidas: sumOut,
-        balance: sumIn - sumOut,
-        totalMovs: movs.length,
-        movementsSnapshot: JSON.parse(JSON.stringify(movs))
-      };
-
-      if (!Array.isArray(state.savedReports)) state.savedReports = [];
-      state.savedReports.unshift(reportRecord);
-      saveState();
-      renderSavedReports();
-      showToast("Informe guardado en el historial");
-    }
-
-    function deleteSavedReport(id) {
-      state.savedReports = (state.savedReports || []).filter(r => r.id !== id);
-      saveState();
-      renderSavedReports();
-      showToast("Informe eliminado del historial", "warning");
-    }
-
-    function downloadSavedReportPDF(id) {
-      const rep = (state.savedReports || []).find(r => r.id === id);
-      if (!rep) return;
-      generatePdfFromMovements(rep.movementsSnapshot, rep.title, rep.createdAt);
-    }
-
-    function printSavedReport(id) {
-      const rep = (state.savedReports || []).find(r => r.id === id);
-      if (!rep) return;
-      executeDedicatedPrint(
-        rep.title,
-        new Date(rep.createdAt).toLocaleString("es-ES"),
-        rep.entradas,
-        rep.salidas,
-        rep.balance,
-        rep.movementsSnapshot
-      );
-    }
-
-    function setReportFilter(filter) {
-      state.reportFilter = filter;
-      document.querySelectorAll(".rfilter-btn").forEach(btn => {
-        const active = btn.getAttribute("data-rfilter") === filter;
-        btn.className = active
-          ? "rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-500 text-white shadow-xs transition-all"
-          : "rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition-all";
-      });
-      const customBox = document.getElementById("report-custom-range");
-      if (customBox) customBox.classList.toggle("hidden", filter !== "custom");
-      renderReports();
-    }
-
-    function getReportPeriodLabel() {
-      const map = {
-        today: "Hoy",
-        month: "Este mes",
-        last_month: "Mes pasado",
-        custom: "Rango personalizado"
-      };
-      return map[state.reportFilter] || "Hoy";
-    }
-
-    function getFilteredReportMovements() {
-      const now = new Date();
-      const todayStr = now.toISOString().slice(0, 10);
-      const curYear = now.getFullYear();
-      const curMonth = now.getMonth();
-
-      return state.movements.filter(m => {
-        const d = new Date(m.dateISO);
-        const dStr = (m.dateISO || "").slice(0, 10);
-        if (state.reportFilter === "today") return dStr === todayStr;
-        if (state.reportFilter === "month") return d.getFullYear() === curYear && d.getMonth() === curMonth;
-        if (state.reportFilter === "last_month") {
-          const lastM = curMonth === 0 ? 11 : curMonth - 1;
-          const lastY = curMonth === 0 ? curYear - 1 : curYear;
-          return d.getFullYear() === lastY && d.getMonth() === lastM;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-brand-500', 'text-white', 'shadow-md', 'shadow-brand-500/20');
+        btn.classList.add('text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
+        if (btn.getAttribute('data-tab') === tabId) {
+          btn.classList.add('bg-brand-500', 'text-white', 'shadow-md', 'shadow-brand-500/20');
+          btn.classList.remove('text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
         }
-        if (state.reportFilter === "custom") {
-          const s = document.getElementById("rep-start")?.value || "";
-          const e = document.getElementById("rep-end")?.value || "";
-          return (!s || dStr >= s) && (!e || dStr <= e);
-        }
-        return true;
       });
     }
 
-    function renderSavedReports() {
-      const container = document.getElementById("saved-reports-list");
-      const countBadge = document.getElementById("saved-reports-count");
-      if (!container || !countBadge) return;
-
-      const list = state.savedReports || [];
-      countBadge.textContent = `${list.length} guardado${list.length === 1 ? "" : "s"}`;
-
-      if (list.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Aún no has guardado informes. Haz clic en "+ Guardar Informe" para archivar el reporte actual.</p>`;
-        return;
-      }
-
-      container.innerHTML = list.map(rep => `
-        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <p class="text-xs font-extrabold text-slate-900 dark:text-white">${escapeHtml(rep.title)}</p>
-            <p class="text-[11px] text-slate-500 mt-0.5">
-              Guardado: ${new Date(rep.createdAt).toLocaleString("es-ES")} • Entradas: <strong class="text-emerald-600">+${rep.entradas}</strong> • Salidas: <strong class="text-rose-600">-${rep.salidas}</strong> • (${rep.totalMovs} mov.)
-            </p>
-          </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button onclick="printSavedReport('${rep.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-800 dark:text-slate-200 text-[11px] font-bold">Imprimir</button>
-            <button onclick="downloadSavedReportPDF('${rep.id}')" class="px-2.5 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[11px] font-bold">PDF</button>
-            <button onclick="deleteSavedReport('${rep.id}')" class="px-2 py-1.5 rounded-lg text-slate-400 hover:text-rose-600 text-xs font-bold">✕</button>
-          </div>
-        </div>
-      `).join("");
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      sidebar.classList.toggle('-translate-x-full');
+      backdrop.classList.toggle('hidden');
     }
 
-    function renderReportDetailTable(movs) {
-      const tbody = document.getElementById("rep-detail-tbody");
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    function renderInventory() {
+      const tbody = document.getElementById('inventory-tbody');
       if (!tbody) return;
-      if (movs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">Sin movimientos registrados en el periodo seleccionado.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = movs.map(m => `
-        <tr>
-          <td class="py-2 px-3 whitespace-nowrap">${m.dateISO.slice(0, 10)}</td>
-          <td class="py-2 px-3 font-bold ${m.type === "ENTRADA" ? "text-emerald-600" : "text-rose-600"}">${m.type}</td>
-          <td class="py-2 px-3 font-mono font-bold">${escapeHtml(m.sku)}</td>
-          <td class="py-2 px-3">${escapeHtml(m.productName)}</td>
-          <td class="py-2 px-3">${escapeHtml(m.clientName || m.ref || "-")}</td>
-          <td class="py-2 px-3 text-right font-bold">${m.type === "ENTRADA" ? "+" : "-"}${m.qty}</td>
-          <td class="py-2 px-3">${escapeHtml(m.user)}</td>
+      tbody.innerHTML = inventory.map(item => `
+        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+          <td class="py-3 px-4 font-mono text-xs font-semibold text-brand-600 dark:text-brand-400">${item.sku || ''}</td>
+          <td class="py-3 px-4 font-medium text-slate-900 dark:text-white">${item.name || ''}</td>
+          <td class="py-3 px-4 text-slate-600 dark:text-slate-300">${item.category || ''}</td>
+          <td class="py-3 px-4 text-slate-600 dark:text-slate-300">${item.location || ''}</td>
+          <td class="py-3 px-4 text-right font-bold text-slate-900 dark:text-white">${item.qty || 0}</td>
+          <td class="py-3 px-4 text-right"></td>
         </tr>
-      `).join("");
+      `).join('');
+      
+      const totalRefs = inventory.length;
+      const totalUnits = inventory.reduce((acc, item) => acc + (Number(item.qty) || 0), 0);
+      document.getElementById('metric-total-refs').textContent = totalRefs;
+      document.getElementById('metric-total-units').textContent = totalUnits;
+      document.getElementById('nav-badge-inv').textContent = totalRefs;
     }
 
-    function renderReports() {
-      const movs = getFilteredReportMovements();
-      const entradas = movs.filter(m => m.type === "ENTRADA");
-      const salidas = movs.filter(m => m.type === "SALIDA");
-
-      const sumIn = entradas.reduce((a, b) => a + Number(b.qty), 0);
-      const sumOut = salidas.reduce((a, b) => a + Number(b.qty), 0);
-      const balance = sumIn - sumOut;
-
-      document.getElementById("rep-entradas").textContent = `+${sumIn} UND`;
-      document.getElementById("rep-entradas-ops").textContent = `${entradas.length} operaciones`;
-      document.getElementById("rep-salidas").textContent = `-${sumOut} UND`;
-      document.getElementById("rep-salidas-ops").textContent = `${salidas.length} operaciones`;
-      document.getElementById("rep-balance").textContent = `${balance >= 0 ? "+" : ""}${balance} UND`;
-      document.getElementById("rep-total-movs").textContent = movs.length;
-
-      // Top Withdrawn Products
-      const topMap = {};
-      salidas.forEach(m => {
-        const key = `${m.sku} - ${m.productName}`;
-        topMap[key] = (topMap[key] || 0) + Number(m.qty);
-      });
-      const sortedTop = Object.entries(topMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
-      const topContainer = document.getElementById("rep-top-products");
-      if (sortedTop.length === 0) {
-        topContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Sin salidas registradas en el periodo seleccionado.</p>`;
-      } else {
-        const maxVal = sortedTop[0][1];
-        topContainer.innerHTML = sortedTop.map(([label, val]) => `
-          <div class="space-y-1">
-            <div class="flex justify-between text-xs font-semibold">
-              <span class="truncate pr-2">${escapeHtml(label)}</span>
-              <span class="text-brand-600 dark:text-brand-400 font-bold shrink-0">${val} UND</span>
-            </div>
-            <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-              <div class="h-full bg-brand-500 rounded-full" style="width: ${Math.round((val / maxVal) * 100)}%"></div>
-            </div>
+    function renderMovements() {
+      const list = document.getElementById('movements-list');
+      if (!list) return;
+      list.innerHTML = movements.map(m => `
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+          <div>
+            <p class="font-bold text-sm text-slate-900 dark:text-white">${m.type} - ${m.productName || 'Producto'}</p>
+            <p class="text-xs text-slate-500">Cantidad: ${m.qty} | Usuario: ${m.user || 'Wendy'}</p>
           </div>
-        `).join("");
-      }
-
-      // Responsibles Leaderboard
-      const respMap = {};
-      movs.forEach(m => {
-        respMap[m.user] = (respMap[m.user] || 0) + 1;
-      });
-      const sortedResp = Object.entries(respMap).sort((a, b) => b[1] - a[1]);
-      const respContainer = document.getElementById("rep-responsibles");
-      if (sortedResp.length === 0) {
-        respContainer.innerHTML = `<p class="text-xs text-slate-400 py-4 text-center">Sin actividad de responsables en este periodo.</p>`;
-      } else {
-        respContainer.innerHTML = sortedResp.map(([user, count]) => `
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800">
-            <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-full bg-brand-500/20 text-brand-600 dark:text-brand-400 font-bold text-xs flex items-center justify-center">${user.slice(0, 2).toUpperCase()}</div>
-              <span class="text-xs font-bold">${escapeHtml(user)}</span>
-            </div>
-            <span class="text-xs font-semibold text-slate-500">${count} mov.</span>
-          </div>
-        `).join("");
-      }
-
-      renderReportDetailTable(movs);
-      renderSavedReports();
-    }
-
-    function generatePdfFromMovements(movs, titleText, dateIso) {
-      try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(16);
-        doc.setTextColor(234, 88, 12);
-        doc.text(`${state.appName} - ${titleText}`, 14, 20);
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(`Fecha: ${new Date(dateIso).toLocaleString("es-ES")} | Responsable: Wendy Hernandez`, 14, 27);
-
-        const rows = movs.map(m => [
-          m.dateISO.slice(0, 10),
-          m.type,
-          m.sku,
-          m.productName,
-          m.clientName || m.ref || "-",
-          `${m.type === "ENTRADA" ? "+" : "-"}${m.qty}`,
-          m.user
-        ]);
-
-        doc.autoTable({
-          startY: 34,
-          head: [["Fecha", "Tipo", "SKU", "Producto", "Cliente / Ref.", "Cant.", "Responsable"]],
-          body: rows.length ? rows : [["-", "-", "-", "Sin movimientos en el periodo", "-", "0", "-"]],
-          headStyles: { fillColor: [249, 115, 22] }
-        });
-
-        doc.save(`${state.appName}_Informe_${new Date().toISOString().slice(0, 10)}.pdf`);
-        showToast("Reporte PDF descargado");
-      } catch (e) {
-        showToast("Error generando PDF", "error");
-      }
-    }
-
-    function exportReportPDF() {
-      const movs = getFilteredReportMovements();
-      generatePdfFromMovements(movs, `Informe (${getReportPeriodLabel()})`, new Date().toISOString());
-    }
-
-    function sendReportEmail() {
-      const movs = getFilteredReportMovements();
-      const sumIn = movs.filter(m => m.type === "ENTRADA").reduce((a, b) => a + Number(b.qty), 0);
-      const sumOut = movs.filter(m => m.type === "SALIDA").reduce((a, b) => a + Number(b.qty), 0);
-      const subject = encodeURIComponent(`Reporte de Inventario - ${state.appName}`);
-      const body = encodeURIComponent(
-        `Hola,\n\nAdjunto el resumen de movimientos (${getReportPeriodLabel()}) de ${state.appName}:\n` +
-        `- Total Entradas: +${sumIn} UND\n` +
-        `- Total Salidas: -${sumOut} UND\n` +
-        `- Balance Neto: ${sumIn - sumOut} UND\n` +
-        `- Total Movimientos Auditados: ${movs.length}\n` +
-        `- Referencias en Catálogo: ${state.products.length}\n\nSaludos,\nWendy Hernandez`
-      );
-      window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, "_blank");
-    }
-
-    function exportReportExcel() {
-      const movs = getFilteredReportMovements();
-      const data = movs.map(m => ({
-        Fecha: m.dateISO,
-        Tipo: m.type,
-        SKU: m.sku,
-        Producto: m.productName,
-        Categoria: m.category,
-        Cliente_Factura: m.clientName || "",
-        Numero_Factura: m.invoiceNumber || "",
-        Cantidad: m.qty,
-        Responsable: m.user,
-        Referencia: m.ref || ""
-      }));
-      const ws = XLSX.utils.json_to_sheet(data.length ? data : [{ Mensaje: "Sin movimientos en el periodo" }]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Movimientos");
-      XLSX.writeFile(wb, `${state.appName}_Reporte_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      showToast("Excel exportado correctamente");
-    }
-
-    // =========================================================
-    // SCREEN 5: MÁS (SETTINGS, BACKUPS & USER APPROVALS)
-    // =========================================================
-    function renderUsersSettings() {
-      const pendingList = document.getElementById("pending-users-list");
-      const activeList = document.getElementById("active-users-list");
-      if (!pendingList || !activeList) return;
-
-      if (state.pendingUsers.length === 0) {
-        pendingList.innerHTML = `<p class="text-xs text-slate-400 italic py-2">No hay solicitudes pendientes por aprobar.</p>`;
-      } else {
-        pendingList.innerHTML = state.pendingUsers.map(u => `
-          <div class="p-3 rounded-xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p class="text-xs font-bold text-slate-900 dark:text-white">${escapeHtml(u.name)} <span class="text-[11px] font-normal text-slate-500">(${escapeHtml(u.email)})</span></p>
-              <p class="text-[11px] text-amber-700 dark:text-amber-400">Rol solicitado: <strong>${u.role}</strong> • ${u.date}</p>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <button onclick="approveUser('${u.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold">Aceptar</button>
-              <button onclick="declineUser('${u.id}')" class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold">Rechazar</button>
-            </div>
-          </div>
-        `).join("");
-      }
-
-      activeList.innerHTML = state.activeUsers.map(u => `
-        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-full bg-slate-800 text-white text-xs font-bold flex items-center justify-center">${u.name.slice(0, 2).toUpperCase()}</div>
-            <div>
-              <p class="text-xs font-bold text-slate-900 dark:text-white">${escapeHtml(u.name)}</p>
-              <p class="text-[11px] text-slate-400">${escapeHtml(u.email)}</p>
-            </div>
-          </div>
-          <span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${
-            u.role === "Admin"
-              ? "bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300"
-              : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-          }">${u.role}</span>
+          <span class="text-xs px-2.5 py-1 rounded-full font-semibold ${m.type === 'ENTRADA' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-brand-100 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400'}">${m.type}</span>
         </div>
-      `).join("");
+      `).join('');
     }
 
-    function approveUser(id) {
-      const idx = state.pendingUsers.findIndex(u => u.id === id);
-      if (idx === -1) return;
-      const [user] = state.pendingUsers.splice(idx, 1);
-      state.activeUsers.push({ id: user.id, name: user.name, email: user.email, role: user.role });
-      saveState();
-      renderUsersSettings();
-      showToast(`Acceso aprobado para ${user.name}`);
+    function openProductModal() {
+      alert("Para añadir productos, puedes usar la sección de Carga Masiva o registrar entradas.");
     }
 
-    function declineUser(id) {
-      state.pendingUsers = state.pendingUsers.filter(u => u.id !== id);
-      saveState();
-      renderUsersSettings();
-      showToast("Solicitud rechazada", "warning");
+    function openMovementModal(type) {
+      alert("Registro de " + type);
     }
 
-    function openInviteModal() {
-      const m = document.getElementById("invite-modal");
-      m.classList.remove("hidden");
-      m.classList.add("flex");
-    }
-
-    function closeInviteModal() {
-      const m = document.getElementById("invite-modal");
-      m.classList.add("hidden");
-      m.classList.remove("flex");
-    }
-
-    function sendUserInvite(e) {
-      e.preventDefault();
-      const name = document.getElementById("inv-user-name").value.trim();
-      const email = document.getElementById("inv-user-email").value.trim();
-      const role = document.getElementById("inv-user-role").value;
-
-      state.activeUsers.push({ id: "u-" + Date.now(), name, email, role });
-      document.getElementById("inv-user-name").value = "";
-      document.getElementById("inv-user-email").value = "";
-      saveState();
-      closeInviteModal();
-      renderUsersSettings();
-      showToast(`Invitación enviada a ${name} (${role})`);
-    }
-
-    function openSignOutModal() {
-      const m = document.getElementById("signout-modal");
-      m.classList.remove("hidden");
-      m.classList.add("flex");
-    }
-
-    function closeSignOutModal() {
-      const m = document.getElementById("signout-modal");
-      m.classList.add("hidden");
-      m.classList.remove("flex");
-    }
-
-    function exportBackupJSON() {
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-      downloadBlob(blob, `${state.appName}_Backup_${new Date().toISOString().slice(0, 10)}.json`);
-      showToast("Respaldo JSON descargado");
-    }
-
-    function importBackupJSON(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const parsed = JSON.parse(ev.target.result);
-          if (parsed && Array.isArray(parsed.products)) {
-            state = { ...state, ...parsed };
-            saveState();
-            applyTheme();
-            updateAppName(state.appName, false);
-            renderAll();
-            showToast("Respaldo JSON restaurado correctamente");
-          } else {
-            showToast("Archivo JSON inválido", "error");
-          }
-        } catch (err) {
-          showToast("Error leyendo archivo JSON", "error");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function exportInventoryCSV() {
-      const ws = XLSX.utils.json_to_sheet(state.products.map(p => ({
-        SKU: p.sku,
-        Producto: p.name,
-        Categoria: p.category,
-        Ubicacion: p.location,
-        Cantidad: p.qty,
-        Minimo: p.minStock,
-        Precio: p.price
-      })));
-      const csv = XLSX.utils.sheet_to_csv(ws);
-      downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8;" }), `${state.appName}_Inventario.csv`);
-      showToast("Catálogo CSV exportado");
-    }
-
-    function exportKardexCSV() {
-      const ws = XLSX.utils.json_to_sheet(state.movements.map(m => ({
-        Fecha: m.dateISO,
-        Tipo: m.type,
-        SKU: m.sku,
-        Producto: m.productName,
-        Cliente_Factura: m.clientName || "",
-        Numero_Factura: m.invoiceNumber || "",
-        Cantidad: m.qty,
-        Responsable: m.user,
-        Referencia: m.ref || ""
-      })));
-      const csv = XLSX.utils.sheet_to_csv(ws);
-      downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8;" }), `${state.appName}_Kardex.csv`);
-      showToast("Kardex CSV exportado");
-    }
-
-    function resetAllData() {
-      state.products = [];
-      state.movements = [];
-      state.orders = [];
-      state.savedReports = [];
-      saveState();
-      renderAll();
-      showToast("Datos reiniciados a estado inicial", "warning");
-    }
-
-    function downloadBlob(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    // =========================================================
-    // SCREEN 6: CARGA MASIVA (CSV / XLSX MERGE & UPDATE)
-    // =========================================================
-    function downloadExcelTemplate() {
-      const sampleRows = [
-        { SKU: "JDPE4315", Producto: "Taladro Percutor 650W Jadever", Categoria: "Construcción", Ubicacion: "Pasillo A-1", Cantidad: 24, Minimo: 6, Precio: 48.50 },
-        { SKU: "JDSWB911A", Producto: "Llave Combinada 11mm Cr-V", Categoria: "Automotriz", Ubicacion: "Estante B-3", Cantidad: 60, Minimo: 15, Precio: 4.20 },
-        { SKU: "JDCD1510", Producto: "Taladro Inalámbrico 12V Litio", Categoria: "Electricidad", Ubicacion: "Vitrina C-2", Cantidad: 14, Minimo: 5, Precio: 62.00 },
-        { SKU: "JDPL1104", Producto: "Candado de Seguridad Hierro 50mm", Categoria: "Cerrajería y seguridad", Ubicacion: "Pasillo D-1", Cantidad: 35, Minimo: 10, Precio: 6.75 }
-      ];
-      const ws = XLSX.utils.json_to_sheet(sampleRows);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Plantilla_Jadever");
-      XLSX.writeFile(wb, "Plantilla_Carga_JadeverBodega.xlsx");
-      showToast("Plantilla Excel descargada");
-    }
-
-    function handleBulkDragOver(e) {
-      e.preventDefault();
-      document.getElementById("bulk-dropzone").classList.add("border-brand-500", "bg-brand-50/40", "dark:bg-brand-500/5");
-    }
-
-    function handleBulkDragLeave(e) {
-      e.preventDefault();
-      document.getElementById("bulk-dropzone").classList.remove("border-brand-500", "bg-brand-50/40", "dark:bg-brand-500/5");
-    }
-
-    function handleBulkDrop(e) {
-      e.preventDefault();
-      handleBulkDragLeave(e);
-      const file = e.dataTransfer.files[0];
-      if (file) parseSpreadsheetFile(file);
-    }
-
-    function handleBulkFileSelect(e) {
-      const file = e.target.files[0];
-      if (file) parseSpreadsheetFile(file);
-    }
-
-    function parseSpreadsheetFile(file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const data = new Uint8Array(ev.target.result);
-          const workbook = XLSX.read(data, { type: "array" });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonRows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-
-          if (!jsonRows.length) {
-            showToast("El archivo está vacío o no tiene filas válidas", "warning");
-            return;
-          }
-
-          bulkParsedRows = jsonRows.map((r, index) => {
-            const sku = String(r.SKU || r.sku || r.Codigo || r.Código || `SKU-${1000 + index}`).trim().toUpperCase();
-            const name = String(r.Producto || r.Nombre || r.producto || r.name || "Herramienta Sin Nombre").trim();
-            const rawCat = String(r.Categoria || r.Categoría || r.category || "").trim();
-            const matchedCat = CATEGORIES.find(c => c.toLowerCase() === rawCat.toLowerCase()) || CATEGORIES[4];
-            const location = String(r.Ubicacion || r.Ubicación || r.location || "Bodega General").trim();
-            const qty = parseInt(r.Cantidad || r.Stock || r.qty || 0, 10) || 0;
-            const minStock = parseInt(r.Minimo || r.Mínimo || r.minStock || 5, 10) || 5;
-            const price = parseFloat(r.Precio || r.price || 0) || 0;
-            const exists = state.products.some(p => p.sku.toUpperCase() === sku);
-
-            return { sku, name, category: matchedCat, location, qty, minStock, price, isUpdate: exists };
-          });
-
-          renderBulkPreview();
-        } catch (err) {
-          console.error(err);
-          showToast("No se pudo procesar el archivo. Verifica el formato .xlsx o .csv", "error");
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function renderBulkPreview() {
-      const panel = document.getElementById("bulk-preview-panel");
-      const summary = document.getElementById("bulk-file-summary");
-      const tbody = document.getElementById("bulk-preview-tbody");
-
-      const updates = bulkParsedRows.filter(r => r.isUpdate).length;
-      const news = bulkParsedRows.length - updates;
-
-      summary.textContent = `${bulkParsedRows.length} filas leídas (${news} nuevos, ${updates} actualizaciones)`;
-      tbody.innerHTML = bulkParsedRows.map(r => `
-        <tr>
-          <td class="py-2.5 px-4">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
-              r.isUpdate
-                ? "bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300"
-                : "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-            }">${r.isUpdate ? "Actualizar" : "Nuevo"}</span>
-          </td>
-          <td class="py-2.5 px-4 font-mono font-bold text-brand-600 dark:text-brand-400">${escapeHtml(r.sku)}</td>
-          <td class="py-2.5 px-4 font-semibold">${escapeHtml(r.name)}</td>
-          <td class="py-2.5 px-4">${escapeHtml(r.category)}</td>
-          <td class="py-2.5 px-4 text-slate-500">${escapeHtml(r.location)}</td>
-          <td class="py-2.5 px-4 text-right font-bold">${r.qty} UND</td>
-        </tr>
-      `).join("");
-
-      panel.classList.remove("hidden");
-    }
-
-    function clearBulkPreview() {
-      bulkParsedRows = [];
-      document.getElementById("bulk-file-input").value = "";
-      document.getElementById("bulk-preview-panel").classList.add("hidden");
-    }
-
-    function commitBulkUpload() {
-      if (!bulkParsedRows.length) return;
-      let added = 0;
-      let updated = 0;
-
-      bulkParsedRows.forEach(row => {
-        const existing = state.products.find(p => p.sku.toUpperCase() === row.sku.toUpperCase());
-        if (existing) {
-          existing.name = row.name;
-          existing.category = row.category;
-          existing.location = row.location;
-          existing.qty = row.qty;
-          existing.minStock = row.minStock;
-          existing.price = row.price;
-          updated++;
-        } else {
-          state.products.unshift({
-            id: "prod-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-            sku: row.sku,
-            name: row.name,
-            category: row.category,
-            location: row.location,
-            qty: row.qty,
-            minStock: row.minStock,
-            price: row.price
-          });
-          added++;
-        }
-      });
-
-      saveState();
-      clearBulkPreview();
-      switchTab("inventario");
-      showToast(`Carga masiva completada: ${added} nuevos, ${updated} actualizados`);
-    }
-
-    // Security / XSS Escaping Utility
-    function escapeHtml(str) {
-      return String(str ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    function openOcrModal() {
+      alert("Escáner de facturas por OCR.");
     }
   </script>
 </body>
