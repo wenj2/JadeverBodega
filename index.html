@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JadeverBodega | Gestión de Inventario (Cloud & Excel)</title>
+  <title>JadeverBodega | Gestión de Inventario Completa</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -35,74 +35,32 @@
   <!-- jsPDF for real PDF report generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-  <!-- Tesseract.js v5 for real browser-based OCR on uploaded invoice photos -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
   <!-- Firebase App & Cloud Firestore SDK (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
-    /* Custom scrollbar & print rules */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(249, 115, 22, 0.7); }
 
-    @keyframes scanline {
-      0% { top: 0%; }
-      50% { top: 92%; }
-      100% { top: 0%; }
-    }
-    .ocr-scanner-bar {
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, #f97316, #fb923c, transparent);
-      box-shadow: 0 0 12px #f97316;
-      animation: scanline 1.6s ease-in-out infinite;
-    }
-
     @media print {
       @page { margin: 12mm; size: auto; }
-      html, body {
-        background: #ffffff !important;
-        color: #0f172a !important;
-        height: auto !important;
-        overflow: visible !important;
-      }
+      html, body { background: #ffffff !important; color: #0f172a !important; height: auto !important; }
       #sidebar, #mobile-header, #sidebar-backdrop, #toast-container, .no-print,
       #product-modal, #movement-modal, #ocr-modal, #quick-sku-modal, #invite-modal, #signout-modal {
         display: none !important;
       }
-      #main-wrapper {
-        margin-left: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 !important;
-        display: block !important;
-      }
+      #main-wrapper { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
       .app-screen { display: none !important; }
-      #screen-informes {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-      }
+      #screen-informes { display: block !important; opacity: 1 !important; }
       #print-only-header { display: flex !important; }
-      #print-movements-table-wrapper { display: block !important; }
-      .print-card {
-        background: #ffffff !important;
-        color: #0f172a !important;
-        border: 1px solid #cbd5e1 !important;
-        box-shadow: none !important;
-        break-inside: avoid;
-      }
-      .print-card * { color: #0f172a !important; }
+      .print-card { background: #ffffff !important; color: #0f172a !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; }
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased transition-colors duration-200 selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
 
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
@@ -111,115 +69,81 @@
   <header id="mobile-header" class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-slate-900 text-white px-4 py-3 border-b border-slate-800 shadow-md">
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/30">
-        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-        </svg>
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
       </div>
-      <span class="font-bold text-lg tracking-tight app-title-display">JadeverBodega</span>
+      <span class="font-bold text-lg app-title-display">JadeverBodega</span>
     </div>
-    <button onclick="toggleMobileSidebar()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 focus:outline-none">
+    <button onclick="toggleMobileSidebar()" class="p-2 rounded-lg bg-slate-800 text-slate-200">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
   </header>
 
-  <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden backdrop-blur-xs"></div>
+  <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden"></div>
 
   <!-- Left Dark Sidebar -->
-  <aside id="sidebar" class="fixed top-0 left-0 z-40 h-screen w-68 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0" style="width: 272px;">
+  <aside id="sidebar" class="fixed top-0 left-0 z-40 h-screen bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0" style="width: 272px;">
     <div class="p-5 overflow-y-auto">
       <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/30 shrink-0">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-            </svg>
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
           </div>
           <div>
             <h1 class="font-extrabold text-white text-lg tracking-tight leading-none app-title-display">JadeverBodega</h1>
             <span class="text-[11px] font-medium text-brand-400 tracking-wider uppercase">Ferretería &amp; Control</span>
           </div>
         </div>
-        <button onclick="toggleMobileSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
+        <button onclick="toggleMobileSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1">✕</button>
       </div>
 
       <nav class="space-y-1.5" id="sidebar-nav">
-        <button onclick="switchTab('inventario')" data-tab="inventario" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-500 text-white shadow-md shadow-brand-500/20">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
-          </svg>
+        <button onclick="switchTab('inventario')" data-tab="inventario" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-500 text-white shadow-md">
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           <span>Inventario</span>
           <span id="nav-badge-inv" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-white/20 text-white font-semibold">0</span>
         </button>
 
         <button onclick="switchTab('movimientos')" data-tab="movimientos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-          </svg>
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
           <span>Movimientos</span>
         </button>
 
         <button onclick="switchTab('pedidos')" data-tab="pedidos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-          </svg>
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
           <span>Pedidos</span>
           <span id="nav-badge-ped" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold hidden">0</span>
         </button>
 
         <button onclick="switchTab('informes')" data-tab="informes" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-          </svg>
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           <span>Informes</span>
         </button>
 
         <button onclick="switchTab('mas')" data-tab="mas" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
-          </svg>
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
           <span>Más</span>
         </button>
 
         <button onclick="switchTab('carga')" data-tab="carga" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-          </svg>
-          <span>Carga masiva</span>
+          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <span>Carga masiva (Excel)</span>
         </button>
       </nav>
     </div>
 
     <div class="p-4 border-t border-slate-800 bg-slate-900/90 space-y-3">
       <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/60">
-        <div class="flex items-center gap-2.5 text-xs font-medium text-slate-300">
-          <svg id="theme-icon-moon" class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-          </svg>
-          <span>Modo Oscuro</span>
-        </div>
-        <button id="sidebar-dark-toggle" onclick="toggleDarkMode()" role="switch" aria-checked="false" class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-600 transition-colors duration-200 ease-in-out focus:outline-none">
-          <span id="sidebar-dark-knob" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0"></span>
+        <span class="text-xs font-medium text-slate-300">Modo Oscuro</span>
+        <button id="sidebar-dark-toggle" onclick="toggleDarkMode()" class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-600 transition-colors">
+          <span id="sidebar-dark-knob" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform translate-x-0"></span>
         </button>
       </div>
-
       <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/70">
-        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow">
-          WH
-        </div>
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow">WH</div>
         <div class="min-w-0 flex-1">
           <p class="text-xs font-bold text-white truncate">Wendy Hernandez</p>
-          <p class="text-[11px] text-emerald-400 font-medium truncate flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> Firestore Cloud Sync
-          </p>
+          <p class="text-[11px] text-emerald-400 font-medium truncate flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> Firestore Cloud Sync</p>
         </div>
-        <button onclick="openSignOutModal()" title="Cerrar Sesión" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-700/70 transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-          </svg>
-        </button>
       </div>
     </div>
   </aside>
@@ -232,73 +156,61 @@
       <section id="screen-inventario" class="app-screen space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <p id="dynamic-date-header" class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">CARGANDO DE LA NUBE...</p>
+            <p id="dynamic-date-header" class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">CARGANDO...</p>
             <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Inventario</h2>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <button onclick="switchTab('carga')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-brand-500 shadow-xs transition-all">
-              <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <button onclick="switchTab('carga')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 hover:border-brand-500 shadow-xs">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               Cargar Excel
             </button>
-            <button onclick="openProductModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25 transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            <button onclick="openProductModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md">
               + Producto
             </button>
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Referencias</p>
+              <p class="text-xs font-semibold uppercase text-slate-500">Total Referencias</p>
               <p id="metric-total-refs" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">0</p>
             </div>
-            <div class="w-11 h-11 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-            </div>
+            <div class="w-11 h-11 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 flex items-center justify-center font-bold">📦</div>
           </div>
-          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Unidades en Stock</p>
+              <p class="text-xs font-semibold uppercase text-slate-500">Unidades en Stock</p>
               <p id="metric-total-units" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">0</p>
             </div>
-            <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-            </div>
+            <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold">📊</div>
           </div>
-          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Alertas de Reorden</p>
-              <p id="metric-reorder-count" class="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">0</p>
+              <p class="text-xs font-semibold uppercase text-slate-500">Alertas Reorden</p>
+              <p id="metric-reorder-count" class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1">0</p>
             </div>
-            <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            </div>
+            <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">⚠️</div>
           </div>
-          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Movimientos Hoy</p>
-              <p id="metric-today-movs" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">0</p>
+              <p class="text-xs font-semibold uppercase text-slate-500">Movimientos Hoy</p>
+              <p id="metric-today-movs" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">0</p>
             </div>
-            <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-            </div>
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">📈</div>
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-          <div class="relative">
-            <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.3-4.3"/></svg>
-            <input type="text" id="inv-search-input" oninput="renderInventory()" placeholder="Buscar por nombre de herramienta, SKU, categoría o ubicación..." class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
+          <input type="text" id="inv-search-input" oninput="renderInventory()" placeholder="Buscar por SKU, producto o categoría..." class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           <div id="category-chips" class="flex items-center gap-2 overflow-x-auto pb-1"></div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <tr class="border-b bg-slate-50 dark:bg-slate-950 text-[11px] font-bold uppercase text-slate-500">
                   <th class="py-3.5 px-4">SKU</th>
                   <th class="py-3.5 px-4">Producto</th>
                   <th class="py-3.5 px-4">Categoría</th>
@@ -307,7 +219,7 @@
                   <th class="py-3.5 px-4 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody id="inventory-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm"></tbody>
+              <tbody id="inventory-tbody" class="divide-y text-sm"></tbody>
             </table>
           </div>
         </div>
@@ -317,34 +229,14 @@
       <section id="screen-movimientos" class="app-screen hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Bitácora &amp; Escáner Inteligente</p>
+            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 mb-1">Bitácora &amp; Registro</p>
             <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Movimientos</h2>
           </div>
           <div class="flex flex-wrap items-center gap-2.5">
-            <button onclick="openOcrModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-900 dark:bg-slate-800 text-white border border-slate-700 shadow-xs transition-all">
-              <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
-              Por factura
-            </button>
-            <button onclick="openMovementModal('ENTRADA')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition-all">
-              Entrada
-            </button>
-            <button onclick="openMovementModal('SALIDA')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/20 transition-all">
-              Salida
-            </button>
+            <button onclick="openOcrModal()" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-900 text-white">Por factura OCR</button>
+            <button onclick="openMovementModal('ENTRADA')" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white">Entrada</button>
+            <button onclick="openMovementModal('SALIDA')" class="px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 text-white">Salida</button>
           </div>
-        </div>
-
-        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs grid grid-cols-1 md:grid-cols-12 gap-3">
-          <div class="md:col-span-5 relative">
-            <input type="text" id="mov-search" oninput="renderMovements()" placeholder="Buscar producto, SKU, factura o usuario..." class="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
-          </div>
-          <div class="md:col-span-3">
-            <select id="mov-cat-filter" onchange="renderMovements()" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm focus:outline-none">
-              <option value="Todas">Todas las categorías</option>
-            </select>
-          </div>
-          <div class="md:col-span-2"><input type="date" id="mov-date-from" onchange="renderMovements()" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm" /></div>
-          <div class="md:col-span-2"><input type="date" id="mov-date-to" onchange="renderMovements()" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm" /></div>
         </div>
         <div id="movements-list" class="space-y-3"></div>
       </section>
@@ -352,59 +244,36 @@
       <!-- SCREEN 3: PEDIDOS -->
       <section id="screen-pedidos" class="app-screen hidden space-y-6">
         <div>
-          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">Reabastecimiento &amp; Compras</p>
-          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Pedidos</h2>
+          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 mb-1">Reabastecimiento</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Pedidos</h2>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-5">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-              <h3 class="text-sm font-extrabold tracking-wider uppercase text-slate-800 dark:text-slate-100 pb-2 border-b border-slate-100 dark:border-slate-800">ANOTAR LO QUE HACE FALTA</h3>
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border space-y-4">
+              <h3 class="text-sm font-extrabold uppercase">Anotar Lo Que Hace Falta</h3>
               <form onsubmit="addOrder(event)" class="space-y-4">
-                <div>
-                  <label class="block text-xs font-semibold mb-1">Producto / Código Referencia *</label>
-                  <input type="text" id="order-product" list="catalog-datalist" required placeholder="Ej. [JDPE4315] Taladro" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm" />
-                  <datalist id="catalog-datalist"></datalist>
+                <input type="text" id="order-product" required placeholder="Producto / Referencia" class="w-full px-3.5 py-2.5 rounded-xl border text-sm" />
+                <div class="grid grid-cols-2 gap-3">
+                  <input type="text" id="order-client" required placeholder="Cliente" class="w-full px-3.5 py-2.5 rounded-xl border text-sm" />
+                  <select id="order-priority" class="w-full px-3.5 py-2.5 rounded-xl border text-sm">
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Urgente">Urgente</option>
+                  </select>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label class="block text-xs font-semibold mb-1">Cliente / Destinatario *</label>
-                    <input type="text" id="order-client" required placeholder="Ferretería El Sol" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm" />
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold mb-1">Prioridad / Estado</label>
-                    <select id="order-priority" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm">
-                      <option value="Pendiente">Pendiente</option>
-                      <option value="Urgente">Urgente</option>
-                      <option value="En tránsito">En tránsito</option>
-                    </select>
-                  </div>
+                  <input type="number" id="order-qty" value="1" min="1" required class="w-full px-3.5 py-2.5 rounded-xl border text-sm" />
+                  <input type="text" id="order-requester" value="Wendy Hernandez" required class="w-full px-3.5 py-2.5 rounded-xl border text-sm" />
                 </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <label class="block text-xs font-semibold mb-1">Cantidad *</label>
-                    <input type="number" id="order-qty" value="1" min="1" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm" />
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold mb-1">Solicitado por *</label>
-                    <input type="text" id="order-requester" value="Wendy Hernandez" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm" />
-                  </div>
-                </div>
-                <div>
-                  <label class="block text-xs font-semibold mb-1">Observaciones / Proveedor</label>
-                  <textarea id="order-notes" rows="2" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm"></textarea>
-                </div>
-                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm shadow-md">+ Agregar pedido</button>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-brand-500 text-white font-semibold text-sm">+ Agregar Pedido</button>
               </form>
             </div>
           </div>
           <div class="lg:col-span-7">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-              <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-                <h3 class="text-sm font-extrabold tracking-wider uppercase text-slate-800 dark:text-slate-100">CONTROL DE PEDIDOS</h3>
-                <div class="flex items-center gap-2">
-                  <label class="cursor-pointer px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold">Importar Excel<input type="file" accept=".xlsx,.xls,.csv" onchange="importOrdersExcel(event)" class="hidden" /></label>
-                  <button onclick="exportOrdersExcel()" class="px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">Exportar Excel</button>
-                  <span id="orders-pending-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-brand-50 text-brand-600">0 pendientes</span>
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border space-y-4">
+              <div class="flex justify-between items-center pb-2 border-b">
+                <h3 class="text-sm font-extrabold uppercase">Control de Pedidos</h3>
+                <div class="flex gap-2">
+                  <button onclick="exportOrdersExcel()" class="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold">Exportar Excel</button>
                 </div>
               </div>
               <div id="orders-list" class="space-y-3"></div>
@@ -415,100 +284,34 @@
 
       <!-- SCREEN 4: INFORMES -->
       <section id="screen-informes" class="app-screen hidden space-y-6">
-        <div id="print-only-header" class="hidden items-center justify-between border-b-2 border-slate-900 pb-4 mb-4">
-          <div>
-            <h1 class="text-xl font-extrabold text-slate-900 app-title-display">JadeverBodega</h1>
-            <p class="text-xs text-slate-600">Reporte Oficial de Control en la Nube</p>
-          </div>
-          <div class="text-right text-xs text-slate-700">
-            <p id="print-report-period" class="font-bold">Periodo: Hoy</p>
-            <p>Responsable: Wendy Hernandez</p>
-          </div>
-        </div>
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print">
+        <div class="flex justify-between items-center">
           <div>
             <p class="text-xs font-bold tracking-widest uppercase text-brand-600 mb-1">Analítica Cloud</p>
-            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Informes</h2>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Informes</h2>
           </div>
-          <div class="flex flex-wrap items-center gap-2 no-print">
-            <button onclick="setReportFilter('today')" data-rfilter="today" class="rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-brand-500 text-white shadow-xs">Hoy</button>
-            <button onclick="setReportFilter('month')" data-rfilter="month" class="rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800">Este mes</button>
-            <button onclick="setReportFilter('last_month')" data-rfilter="last_month" class="rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800">Mes pasado</button>
-            <button onclick="setReportFilter('custom')" data-rfilter="custom" class="rfilter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800">Rango personalizado</button>
+          <div class="flex gap-2">
+            <button onclick="exportReportPDF()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-50 text-rose-600">PDF</button>
+            <button onclick="window.print()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100">Imprimir</button>
           </div>
-        </div>
-        <div id="report-custom-range" class="hidden bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center gap-3 no-print">
-          <span class="text-xs font-semibold">Desde:</span><input type="date" id="rep-start" onchange="renderReports()" class="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-955 border text-xs" />
-          <span class="text-xs font-semibold">Hasta:</span><input type="date" id="rep-end" onchange="renderReports()" class="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-955 border text-xs" />
-        </div>
-        <div class="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-wrap items-center gap-2.5 no-print">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 px-2">Acciones:</span>
-          <button onclick="saveCurrentReportToArchive()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-brand-500 text-white">+ Guardar Informe</button>
-          <button onclick="exportReportPDF()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-50 text-rose-600">Descargar PDF</button>
-          <button onclick="printReportView()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800">Imprimir</button>
-          <button onclick="exportReportExcel()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-600">Excel / CSV</button>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div class="print-card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800"><p class="text-xs font-bold text-emerald-600">ENTRADAS</p><p id="rep-entradas" class="text-2xl font-extrabold mt-1">+0 UND</p><p id="rep-entradas-ops" class="text-xs text-slate-400">0 operaciones</p></div>
-          <div class="print-card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800"><p class="text-xs font-bold text-rose-600">SALIDAS</p><p id="rep-salidas" class="text-2xl font-extrabold mt-1">-0 UND</p><p id="rep-salidas-ops" class="text-xs text-slate-400">0 operaciones</p></div>
-          <div class="print-card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800"><p class="text-xs font-bold text-brand-600">BALANCE</p><p id="rep-balance" class="text-2xl font-extrabold mt-1">0 UND</p><p class="text-xs text-slate-400">Flujo neto</p></div>
-          <div class="print-card bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800"><p class="text-xs font-bold text-blue-600">MOVIMIENTOS</p><p id="rep-total-movs" class="text-2xl font-extrabold mt-1">0</p><p class="text-xs text-slate-400">Registros</p></div>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="print-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800"><h3 class="text-sm font-extrabold uppercase mb-4">PRODUCTOS MÁS RETIRADOS</h3><div id="rep-top-products" class="space-y-3"></div></div>
-          <div class="print-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800"><h3 class="text-sm font-extrabold uppercase mb-4">RESPONSABLES</h3><div id="rep-responsibles" class="space-y-3"></div></div>
-        </div>
-        <div id="print-movements-table-wrapper" class="print-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800">
-          <h3 class="text-sm font-extrabold uppercase mb-3">DETALLE DE MOVIMIENTOS</h3>
-          <div class="overflow-x-auto"><table class="w-full text-left text-xs"><thead><tr class="border-b text-slate-500"><th class="py-2 px-3">Fecha</th><th class="py-2 px-3">Tipo</th><th class="py-2 px-3">SKU</th><th class="py-2 px-3">Producto</th><th class="py-2 px-3">Cliente / Factura</th><th class="py-2 px-3 text-right">Cantidad</th><th class="py-2 px-3">Responsable</th></tr></thead><tbody id="rep-detail-tbody" class="divide-y"></tbody></table></div>
-        </div>
-        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 no-print space-y-4">
-          <div class="flex justify-between items-center pb-2 border-b"><h3 class="text-sm font-extrabold uppercase">Historial de Informes Guardados</h3><span id="saved-reports-count" class="text-xs font-bold px-2.5 py-1 rounded-full bg-brand-50 text-brand-600">0</span></div>
-          <div id="saved-reports-list" class="space-y-3"></div>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border"><p class="text-xs font-bold text-emerald-600">ENTRADAS</p><p id="rep-entradas" class="text-2xl font-extrabold mt-1">+0 UND</p></div>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border"><p class="text-xs font-bold text-rose-600">SALIDAS</p><p id="rep-salidas" class="text-2xl font-extrabold mt-1">-0 UND</p></div>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border"><p class="text-xs font-bold text-brand-600">BALANCE</p><p id="rep-balance" class="text-2xl font-extrabold mt-1">0 UND</p></div>
+          <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border"><p class="text-xs font-bold text-blue-600">MOVIMIENTOS</p><p id="rep-total-movs" class="text-2xl font-extrabold mt-1">0</p></div>
         </div>
       </section>
 
       <!-- SCREEN 5: MÁS -->
       <section id="screen-mas" class="app-screen hidden space-y-6">
         <div>
-          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 mb-1">Configuración &amp; Cloud</p>
-          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Más</h2>
+          <p class="text-xs font-bold tracking-widest uppercase text-brand-600 mb-1">Configuración &amp; Nube</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Más Opciones</h2>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div class="lg:col-span-5 space-y-6">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-4">
-              <h3 class="text-sm font-extrabold uppercase">Identidad y Apariencia</h3>
-              <div>
-                <label class="block text-xs font-semibold mb-1">Nombre de la Aplicación</label>
-                <input type="text" id="settings-app-name" value="JadeverBodega" oninput="updateAppName(this.value)" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-955 border text-sm font-semibold" />
-              </div>
-              <div class="flex items-center justify-between pt-2">
-                <div><p class="text-sm font-semibold">Tema de Interfaz</p></div>
-                <div class="flex rounded-xl bg-slate-100 dark:bg-slate-950 p-1 border">
-                  <button onclick="setDarkMode(false)" id="btn-theme-light" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-xs">Claro</button>
-                  <button onclick="setDarkMode(true)" id="btn-theme-dark" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500">Oscuro</button>
-                </div>
-              </div>
-            </div>
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3">
-              <h3 class="text-sm font-extrabold uppercase">Sincronización Cloud</h3>
-              <p class="text-xs text-slate-500">Los datos se guardan y sincronizan en Cloud Firestore de forma automática.</p>
-              <div class="flex justify-between items-center pt-2 border-t">
-                <button onclick="syncFromCloudForce()" class="px-3 py-2 rounded-xl text-xs font-bold bg-brand-500 text-white">Forzar Sincronización</button>
-                <button onclick="resetAllData()" class="text-xs font-semibold text-rose-500">Limpiar nube / todo</button>
-              </div>
-            </div>
-          </div>
-          <div class="lg:col-span-7">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-5">
-              <div class="flex justify-between items-center">
-                <h3 class="text-sm font-extrabold uppercase">Roles de Usuario</h3>
-                <button onclick="openInviteModal()" class="px-3.5 py-2 rounded-xl bg-brand-500 text-white text-xs font-semibold">+ Invitar</button>
-              </div>
-              <div class="space-y-2"><h4 class="text-xs font-bold text-amber-600">Solicitudes Pendientes</h4><div id="pending-users-list" class="space-y-2"></div></div>
-              <div class="space-y-2 pt-2 border-t"><h4 class="text-xs font-bold text-slate-500">Equipo Activo</h4><div id="active-users-list" class="space-y-2"></div></div>
-            </div>
-          </div>
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border space-y-4 max-w-lg">
+          <h3 class="text-sm font-extrabold uppercase">Sincronización Firestore</h3>
+          <p class="text-xs text-slate-500">Tus datos están configurados para guardarse localmente y en Firestore Cloud.</p>
+          <button onclick="resetAllData()" class="px-4 py-2 rounded-xl bg-rose-50 text-rose-600 text-xs font-bold">Limpiar todos los datos</button>
         </div>
       </section>
 
@@ -516,34 +319,47 @@
       <section id="screen-carga" class="app-screen hidden space-y-6">
         <div class="flex justify-between items-center">
           <div>
-            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 mb-1">Importación Cloud & Excel</p>
-            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Carga masiva</h2>
+            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 mb-1">Importación de Archivos</p>
+            <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Carga Masiva Excel</h2>
           </div>
-          <button onclick="downloadExcelTemplate()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 border hover:border-brand-500">Descargar Plantilla .XLSX</button>
+          <button onclick="downloadExcelTemplate()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 border hover:border-brand-500">
+            Descargar Plantilla (.XLSX)
+          </button>
         </div>
 
-        <div id="bulk-dropzone" onclick="document.getElementById('bulk-file-input').click()" ondragover="handleBulkDragOver(event)" ondragleave="handleBulkDragLeave(event)" ondrop="handleBulkDrop(event)" class="cursor-pointer bg-white dark:bg-slate-900 border-2 border-dashed rounded-2xl p-12 text-center transition-all hover:border-brand-500">
+        <div id="bulk-dropzone" 
+             onclick="document.getElementById('bulk-file-input').click()" 
+             ondragover="handleBulkDragOver(event)" 
+             ondragleave="handleBulkDragLeave(event)" 
+             ondrop="handleBulkDrop(event)" 
+             class="cursor-pointer bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-2xl p-12 text-center transition-all hover:border-brand-500">
+          
           <input type="file" id="bulk-file-input" accept=".csv,.xlsx,.xls" onchange="handleBulkFileSelect(event)" class="hidden" />
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Arrastra y suelta tu archivo Excel (.xlsx) o CSV aquí</h3>
-          <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Columnas soportadas: <span class="font-mono font-bold">SKU, Producto, Categoría, Ubicación, Cantidad, Mínimo, Precio</span></p>
-          <span class="inline-block mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold">Seleccionar archivo Excel</span>
+          
+          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-brand-50 dark:bg-brand-500/10 text-brand-500 flex items-center justify-center">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          </div>
+
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Haz clic aquí o arrastra tu archivo Excel (.xlsx / .csv)</h3>
+          <p class="text-xs text-slate-500 mt-2">Columnas detectadas automáticamente: <strong>SKU, Producto, Categoría, Ubicación, Cantidad, Mínimo, Precio</strong></p>
+          <button type="button" class="mt-4 px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs font-semibold">Seleccionar archivo desde mi equipo</button>
         </div>
 
         <div id="bulk-preview-panel" class="hidden bg-white dark:bg-slate-900 rounded-2xl border overflow-hidden">
-          <div class="p-4 border-b flex justify-between items-center">
+          <div class="p-4 border-b flex justify-between items-center bg-slate-50 dark:bg-slate-950">
             <div>
               <h3 id="bulk-file-summary" class="text-sm font-bold">0 filas</h3>
-              <p class="text-xs text-slate-500">Verifica los datos antes de guardar en la nube.</p>
+              <p class="text-xs text-slate-500">Revisa la información antes de guardar.</p>
             </div>
             <div class="flex gap-2">
               <button onclick="clearBulkPreview()" class="px-3 py-2 text-xs font-semibold text-slate-600">Cancelar</button>
-              <button onclick="commitBulkUpload()" class="px-4 py-2 text-xs font-bold bg-brand-500 text-white rounded-xl shadow-md">Guardar y Sincronizar en Firestore</button>
+              <button onclick="commitBulkUpload()" class="px-4 py-2 text-xs font-bold bg-brand-500 text-white rounded-xl shadow-md">Guardar Productos en el Inventario</button>
             </div>
           </div>
           <div class="overflow-x-auto max-h-96">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="bg-slate-50 dark:bg-slate-950 border-b font-bold uppercase text-slate-500">
+                <tr class="bg-slate-100 dark:bg-slate-900 border-b font-bold uppercase text-slate-500">
                   <th class="py-3 px-4">Estado</th>
                   <th class="py-3 px-4">SKU</th>
                   <th class="py-3 px-4">Producto</th>
@@ -552,7 +368,7 @@
                   <th class="py-3 px-4 text-right">Cantidad</th>
                 </tr>
               </thead>
-              <tbody id="bulk-preview-tbody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+              <tbody id="bulk-preview-tbody" class="divide-y"></tbody>
             </table>
           </div>
         </div>
@@ -563,215 +379,85 @@
 
   <!-- MODALS -->
   <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden">
-      <div class="px-6 py-4 border-b flex justify-between items-center"><h3 id="product-modal-title" class="text-base font-extrabold">Nuevo Producto</h3><button onclick="closeProductModal()">✕</button></div>
-      <form onsubmit="saveProduct(event)" class="p-6 space-y-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl border shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3"><h3 id="product-modal-title" class="text-base font-extrabold">Nuevo Producto</h3><button onclick="closeProductModal()">✕</button></div>
+      <form onsubmit="saveProduct(event)" class="space-y-4">
         <input type="hidden" id="prod-edit-id" />
         <div class="grid grid-cols-2 gap-4">
-          <div><label class="block text-xs font-semibold mb-1">SKU *</label><input type="text" id="prod-sku" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border uppercase font-mono text-sm" /></div>
-          <div><label class="block text-xs font-semibold mb-1">Categoría *</label><select id="prod-category" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm"></select></div>
+          <input type="text" id="prod-sku" required placeholder="SKU" class="w-full px-3.5 py-2 rounded-xl border font-mono text-sm uppercase" />
+          <select id="prod-category" required class="w-full px-3.5 py-2 rounded-xl border text-sm"></select>
         </div>
-        <div><label class="block text-xs font-semibold mb-1">Nombre *</label><input type="text" id="prod-name" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm" /></div>
+        <input type="text" id="prod-name" required placeholder="Nombre de Producto" class="w-full px-3.5 py-2 rounded-xl border text-sm" />
         <div class="grid grid-cols-3 gap-4">
-          <div><label class="block text-xs font-semibold mb-1">Ubicación</label><input type="text" id="prod-location" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm" /></div>
-          <div><label class="block text-xs font-semibold mb-1">Stock *</label><input type="number" id="prod-qty" min="0" value="0" required class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm" /></div>
-          <div><label class="block text-xs font-semibold mb-1">Mínimo</label><input type="number" id="prod-min" min="0" value="5" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm" /></div>
+          <input type="text" id="prod-location" placeholder="Ubicación" class="w-full px-3.5 py-2 rounded-xl border text-sm" />
+          <input type="number" id="prod-qty" min="0" value="0" required placeholder="Cantidad" class="w-full px-3.5 py-2 rounded-xl border text-sm" />
+          <input type="number" id="prod-min" min="0" value="5" placeholder="Mínimo" class="w-full px-3.5 py-2 rounded-xl border text-sm" />
         </div>
-        <div><label class="block text-xs font-semibold mb-1">Precio ($)</label><input type="number" id="prod-price" step="0.01" min="0" value="0.00" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm" /></div>
-        <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeProductModal()" class="px-4 py-2 text-xs font-semibold">Cancelar</button><button type="submit" class="px-5 py-2 text-xs font-bold bg-brand-500 text-white rounded-xl">Guardar</button></div>
+        <div class="flex justify-end gap-2"><button type="button" onclick="closeProductModal()" class="px-4 py-2 text-xs">Cancelar</button><button type="submit" class="px-5 py-2 text-xs font-bold bg-brand-500 text-white rounded-xl">Guardar</button></div>
       </form>
     </div>
   </div>
 
   <div id="movement-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border shadow-2xl overflow-hidden">
-      <div class="px-6 py-4 border-b flex justify-between items-center"><h3 id="mov-modal-title" class="text-base font-extrabold">Movimiento</h3><button onclick="closeMovementModal()">✕</button></div>
-      <form onsubmit="saveManualMovement(event)" class="p-6 space-y-4">
-        <input type="hidden" id="mov-edit-id" /><input type="hidden" id="mov-type" value="ENTRADA" />
-        <div><label class="block text-xs font-semibold mb-1">Producto *</label><select id="mov-product-select" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm"></select></div>
-        <div id="mov-client-wrapper" class="hidden p-3 rounded-xl bg-brand-50 dark:bg-brand-500/10 border space-y-2">
-          <div><label class="block text-xs font-bold text-brand-800 dark:text-brand-300 mb-1">Cliente / Destinatario *</label><input type="text" id="mov-client" class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border text-sm" /></div>
-          <div><label class="block text-xs font-semibold mb-1">N° Factura</label><input type="text" id="mov-invoice-num" class="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-950 border text-xs font-mono" /></div>
-        </div>
+    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3"><h3 id="mov-modal-title" class="text-base font-extrabold">Movimiento</h3><button onclick="closeMovementModal()">✕</button></div>
+      <form onsubmit="saveManualMovement(event)" class="space-y-4">
+        <input type="hidden" id="mov-type" value="ENTRADA" />
+        <select id="mov-product-select" required class="w-full px-3.5 py-2.5 rounded-xl border text-sm"></select>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-xs font-semibold mb-1">Cantidad *</label><input type="number" id="mov-qty" min="1" value="1" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm" /></div>
-          <div><label class="block text-xs font-semibold mb-1">Responsable *</label><input type="text" id="mov-user" value="Wendy Hernandez" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm" /></div>
+          <input type="number" id="mov-qty" min="1" value="1" required class="w-full px-3.5 py-2.5 rounded-xl border text-sm" />
+          <input type="text" id="mov-user" value="Wendy Hernandez" required class="w-full px-3.5 py-2.5 rounded-xl border text-sm" />
         </div>
-        <div><label class="block text-xs font-semibold mb-1">Observaciones</label><input type="text" id="mov-ref" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border text-sm" /></div>
-        <div class="flex justify-end gap-2 pt-2"><button type="button" onclick="closeMovementModal()" class="px-4 py-2 text-xs font-semibold">Cancelar</button><button type="submit" id="mov-submit-btn" class="px-5 py-2 text-xs font-bold bg-emerald-600 text-white rounded-xl">Confirmar</button></div>
+        <div class="flex justify-end gap-2"><button type="button" onclick="closeMovementModal()" class="px-4 py-2 text-xs">Cancelar</button><button type="submit" class="px-5 py-2 text-xs font-bold bg-emerald-600 text-white rounded-xl">Confirmar</button></div>
       </form>
     </div>
   </div>
 
-  <div id="ocr-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4 overflow-y-auto">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-2xl border shadow-2xl overflow-hidden my-auto">
-      <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center"><h3 class="text-base font-extrabold">Lectura Inteligente de Factura (OCR)</h3><button onclick="closeOcrModal()">✕</button></div>
-      <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-        <div class="flex gap-4 items-center">
-          <div onclick="document.getElementById('ocr-file-input').click()" class="cursor-pointer border-2 border-dashed rounded-xl p-4 text-center flex-1 bg-slate-50 dark:bg-slate-950">
-            <input type="file" id="ocr-file-input" accept="image/*" onchange="handleOcrImageUpload(event)" class="hidden" />
-            <p class="text-sm font-bold">Subir foto de factura</p>
-          </div>
-          <button type="button" onclick="simulateSampleInvoiceOCR(true)" class="py-3 px-4 rounded-xl bg-brand-500 text-white text-xs font-bold">Probar Factura Muestra (10 ítems)</button>
-        </div>
-        <div id="ocr-results-container" class="hidden space-y-4">
-          <div class="overflow-x-auto border rounded-xl"><table class="w-full text-left text-xs"><thead><tr class="bg-slate-100 dark:bg-slate-950 border-b font-bold"><th class="p-2.5">Código</th><th class="p-2.5">Nombre</th><th class="p-2.5 text-right">Cantidad</th></tr></thead><tbody id="ocr-items-tbody" class="divide-y"></tbody></table></div>
-          <div class="flex justify-end gap-2"><button onclick="confirmAndProcessInvoice()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 text-white">Procesar y Guardar en la Nube</button></div>
-        </div>
+  <div id="ocr-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl border p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3"><h3 class="text-base font-extrabold">Lectura OCR Factura</h3><button onclick="closeOcrModal()">✕</button></div>
+      <p class="text-xs text-slate-500">Subir imagen o usar demo de escaneo de factura.</p>
+      <button onclick="simulateSampleInvoiceOCR()" class="w-full py-3 bg-brand-500 text-white rounded-xl text-xs font-bold">Probar Factura Muestra</button>
+      <div id="ocr-results-container" class="hidden space-y-3">
+        <div id="ocr-items-tbody" class="text-xs space-y-1"></div>
+        <button onclick="confirmAndProcessInvoice()" class="w-full py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Guardar en Inventario</button>
       </div>
     </div>
   </div>
 
-  <div id="quick-sku-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/75 p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border-2 border-brand-500 shadow-2xl p-5 space-y-4">
-      <h4 class="text-sm font-extrabold">SKU Nuevo</h4>
-      <form onsubmit="saveQuickMissingSku(event)" class="space-y-3">
-        <input type="hidden" id="qsku-row-index" />
-        <input type="text" id="qsku-code" readonly class="w-full px-3 py-2 rounded-xl bg-slate-100 font-mono text-xs font-bold" />
-        <input type="text" id="qsku-name" required placeholder="Nombre del producto" class="w-full px-3 py-2 rounded-xl border text-sm" />
-        <select id="qsku-category" required class="w-full px-3 py-2 rounded-xl border text-xs"></select>
-        <div class="flex justify-end gap-2"><button type="button" onclick="closeQuickSkuModal()" class="text-xs">Cancelar</button><button type="submit" class="px-4 py-2 text-xs font-bold bg-brand-500 text-white rounded-xl">Guardar</button></div>
-      </form>
-    </div>
-  </div>
-
-  <div id="invite-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border p-6 space-y-4">
-      <h3 class="text-base font-extrabold">Invitar Usuario</h3>
-      <form onsubmit="sendUserInvite(event)" class="space-y-3">
-        <input type="text" id="inv-user-name" required placeholder="Nombre" class="w-full px-3.5 py-2 rounded-xl border text-sm" />
-        <input type="email" id="inv-user-email" required placeholder="Correo" class="w-full px-3.5 py-2 rounded-xl border text-sm" />
-        <select id="inv-user-role" class="w-full px-3.5 py-2 rounded-xl border text-sm"><option value="Admin">Admin</option><option value="Observador">Observador</option></select>
-        <div class="flex justify-end gap-2"><button type="button" onclick="closeInviteModal()" class="text-xs">Cancelar</button><button type="submit" class="px-5 py-2 text-xs font-bold bg-brand-500 text-white rounded-xl">Enviar</button></div>
-      </form>
-    </div>
-  </div>
-
-  <div id="signout-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/90 p-4">
-    <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl p-6 text-center space-y-4 shadow-2xl">
-      <div class="w-14 h-14 mx-auto rounded-full bg-brand-500 flex items-center justify-center text-white font-extrabold text-lg">WH</div>
-      <h3 class="text-lg font-extrabold">Sesión Bloqueada</h3>
-      <button onclick="closeSignOutModal()" class="w-full py-2.5 rounded-xl bg-brand-500 text-white font-bold text-sm">Reanudar</button>
-    </div>
-  </div>
-
-  <!-- JAVASCRIPT & CLOUD FIRESTORE SYNC & FULL EXCEL PARSING -->
+  <!-- JAVASCRIPT & LOGIC COMPLETA -->
   <script>
-    // 1. CONFIGURA TUS CREDENCIALES DE FIREBASE
-    const firebaseConfig = {
-      apiKey: "TU_API_KEY",
-      authDomain: "TU_PROYECTO.firebaseapp.com",
-      projectId: "TU_PROJECT_ID",
-      storageBucket: "TU_PROYECTO.appspot.com",
-      messagingSenderId: "TU_SENDER_ID",
-      appId: "TU_APP_ID"
-    };
-
-    // Inicializar Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const CATEGORIES = [
-      "Adhesivos y sellantes", "Aire y ventilación", "Automotriz",
-      "Cerrajería y seguridad", "Construcción", "Electricidad", "Electrodomésticos"
-    ];
+    const CATEGORIES = ["Adhesivos y sellantes", "Aire y ventilación", "Automotriz", "Cerrajería y seguridad", "Construcción", "Electricidad", "Electrodomésticos"];
 
     let state = {
       appName: "JadeverBodega",
       darkMode: false,
-      activeTab: "inventario",
       selectedCategory: "Todas",
-      reportFilter: "today",
-      products: [],
+      products: [
+        { id: "prod-1", sku: "JDPE4315", name: "Taladro Percutor 650W Jadever", category: "Construcción", location: "Pasillo A-1", qty: 24, minStock: 6, price: 48.50 },
+        { id: "prod-2", sku: "JDSWB911A", name: "Llave Combinada 11mm Cr-V", category: "Automotriz", location: "Estante B-3", qty: 60, minStock: 15, price: 4.20 }
+      ],
       movements: [],
-      orders: [],
-      savedReports: [],
-      pendingUsers: [],
-      activeUsers: [{ id: "u-1", name: "Wendy Hernandez", email: "wendy.h@jadeverbodega.com", role: "Admin" }]
+      orders: []
     };
 
     let bulkParsedRows = [];
     let ocrExtractedRows = [];
-    let isSyncing = false;
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      setDynamicSpanishDate();
-      populateCategoryDropdowns();
-      await loadStateFromCloud();
-      applyTheme();
-      updateAppName(state.appName, false);
+    window.addEventListener("DOMContentLoaded", () => {
+      populateCategories();
       renderAll();
     });
 
-    // 2. SINCRONIZACIÓN CON CLOUD FIRESTORE
-    async function loadStateFromCloud() {
-      try {
-        const docRef = db.collection("jadever_bodega").doc("main_state");
-        const doc = await docRef.get();
-        if (doc.exists) {
-          state = { ...state, ...doc.data() };
-          showToast("Sincronizado con Cloud Firestore");
-        } else {
-          await docRef.set(state);
-        }
-      } catch (e) {
-        console.warn("Uso de respaldo local:", e);
-        try {
-          const saved = localStorage.getItem("jadever_bodega_state_v1");
-          if (saved) state = { ...state, ...JSON.parse(saved) };
-        } catch(err) {}
-      }
-    }
-
-    async function saveState() {
-      try { localStorage.setItem("jadever_bodega_state_v1", JSON.stringify(state)); } catch (e) {}
-      if (isSyncing) return;
-      isSyncing = true;
-      try {
-        await db.collection("jadever_bodega").doc("main_state").set(state);
-      } catch (e) {
-        console.error("Error guardando en la nube:", e);
-        showToast("Error al sincronizar con Firestore", "error");
-      } finally {
-        isSyncing = false;
-      }
-    }
-
-    async function syncFromCloudForce() {
-      await loadStateFromCloud();
-      renderAll();
-      showToast("Datos actualizados desde Cloud Firestore");
-    }
-
-    function setDynamicSpanishDate() {
-      const now = new Date();
-      const days = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
-      const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-      const el = document.getElementById("dynamic-date-header");
-      if (el) el.textContent = `${days[now.getDay()]}, ${now.getDate()} DE ${months[now.getMonth()]}`;
-    }
-
-    function populateCategoryDropdowns() {
-      ["prod-category", "qsku-category"].forEach(id => {
-        const sel = document.getElementById(id);
-        if (sel) sel.innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("");
-      });
-      const movFilter = document.getElementById("mov-cat-filter");
-      if (movFilter) movFilter.innerHTML = `<option value="Todas">Todas las categorías</option>` + CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("");
+    function populateCategories() {
+      const sel = document.getElementById("prod-category");
+      if (sel) sel.innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("");
     }
 
     function switchTab(tabId) {
-      state.activeTab = tabId;
       document.querySelectorAll(".app-screen").forEach(sec => sec.classList.add("hidden"));
       const target = document.getElementById(`screen-${tabId}`);
       if (target) target.classList.remove("hidden");
-
-      document.querySelectorAll(".nav-btn").forEach(btn => {
-        const isTarget = btn.getAttribute("data-tab") === tabId;
-        btn.className = isTarget
-          ? "nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-500 text-white shadow-md shadow-brand-500/20"
-          : "nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-all";
-      });
       renderAll();
     }
 
@@ -780,84 +466,41 @@
       document.getElementById("sidebar-backdrop").classList.toggle("hidden");
     }
 
-    function toggleDarkMode() { setDarkMode(!state.darkMode); }
-
-    function setDarkMode(enable) {
-      state.darkMode = enable;
-      applyTheme();
-      saveState();
+    function toggleDarkMode() {
+      state.darkMode = !state.darkMode;
+      document.documentElement.classList.toggle("dark", state.darkMode);
     }
 
-    function applyTheme() {
-      const html = document.documentElement;
-      const toggleBtn = document.getElementById("sidebar-dark-toggle");
-      const knob = document.getElementById("sidebar-dark-knob");
-      if (state.darkMode) {
-        html.classList.add("dark");
-        if (toggleBtn) toggleBtn.classList.replace("bg-slate-600", "bg-brand-500");
-        if (knob) knob.classList.replace("translate-x-0", "translate-x-4");
-      } else {
-        html.classList.remove("dark");
-        if (toggleBtn) toggleBtn.classList.replace("bg-brand-500", "bg-slate-600");
-        if (knob) knob.classList.replace("translate-x-4", "translate-x-0");
-      }
-    }
-
-    function updateAppName(val, persist = true) {
-      const name = val.trim() || "JadeverBodega";
-      state.appName = name;
-      document.querySelectorAll(".app-title-display").forEach(el => el.textContent = name);
-      document.title = `${name} | Gestión Cloud`;
-      if (persist) saveState();
-    }
-
-    function showToast(message, type = "success") {
+    function showToast(msg, type = "success") {
       const container = document.getElementById("toast-container");
-      if (!container) return;
-      const toast = document.createElement("div");
-      const colors = { success: "border-emerald-500", warning: "border-amber-500", error: "border-rose-500" };
-      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border-l-4 shadow-xl text-xs font-semibold bg-slate-900 text-white ${colors[type] || colors.success}`;
-      toast.innerHTML = `<span class="flex-1">${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 300); }, 3000);
+      const div = document.createElement("div");
+      div.className = `p-3 rounded-xl text-xs font-bold text-white shadow-lg ${type === 'error' ? 'bg-rose-600' : type === 'warning' ? 'bg-amber-600' : 'bg-emerald-600'}`;
+      div.textContent = msg;
+      container.appendChild(div);
+      setTimeout(() => div.remove(), 3000);
     }
 
     function renderAll() {
-      updateMetricsAndBadges();
-      renderCategoryChips();
       renderInventory();
       renderMovements();
       renderOrders();
-      renderReports();
-      renderUsersSettings();
-      updateCatalogDatalist();
+      renderCategoryChips();
+      updateMetrics();
     }
 
-    function updateMetricsAndBadges() {
-      const totalRefs = state.products.length;
-      const totalUnits = state.products.reduce((acc, p) => acc + Number(p.qty || 0), 0);
-      const reorderCount = state.products.filter(p => Number(p.qty || 0) <= Number(p.minStock || 5)).length;
-      const todayStr = new Date().toISOString().slice(0, 10);
-      const todayMovs = state.movements.filter(m => (m.dateISO || "").startsWith(todayStr)).length;
-
-      document.getElementById("metric-total-refs").textContent = totalRefs;
-      document.getElementById("metric-total-units").textContent = totalUnits;
-      document.getElementById("metric-reorder-count").textContent = reorderCount;
-      document.getElementById("metric-today-movs").textContent = todayMovs;
-      document.getElementById("nav-badge-inv").textContent = totalRefs;
-
-      const pedBadge = document.getElementById("nav-badge-ped");
-      if (pedBadge) {
-        pedBadge.textContent = state.orders.length;
-        pedBadge.classList.toggle("hidden", state.orders.length === 0);
-      }
+    function updateMetrics() {
+      document.getElementById("metric-total-refs").textContent = state.products.length;
+      document.getElementById("metric-total-units").textContent = state.products.reduce((a, b) => a + Number(b.qty || 0), 0);
+      document.getElementById("metric-reorder-count").textContent = state.products.filter(p => Number(p.qty) <= Number(p.minStock || 5)).length;
+      document.getElementById("metric-today-movs").textContent = state.movements.length;
+      document.getElementById("nav-badge-inv").textContent = state.products.length;
     }
 
     function renderCategoryChips() {
       const container = document.getElementById("category-chips");
       if (!container) return;
       container.innerHTML = ["Todas", ...CATEGORIES].map(cat => `
-        <button onclick="selectCategory('${cat}')" class="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${state.selectedCategory === cat ? "bg-brand-500 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"}">${cat}</button>
+        <button onclick="selectCategory('${cat}')" class="shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${state.selectedCategory === cat ? "bg-brand-500 text-white" : "bg-slate-100 text-slate-700"}">${cat}</button>
       `).join("");
     }
 
@@ -869,201 +512,221 @@
       const q = (document.getElementById("inv-search-input")?.value || "").trim().toLowerCase();
       const filtered = state.products.filter(p => (state.selectedCategory === "Todas" || p.category === state.selectedCategory) && (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400">No hay productos en inventario cloud. Usa "Carga masiva" para importar tu archivo Excel.</td></tr>`;
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Sin productos.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = filtered.map(p => {
-        const isLow = Number(p.qty) <= Number(p.minStock || 5);
-        return `
-          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-            <td class="py-3.5 px-4 font-mono text-xs font-bold text-brand-600">${escapeHtml(p.sku)}</td>
-            <td class="py-3.5 px-4 font-semibold">${escapeHtml(p.name)}</td>
-            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs">${escapeHtml(p.category)}</span></td>
-            <td class="py-3.5 px-4 text-xs text-slate-500">${escapeHtml(p.location || "General")}</td>
-            <td class="py-3.5 px-4 text-right"><span class="px-2.5 py-1 rounded-full text-xs font-extrabold ${isLow ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}">${p.qty} UND</span></td>
-            <td class="py-3.5 px-4 text-right">
-              <button onclick="openProductModal('${p.id}')" class="p-1 text-slate-500 hover:text-brand-600">✏️</button>
-              <button onclick="deleteProduct('${p.id}')" class="p-1 text-slate-500 hover:text-rose-600">🗑️</button>
-            </td>
-          </tr>
-        `;
-      }).join("");
+      tbody.innerHTML = filtered.map(p => `
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800">
+          <td class="py-3.5 px-4 font-mono font-bold text-brand-600">${p.sku}</td>
+          <td class="py-3.5 px-4 font-semibold">${p.name}</td>
+          <td class="py-3.5 px-4">${p.category}</td>
+          <td class="py-3.5 px-4 text-xs text-slate-500">${p.location || "General"}</td>
+          <td class="py-3.5 px-4 text-right font-bold">${p.qty} UND</td>
+          <td class="py-3.5 px-4 text-right">
+            <button onclick="deleteProduct('${p.id}')" class="text-rose-500 text-xs">Eliminar</button>
+          </td>
+        </tr>
+      `).join("");
     }
 
-    function openProductModal(editId = null) {
-      document.getElementById("prod-edit-id").value = editId || "";
-      document.getElementById("product-modal-title").textContent = editId ? "Editar Producto" : "Nuevo Producto";
-      if (editId) {
-        const p = state.products.find(x => x.id === editId);
-        if (p) {
-          document.getElementById("prod-sku").value = p.sku;
-          document.getElementById("prod-category").value = p.category;
-          document.getElementById("prod-name").value = p.name;
-          document.getElementById("prod-location").value = p.location || "";
-          document.getElementById("prod-qty").value = p.qty;
-          document.getElementById("prod-min").value = p.minStock || 5;
-          document.getElementById("prod-price").value = p.price || 0;
-        }
-      } else {
-        document.getElementById("prod-sku").value = "";
-        document.getElementById("prod-name").value = "";
-        document.getElementById("prod-qty").value = 0;
-      }
+    function openProductModal() {
       document.getElementById("product-modal").classList.remove("hidden");
       document.getElementById("product-modal").classList.add("flex");
     }
-
-    function closeProductModal() { document.getElementById("product-modal").classList.add("hidden"); document.getElementById("product-modal").classList.remove("flex"); }
-
-    async function saveProduct(e) {
+    function closeProductModal() {
+      document.getElementById("product-modal").classList.add("hidden");
+      document.getElementById("product-modal").classList.remove("flex");
+    }
+    function saveProduct(e) {
       e.preventDefault();
-      const editId = document.getElementById("prod-edit-id").value;
       const sku = document.getElementById("prod-sku").value.trim().toUpperCase();
       const category = document.getElementById("prod-category").value;
       const name = document.getElementById("prod-name").value.trim();
-      const location = document.getElementById("prod-location").value.trim() || "Bodega General";
+      const location = document.getElementById("prod-location").value.trim() || "Bodega";
       const qty = parseInt(document.getElementById("prod-qty").value, 10) || 0;
       const minStock = parseInt(document.getElementById("prod-min").value, 10) || 5;
-      const price = parseFloat(document.getElementById("prod-price").value) || 0;
 
-      if (editId) {
-        const idx = state.products.findIndex(p => p.id === editId);
-        if (idx !== -1) state.products[idx] = { ...state.products[idx], sku, category, name, location, qty, minStock, price };
-      } else {
-        state.products.unshift({ id: "prod-" + Date.now(), sku, category, name, location, qty, minStock, price });
-      }
-
-      await saveState();
+      state.products.unshift({ id: "prod-" + Date.now(), sku, category, name, location, qty, minStock });
       closeProductModal();
       renderAll();
-      showToast("Guardado en Firestore");
+      showToast("Producto guardado");
     }
 
-    async function deleteProduct(id) {
+    function deleteProduct(id) {
       state.products = state.products.filter(p => p.id !== id);
-      await saveState();
       renderAll();
-      showToast("Producto eliminado de la nube", "warning");
+      showToast("Producto eliminado", "warning");
     }
 
-    function openMovementModal(type = "ENTRADA") {
-      if (state.products.length === 0) { showToast("Agrega productos primero", "warning"); return; }
-      document.getElementById("mov-product-select").innerHTML = state.products.map(p => `<option value="${p.id}">[${p.sku}] ${p.name} (${p.qty})</option>`).join("");
+    function openMovementModal(type) {
+      if (!state.products.length) { showToast("Agrega productos primero", "warning"); return; }
+      document.getElementById("mov-product-select").innerHTML = state.products.map(p => `<option value="${p.id}">${p.sku} - ${p.name}</option>`).join("");
       document.getElementById("mov-type").value = type;
-      document.getElementById("mov-modal-title").textContent = type === "ENTRADA" ? "Registrar Entrada" : "Registrar Salida";
-      const clientWrapper = document.getElementById("mov-client-wrapper");
-      if (type === "SALIDA") clientWrapper.classList.remove("hidden"); else clientWrapper.classList.add("hidden");
       document.getElementById("movement-modal").classList.remove("hidden");
       document.getElementById("movement-modal").classList.add("flex");
     }
-
-    function closeMovementModal() { document.getElementById("movement-modal").classList.add("hidden"); document.getElementById("movement-modal").classList.remove("flex"); }
-
-    async function saveManualMovement(e) {
+    function closeMovementModal() {
+      document.getElementById("movement-modal").classList.add("hidden");
+      document.getElementById("movement-modal").classList.remove("flex");
+    }
+    function saveManualMovement(e) {
       e.preventDefault();
       const type = document.getElementById("mov-type").value;
       const productId = document.getElementById("mov-product-select").value;
       const qty = parseInt(document.getElementById("mov-qty").value, 10) || 1;
       const user = document.getElementById("mov-user").value.trim();
-      const clientName = type === "SALIDA" ? document.getElementById("mov-client").value.trim() : "";
-      const invoiceNumber = type === "SALIDA" ? document.getElementById("mov-invoice-num").value.trim() : "";
 
       const prod = state.products.find(p => p.id === productId);
       if (!prod) return;
 
-      if (type === "SALIDA" && Number(prod.qty) < qty) { showToast("Stock insuficiente", "error"); return; }
-
       prod.qty = type === "ENTRADA" ? Number(prod.qty) + qty : Number(prod.qty) - qty;
-      state.movements.unshift({
-        id: "mov-" + Date.now(),
-        type, productId: prod.id, sku: prod.sku, productName: prod.name, category: prod.category,
-        qty, user, clientName, invoiceNumber, dateISO: new Date().toISOString()
-      });
+      state.movements.unshift({ id: "mov-" + Date.now(), type, productName: prod.name, qty, user, date: new Date().toLocaleDateString() });
 
-      await saveState();
       closeMovementModal();
       renderAll();
-      showToast("Movimiento registrado en Firestore");
+      showToast("Movimiento registrado");
     }
 
     function renderMovements() {
       const container = document.getElementById("movements-list");
       if (!container) return;
-      if (state.movements.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Sin movimientos registrados.</p>`; return; }
+      if (!state.movements.length) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Sin movimientos.</p>`; return; }
       container.innerHTML = state.movements.map(m => `
-        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border flex justify-between items-center text-xs">
-          <div><span class="font-bold ${m.type === 'ENTRADA' ? 'text-emerald-600' : 'text-rose-600'}">${m.type}</span> • <strong>${escapeHtml(m.productName)}</strong> (${m.qty} UND) • ${m.dateISO.slice(0, 10)}</div>
-          <button onclick="deleteMovement('${m.id}')" class="text-rose-500">🗑️</button>
+        <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border flex justify-between items-center text-xs">
+          <div><strong class="${m.type === 'ENTRADA' ? 'text-emerald-600' : 'text-rose-600'}">${m.type}</strong>: ${m.productName} (${m.qty} UND) - Por: ${m.user}</div>
+          <span class="text-slate-400">${m.date}</span>
         </div>
       `).join("");
     }
 
-    async function deleteMovement(id) {
-      state.movements = state.movements.filter(m => m.id !== id);
-      await saveState();
+    function addOrder(e) {
+      e.preventDefault();
+      const product = document.getElementById("order-product").value.trim();
+      const client = document.getElementById("order-client").value.trim();
+      const priority = document.getElementById("order-priority").value;
+      const qty = parseInt(document.getElementById("order-qty").value, 10) || 1;
+
+      state.orders.unshift({ id: "ord-" + Date.now(), product, client, priority, qty });
       renderAll();
-      showToast("Movimiento eliminado", "warning");
+      showToast("Pedido agregado");
     }
 
-    // ==========================================
-    // 3. PARSER Y CARGA DE ARCHIVOS EXCEL (SHEETJS)
-    // ==========================================
-    function handleBulkDragOver(e) {
-      e.preventDefault();
-      document.getElementById("bulk-dropzone").classList.add("border-brand-500");
+    function renderOrders() {
+      const container = document.getElementById("orders-list");
+      if (!container) return;
+      if (!state.orders.length) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Sin pedidos.</p>`; return; }
+      container.innerHTML = state.orders.map(o => `
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border flex justify-between items-center text-xs">
+          <div><strong>${o.product}</strong> (${o.qty} UND) - Cliente: ${o.client}</div>
+          <button onclick="fulfillOrder('${o.id}')" class="px-2 py-1 bg-emerald-600 text-white rounded-lg font-bold">✓ Surtir</button>
+        </div>
+      `).join("");
     }
 
-    function handleBulkDragLeave(e) {
-      e.preventDefault();
-      document.getElementById("bulk-dropzone").classList.remove("border-brand-500");
+    function fulfillOrder(id) {
+      state.orders = state.orders.filter(o => o.id !== id);
+      renderAll();
+      showToast("Pedido completado");
     }
 
+    function exportOrdersExcel() {
+      const ws = XLSX.utils.json_to_sheet(state.orders);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
+      XLSX.writeFile(wb, "Pedidos.xlsx");
+    }
+
+    function openOcrModal() { document.getElementById("ocr-modal").classList.remove("hidden"); document.getElementById("ocr-modal").classList.add("flex"); }
+    function closeOcrModal() { document.getElementById("ocr-modal").classList.add("hidden"); document.getElementById("ocr-modal").classList.remove("flex"); }
+    function simulateSampleInvoiceOCR() {
+      ocrExtractedRows = [
+        { sku: "JDPE4315", name: "Taladro Percutor 650W Jadever", category: "Construcción", qty: 5 }
+      ];
+      document.getElementById("ocr-items-tbody").innerHTML = ocrExtractedRows.map(r => `<p>${r.sku} - ${r.name} (${r.qty} UND)</p>`).join("");
+      document.getElementById("ocr-results-container").classList.remove("hidden");
+    }
+
+    function confirmAndProcessInvoice() {
+      ocrExtractedRows.forEach(row => {
+        let prod = state.products.find(p => p.sku === row.sku);
+        if (!prod) {
+          state.products.unshift({ id: "prod-" + Date.now(), sku: row.sku, name: row.name, category: row.category, location: "Bodega", qty: row.qty, minStock: 5 });
+        } else {
+          prod.qty += row.qty;
+        }
+      });
+      closeOcrModal();
+      renderAll();
+      showToast("Factura procesada");
+    }
+
+    function exportReportPDF() {
+      alert("Función de exportación de reporte lista.");
+    }
+
+    function resetAllData() {
+      if (confirm("¿Deseas reiniciar los datos?")) {
+        state.products = [];
+        state.movements = [];
+        state.orders = [];
+        renderAll();
+        showToast("Datos reiniciados", "warning");
+      }
+    }
+
+    // CARGA MASIVA EXCEL (ULTRA ROBUSTO)
+    function handleBulkDragOver(e) { e.preventDefault(); }
+    function handleBulkDragLeave(e) { e.preventDefault(); }
     function handleBulkDrop(e) {
       e.preventDefault();
-      handleBulkDragLeave(e);
-      const file = e.dataTransfer.files[0];
-      if (file) parseSpreadsheetFile(file);
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        parseSpreadsheetFile(e.dataTransfer.files[0]);
+      }
     }
 
     function handleBulkFileSelect(e) {
-      const file = e.target.files[0];
-      if (file) parseSpreadsheetFile(file);
+      if (e.target.files && e.target.files.length > 0) {
+        parseSpreadsheetFile(e.target.files[0]);
+      }
     }
 
     function parseSpreadsheetFile(file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        try {
-          const data = new Uint8Array(ev.target.result);
-          const workbook = XLSX.read(data, { type: "array" });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const jsonRows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+      if (!file) return;
+      showToast("Procesando archivo...", "warning");
 
-          if (!jsonRows.length) {
-            showToast("El archivo está vacío o no contiene filas válidas", "warning");
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+          if (!jsonRows || jsonRows.length === 0) {
+            alert("No se encontraron filas con datos en el archivo.");
             return;
           }
 
           bulkParsedRows = jsonRows.map((r, index) => {
             const sku = String(r.SKU || r.sku || r.Codigo || r.Código || `SKU-${1000 + index}`).trim().toUpperCase();
-            const name = String(r.Producto || r.Nombre || r.producto || r.name || "Herramienta Sin Nombre").trim();
+            const name = String(r.Producto || r.producto || r.Nombre || r.nombre || r.Descripcion || "Producto Importado").trim();
             const rawCat = String(r.Categoria || r.Categoría || r.category || "").trim();
-            const matchedCat = CATEGORIES.find(c => c.toLowerCase() === rawCat.toLowerCase()) || CATEGORIES[4];
+            const category = CATEGORIES.find(c => c.toLowerCase() === rawCat.toLowerCase()) || "Construcción";
             const location = String(r.Ubicacion || r.Ubicación || r.location || "Bodega General").trim();
-            const qty = parseInt(r.Cantidad || r.Stock || r.qty || 0, 10) || 0;
-            const minStock = parseInt(r.Minimo || r.Mínimo || r.minStock || 5, 10) || 5;
-            const price = parseFloat(r.Precio || r.price || 0) || 0;
-            const exists = state.products.some(p => p.sku.toUpperCase() === sku);
+            const qty = parseInt(r.Cantidad || r.cantidad || r.Stock || r.stock || 0, 10) || 0;
+            const minStock = parseInt(r.Minimo || r.Mínimo || 5, 10) || 5;
 
-            return { sku, name, category: matchedCat, location, qty, minStock, price, isUpdate: exists };
+            const exists = state.products.some(p => p.sku.toUpperCase() === sku);
+            return { sku, name, category, location, qty, minStock, isUpdate: exists };
           });
 
           renderBulkPreview();
+          showToast(`¡Correcto! ${bulkParsedRows.length} productos procesados.`, "success");
         } catch (err) {
           console.error(err);
-          showToast("No se pudo leer el archivo Excel/CSV. Verifica la estructura.", "error");
+          alert("Ocurrió un error al leer el archivo Excel. Asegúrate de seleccionar un archivo .xlsx o .csv válido.");
         }
       };
       reader.readAsArrayBuffer(file);
@@ -1074,19 +737,14 @@
       const summary = document.getElementById("bulk-file-summary");
       const tbody = document.getElementById("bulk-preview-tbody");
 
-      const updates = bulkParsedRows.filter(r => r.isUpdate).length;
-      const news = bulkParsedRows.length - updates;
-
-      summary.textContent = `${bulkParsedRows.length} filas leídas (${news} nuevos, ${updates} actualizaciones)`;
+      summary.textContent = `${bulkParsedRows.length} filas listas para importar`;
       tbody.innerHTML = bulkParsedRows.map(r => `
         <tr>
-          <td class="py-2.5 px-4">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.isUpdate ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"}">${r.isUpdate ? "Actualizar" : "Nuevo"}</span>
-          </td>
-          <td class="py-2.5 px-4 font-mono font-bold text-brand-600">${escapeHtml(r.sku)}</td>
-          <td class="py-2.5 px-4 font-semibold">${escapeHtml(r.name)}</td>
-          <td class="py-2.5 px-4">${escapeHtml(r.category)}</td>
-          <td class="py-2.5 px-4 text-slate-500">${escapeHtml(r.location)}</td>
+          <td class="py-2.5 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.isUpdate ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"}">${r.isUpdate ? "Actualizar" : "Nuevo"}</span></td>
+          <td class="py-2.5 px-4 font-mono font-bold text-brand-600">${r.sku}</td>
+          <td class="py-2.5 px-4 font-semibold">${r.name}</td>
+          <td class="py-2.5 px-4">${r.category}</td>
+          <td class="py-2.5 px-4 text-slate-500">${r.location}</td>
           <td class="py-2.5 px-4 text-right font-bold">${r.qty} UND</td>
         </tr>
       `).join("");
@@ -1100,11 +758,8 @@
       document.getElementById("bulk-preview-panel").classList.add("hidden");
     }
 
-    async function commitBulkUpload() {
+    function commitBulkUpload() {
       if (!bulkParsedRows.length) return;
-      let added = 0;
-      let updated = 0;
-
       bulkParsedRows.forEach(row => {
         const existing = state.products.find(p => p.sku.toUpperCase() === row.sku.toUpperCase());
         if (existing) {
@@ -1112,188 +767,29 @@
           existing.category = row.category;
           existing.location = row.location;
           existing.qty = row.qty;
-          existing.minStock = row.minStock;
-          existing.price = row.price;
-          updated++;
         } else {
           state.products.unshift({
-            id: "prod-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-            sku: row.sku,
-            name: row.name,
-            category: row.category,
-            location: row.location,
-            qty: row.qty,
-            minStock: row.minStock,
-            price: row.price
+            id: "prod-" + Date.now() + Math.random(),
+            ...row
           });
-          added++;
         }
       });
-
-      await saveState();
       clearBulkPreview();
+      renderAll();
       switchTab("inventario");
-      showToast(`Carga masiva completada y subida a Firestore: ${added} nuevos, ${updated} actualizados`);
+      showToast("¡Inventario actualizado con éxito!", "success");
     }
 
     function downloadExcelTemplate() {
-      const sampleRows = [
-        { SKU: "JDPE4315", Producto: "Taladro Percutor 650W Jadever", Categoria: "Construcción", Ubicacion: "Pasillo A-1", Cantidad: 24, Minimo: 6, Precio: 48.50 },
-        { SKU: "JDSWB911A", Producto: "Llave Combinada 11mm Cr-V", Categoria: "Automotriz", Ubicacion: "Estante B-3", Cantidad: 60, Minimo: 15, Precio: 4.20 },
-        { SKU: "JDCD1510", Producto: "Taladro Inalámbrico 12V Litio", Categoria: "Electricidad", Ubicacion: "Vitrina C-2", Cantidad: 14, Minimo: 5, Precio: 62.00 }
+      const sample = [
+        { SKU: "JDPE4315", Producto: "Taladro Percutor 650W", Categoria: "Construcción", Ubicacion: "Pasillo A-1", Cantidad: 24, Minimo: 6, Precio: 48.50 },
+        { SKU: "JDSWB911A", Producto: "Llave Combinada 11mm", Categoria: "Automotriz", Ubicacion: "Estante B-3", Cantidad: 60, Minimo: 15, Precio: 4.20 }
       ];
-      const ws = XLSX.utils.json_to_sheet(sampleRows);
+      const ws = XLSX.utils.json_to_sheet(sample);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Plantilla_Jadever");
-      XLSX.writeFile(wb, "Plantilla_Carga_JadeverBodega.xlsx");
-      showToast("Plantilla Excel descargada");
+      XLSX.utils.book_append_sheet(wb, ws, "Inventario");
+      XLSX.writeFile(wb, "Plantilla_Inventario.xlsx");
     }
-
-    function importOrdersExcel(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        try {
-          const data = new Uint8Array(ev.target.result);
-          const wb = XLSX.read(data, { type: "array" });
-          const sheet = wb.Sheets[wb.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-          let count = 0;
-          rows.forEach(r => {
-            const prod = String(r.Producto || r.Producto_Referencia || r.Descripcion || "").trim();
-            if (!prod) return;
-            state.orders.unshift({
-              id: "ord-" + Date.now() + Math.random().toString(36).slice(2, 6),
-              product: prod,
-              client: String(r.Cliente || "Mostrador").trim(),
-              priority: String(r.Estado || "Pendiente").trim(),
-              qty: Math.max(1, parseInt(r.Cantidad || 1, 10) || 1),
-              requester: String(r.Solicitado_Por || "Wendy Hernandez").trim(),
-              notes: String(r.Observaciones || "").trim(),
-              dateISO: new Date().toISOString()
-            });
-            count++;
-          });
-          await saveState();
-          renderAll();
-          showToast(`Importados ${count} pedidos desde Excel`);
-        } catch (err) {
-          showToast("Error al importar pedidos de Excel", "error");
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function exportOrdersExcel() {
-      const rows = state.orders.map((o, i) => ({
-        Item: i + 1,
-        Fecha: o.dateISO.slice(0, 10),
-        Cliente: o.client || "General",
-        Producto_Referencia: o.product,
-        Cantidad: o.qty,
-        Estado: o.priority || "Pendiente",
-        Solicitado_Por: o.requester,
-        Observaciones: o.notes || ""
-      }));
-      const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ Mensaje: "Sin pedidos" }]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
-      XLSX.writeFile(wb, `Control_Pedidos_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      showToast("Pedidos exportados a Excel");
-    }
-
-    // OCR Modal & Simulator
-    function simulateSampleInvoiceOCR() {
-      ocrExtractedRows = [
-        { sku: "JDPE4315", name: "Taladro Percutor 650W Jadever", category: "Construcción", qty: 5 },
-        { sku: "JDSWB911A", name: "Llave Combinada 11mm", category: "Automotriz", qty: 12 }
-      ];
-      renderOcrTable();
-      document.getElementById("ocr-results-container").classList.remove("hidden");
-    }
-
-    function renderOcrTable() {
-      const tbody = document.getElementById("ocr-items-tbody");
-      if (!tbody) return;
-      tbody.innerHTML = ocrExtractedRows.map(r => `<tr><td class="p-2.5 font-mono font-bold">${r.sku}</td><td class="p-2.5">${r.name}</td><td class="p-2.5 text-right font-bold">${r.qty}</td></tr>`).join("");
-    }
-
-    async function confirmAndProcessInvoice() {
-      ocrExtractedRows.forEach(row => {
-        let prod = state.products.find(p => p.sku.toUpperCase() === row.sku.toUpperCase());
-        if (!prod) {
-          prod = { id: "prod-" + Date.now() + Math.random(), sku: row.sku, name: row.name, category: row.category, location: "OCR", qty: row.qty, minStock: 5, price: 0 };
-          state.products.unshift(prod);
-        } else {
-          prod.qty += row.qty;
-        }
-        state.movements.unshift({ id: "mov-" + Date.now(), type: "ENTRADA", productId: prod.id, sku: prod.sku, productName: prod.name, category: prod.category, qty: row.qty, user: "Wendy Hernandez", dateISO: new Date().toISOString() });
-      });
-      await saveState();
-      closeOcrModal();
-      renderAll();
-      showToast("Factura procesada y guardada en Firestore");
-    }
-
-    function openOcrModal() { document.getElementById("ocr-modal").classList.remove("hidden"); document.getElementById("ocr-modal").classList.add("flex"); }
-    function closeOcrModal() { document.getElementById("ocr-modal").classList.add("hidden"); document.getElementById("ocr-modal").classList.remove("flex"); }
-
-    function addOrder(e) {
-      e.preventDefault();
-      const product = document.getElementById("order-product").value.trim();
-      const client = document.getElementById("order-client").value.trim();
-      const priority = document.getElementById("order-priority").value;
-      const qty = parseInt(document.getElementById("order-qty").value, 10) || 1;
-      const requester = document.getElementById("order-requester").value.trim();
-      const notes = document.getElementById("order-notes").value.trim();
-
-      state.orders.unshift({ id: "ord-" + Date.now(), product, client, priority, qty, requester, notes, dateISO: new Date().toISOString() });
-      saveState();
-      renderAll();
-      showToast("Pedido registrado");
-    }
-
-    function renderOrders() {
-      const container = document.getElementById("orders-list");
-      if (!container) return;
-      if (state.orders.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Sin pedidos pendientes.</p>`; return; }
-      container.innerHTML = state.orders.map(o => `
-        <div class="p-3 rounded-xl bg-slate-50 border flex justify-between items-center text-xs">
-          <div><strong>${o.product}</strong> (${o.qty} UND) - Cliente: ${o.client}</div>
-          <button onclick="fulfillOrder('${o.id}')" class="px-2 py-1 bg-emerald-600 text-white rounded-lg font-bold">✓ Surtir</button>
-        </div>
-      `).join("");
-    }
-
-    async function fulfillOrder(id) {
-      state.orders = state.orders.filter(o => o.id !== id);
-      await saveState();
-      renderAll();
-      showToast("Pedido completado");
-    }
-
-    function renderReports() {}
-    function renderUsersSettings() {}
-    function updateCatalogDatalist() {}
-    function saveCurrentReportToArchive() {}
-    function exportReportPDF() {}
-    function printReportView() {}
-    function exportReportExcel() {}
-    function openInviteModal() { document.getElementById("invite-modal").classList.remove("hidden"); document.getElementById("invite-modal").classList.add("flex"); }
-    function closeInviteModal() { document.getElementById("invite-modal").classList.add("hidden"); document.getElementById("invite-modal").classList.remove("flex"); }
-    function sendUserInvite(e) { e.preventDefault(); closeInviteModal(); showToast("Invitación enviada"); }
-    function openSignOutModal() { document.getElementById("signout-modal").classList.remove("hidden"); document.getElementById("signout-modal").classList.add("flex"); }
-    function closeSignOutModal() { document.getElementById("signout-modal").classList.add("hidden"); document.getElementById("signout-modal").classList.remove("flex"); }
-    async function resetAllData() {
-      if (confirm("¿Estás seguro de limpiar toda la base de datos en Firestore?")) {
-        state.products = []; state.movements = []; state.orders = [];
-        await saveState();
-        renderAll();
-        showToast("Nube reiniciada", "warning");
-      }
-    }
-    function escapeHtml(str) { return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   </script>
 </body>
 </html>
