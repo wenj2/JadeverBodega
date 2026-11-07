@@ -30,17 +30,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- SheetJS & jsPDF & Tesseract -->
+  <!-- SheetJS & jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-  <!-- Firebase SDKs (Modular v10) con Auth y Firestore -->
+  <!-- Firebase SDKs (Modular v10) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, onSnapshot, addDoc, setDoc, doc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, addDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB4hiDPrruHiul8HHoH_gdbFVX5nU0vOgM",
@@ -62,93 +61,468 @@
     window.signOut = signOut;
     window.db = db;
     window.firebaseEnabled = true;
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.loggedInUser = user;
-        unlockApp(user.displayName || user.email, "Administrador (Google)");
-      }
-    });
   </script>
 
   <style>
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.4); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: rgba(249, 115, 22, 0.4); border-radius: 9999px; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased transition-colors duration-200">
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-500 selection:text-white">
 
-  <!-- PANTALLA DE ACCESO Y SEGURIDAD -->
+  <!-- PANTALLA DE ACCESO Y SEGURIDAD (MEJORADA NEGRO Y NARANJA) -->
   <div id="pin-lock-screen" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center space-y-6">
-      <div class="w-16 h-16 rounded-full bg-brand-500/20 text-brand-500 flex items-center justify-center mx-auto shadow-lg font-extrabold text-xl">
-        JB
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(249,115,22,0.08)_0,transparent_70%)] pointer-events-none"></div>
+    
+    <div class="relative bg-slate-900 border border-slate-800/80 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center space-y-6 shadow-brand-500/5">
+      <!-- Icono superior con brillo naranja -->
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center mx-auto shadow-lg shadow-brand-500/30 transform hover:scale-105 transition-transform">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
       </div>
+
       <div>
-        <h2 class="text-xl font-extrabold text-white">JadeverBodega</h2>
-        <p class="text-xs text-slate-400 mt-1">Selecciona tu método de acceso</p>
+        <h1 class="text-2xl font-extrabold text-white tracking-tight">JadeverBodega</h1>
+        <p class="text-xs text-brand-400 font-medium mt-1 uppercase tracking-wider">Ferretería &amp; Control en la Nube</p>
       </div>
 
       <!-- Botón Google Auth -->
-      <button onclick="loginWithGoogle()" class="w-full py-3 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
-        <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.15 21.33 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.18C.43 8.13 0 9.85 0 12s.43 3.87 1.18 5.39l4.09-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.15 2.67 1.18 6.61l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
-        <span>Entrar con mi correo Google</span>
+      <button onclick="loginWithGoogle()" class="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm shadow-md transition-all flex items-center justify-center gap-3 group">
+        <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.15 21.33 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.18C.43 8.13 0 9.85 0 12s.43 3.87 1.18 5.39l4.09-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.15 2.67 1.18 6.61l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+        <span>Continuar con mi correo Google</span>
       </button>
 
       <div class="relative flex py-1 items-center">
         <div class="flex-grow border-t border-slate-800"></div>
-        <span class="flex-shrink mx-4 text-xs text-slate-500 uppercase">o PIN numérico</span>
+        <span class="flex-shrink mx-4 text-xs text-slate-500 uppercase font-medium">o ingresa con PIN</span>
         <div class="flex-grow border-t border-slate-800"></div>
       </div>
 
+      <!-- Formulario de PIN -->
       <form onsubmit="verifyPin(event)" class="space-y-3">
-        <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="w-full text-center tracking-[1em] text-xl py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono" />
-        <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-all">
-          Acceder con PIN
+        <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="w-full text-center tracking-[1em] text-xl py-3 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono shadow-inner" />
+        <button type="submit" class="w-full py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-brand-500/20 transition-all">
+          Desbloquear Acceso
         </button>
       </form>
       <p id="pin-error" class="text-xs text-rose-500 font-medium hidden">PIN incorrecto (Admin: 2626 | Visor: 1234).</p>
+      
+      <div class="text-[11px] text-slate-500 pt-2 border-t border-slate-800/60">
+        Control de Inventario y Pedidos en Tiempo Real
+      </div>
     </div>
   </div>
 
   <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
-  <!-- Mobile Top Header -->
-  <header id="mobile-header" class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-slate-900 text-white px-4 py-3 border-b border-slate-800 shadow-md">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center font-bold">JB</div>
-      <span class="font-bold text-lg">JadeverBodega</span>
-    </div>
-    <button onclick="toggleMobileSidebar()" class="p-2 rounded-lg bg-slate-800 text-slate-200">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-  </header>
+  <!-- Contenedor principal (Oculto hasta iniciar sesión) -->
+  <div id="app-container" class="hidden bg-slate-900 min-h-screen">
+    <!-- Mobile Top Header -->
+    <header id="mobile-header" class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-slate-900 text-white px-4 py-3 border-b border-slate-800 shadow-md">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center font-bold">JB</div>
+        <span class="font-bold text-lg">JadeverBodega</span>
+      </div>
+      <button onclick="toggleMobileSidebar()" class="p-2 rounded-lg bg-slate-800 text-slate-200">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </header>
 
-  <!-- Mobile Sidebar Backdrop -->
-  <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden"></div>
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden"></div>
 
-  <!-- Left Dark Sidebar -->
-  <aside id="sidebar" class="fixed top-0 left-0 z-40 h-screen w-68 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0" style="width: 272px;">
-    <div class="p-5 overflow-y-auto">
-      <div class="flex items-center justify-between mb-8">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg font-bold">JB</div>
-          <div>
-            <h1 class="font-extrabold text-white text-lg leading-none">JadeverBodega</h1>
-            <span id="role-subtitle" class="text-[11px] font-medium text-brand-400 uppercase">Ferretería & Control</span>
+    <!-- Left Dark Sidebar -->
+    <aside id="sidebar" class="fixed top-0 left-0 z-40 h-screen w-68 bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 -translate-x-full lg:translate-x-0" style="width: 272px;">
+      <div class="p-5 overflow-y-auto">
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg font-bold">JB</div>
+            <div>
+              <h1 class="font-extrabold text-white text-lg leading-none">JadeverBodega</h1>
+              <span id="role-subtitle" class="text-[11px] font-medium text-brand-400 uppercase">Ferretería & Control</span>
+            </div>
           </div>
+          <button onclick="toggleMobileSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </div>
-        <button onclick="toggleMobileSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
+
+        <!-- Navigation Menu -->
+        <nav class="space-y-1.5" id="sidebar-nav">
+          <button onclick="switchTab('inventario')" data-tab="inventario" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-500 text-white shadow-md shadow-brand-500/20">
+            <span>Inventario</span>
+            <span id="nav-badge-inv" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-white/20 text-white font-semibold">0</span>
+          </button>
+          <button onclick="switchTab('movimientos')" data-tab="movimientos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white">
+            <span>Movimientos</span>
+          </button>
+          <button onclick="switchTab('pedidos')" data-tab="pedidos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white">
+            <span>Control de Pedidos</span>
+          </button>
+          <button onclick="switchTab('informes')" data-tab="informes" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white">
+            <span>Informes</span>
+          </button>
+          <button onclick="switchTab('mas')" data-tab="mas" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white">
+            <span>Más</span>
+          </button>
+          <button onclick="switchTab('carga')" data-tab="carga" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white">
+            <span>Carga masiva</span>
+          </button>
+        </nav>
       </div>
 
-      <!-- Navigation Menu -->
-      <nav class="space-y-1.5" id="sidebar-nav">
-        <button onclick="switchTab('inventario')" data-tab="inventario" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-500 text-white shadow-md shadow-brand-500/20">
-          <span>Inventario</span>
-          <span id="nav-badge-inv" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-white/20 text-white font-semibold">0</span>
-        </button>
-        <button onclick="switchTab('movimientos')" data-tab="movimientos" class="nav-btn w-full flex items
+      <div class="p-4 border-t border-slate-800 bg-slate-900/90 space-y-3">
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/90 border border-slate-700/70">
+          <div class="min-w-0 flex-1">
+            <p id="user-display-name" class="text-xs font-bold text-white truncate">Wendy Hernandez</p>
+            <p id="user-role-desc" class="text-[11px] text-emerald-400 font-medium">Sincronizado en la nube</p>
+          </div>
+          <button onclick="lockApp()" title="Bloquear / Cerrar sesión" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-700">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main id="main-wrapper" class="lg:ml-[272px] min-h-screen p-4 sm:p-6 lg:p-8 transition-all bg-slate-950">
+      <div class="max-w-7xl mx-auto">
+
+        <!-- SCREEN 1: INVENTARIO -->
+        <section id="screen-inventario" class="app-screen space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <p id="dynamic-date-header" class="text-xs font-bold tracking-widest uppercase text-brand-500 mb-1">GESTIÓN DE BODEGA</p>
+              <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Inventario</h2>
+            </div>
+            <div id="admin-action-buttons" class="flex flex-wrap items-center gap-3">
+              <button onclick="switchTab('carga')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-900 text-slate-200 border border-slate-800 hover:border-brand-500 shadow-xs">
+                Cargar Excel
+              </button>
+              <button onclick="openProductModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/25">
+                + Producto
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Referencias</p>
+                <p id="metric-total-refs" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">0</p>
+              </div>
+            </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Unidades en Stock</p>
+                <p id="metric-total-units" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">0</p>
+              </div>
+            </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Alertas de Reorden</p>
+                <p id="metric-reorder-count" class="text-2xl sm:text-3xl font-extrabold text-amber-400 mt-1">0</p>
+              </div>
+            </div>
+            <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 shadow-xs flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Movimientos Hoy</p>
+                <p id="metric-today-movs" class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1">0</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xs space-y-4">
+            <input type="text" id="inv-search-input" oninput="renderInventory()" placeholder="Buscar por SKU, nombre, categoría..." class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <div id="category-chips" class="flex items-center gap-2 overflow-x-auto pb-1"></div>
+          </div>
+
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xs overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 bg-slate-950 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <th class="py-3.5 px-4">SKU</th>
+                    <th class="py-3.5 px-4">Producto</th>
+                    <th class="py-3.5 px-4">Categoría</th>
+                    <th class="py-3.5 px-4">Ubicación</th>
+                    <th class="py-3.5 px-4 text-right">Cantidad</th>
+                    <th id="th-actions" class="py-3.5 px-4 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-tbody" class="divide-y divide-slate-800 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 2: MOVIMIENTOS -->
+        <section id="screen-movimientos" class="app-screen hidden space-y-6">
+          <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-extrabold text-white">Movimientos</h2>
+            <div id="admin-mov-buttons" class="flex gap-2">
+              <button onclick="openMovementModal('ENTRADA')" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold">+ Entrada</button>
+              <button onclick="openMovementModal('SALIDA')" class="px-4 py-2 rounded-xl bg-brand-500 text-white text-sm font-semibold">- Salida</button>
+            </div>
+          </div>
+          <div id="movements-list" class="space-y-3"></div>
+        </section>
+
+        <!-- SCREEN 3: CONTROL DE PEDIDOS -->
+        <section id="screen-pedidos" class="app-screen hidden space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-bold tracking-widest uppercase text-brand-500 mb-1">REABASTECIMIENTO &amp; BODEGA</p>
+              <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Control de Pedidos</h2>
+            </div>
+            <div id="admin-order-btn">
+              <button onclick="openOrderModal()" class="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm shadow-md">
+                + Nuevo Pedido / Separado
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input type="text" id="order-search" oninput="renderOrders()" placeholder="Buscar cliente o factura..." class="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <select id="order-status-filter" onchange="renderOrders()" class="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="TODOS">Todos los estados</option>
+              <option value="En Bodega">En Bodega (Pendiente de retiro)</option>
+              <option value="Completado">Completado / Entregado</option>
+            </select>
+          </div>
+
+          <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xs overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 bg-slate-950 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                    <th class="py-3.5 px-4">Fecha</th>
+                    <th class="py-3.5 px-4">N° Pedido</th>
+                    <th class="py-3.5 px-4">Factura</th>
+                    <th class="py-3.5 px-4">Cliente</th>
+                    <th class="py-3.5 px-4">Estado Bodega</th>
+                    <th class="py-3.5 px-4 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-tbody" class="divide-y divide-slate-800 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SCREEN 4: INFORMES -->
+        <section id="screen-informes" class="app-screen hidden space-y-6">
+          <h2 class="text-2xl font-extrabold text-white">Informes</h2>
+        </section>
+
+        <!-- SCREEN 5: MÁS -->
+        <section id="screen-mas" class="app-screen hidden space-y-6">
+          <h2 class="text-2xl font-extrabold text-white">Más Opciones</h2>
+        </section>
+
+        <!-- SCREEN 6: CARGA MASIVA -->
+        <section id="screen-carga" class="app-screen hidden space-y-6">
+          <h2 class="text-2xl font-extrabold text-white">Carga Masiva</h2>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let inventory = [];
+    let movements = [];
+    let orders = [];
+    let currentUserRole = 'admin';
+
+    const PIN_ADMIN = "2626";
+    const PIN_VIEWER = "1234";
+
+    async function loginWithGoogle() {
+      if (!window.signInWithPopup) {
+        alert("Firebase Auth cargando. Inténtalo de nuevo.");
+        return;
+      }
+      try {
+        const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
+        const user = result.user;
+        unlockApp(user.displayName || user.email, "Administrador (Google)");
+      } catch (error) {
+        alert("Error de inicio de sesión: " + error.message);
+      }
+    }
+
+    function verifyPin(event) {
+      event.preventDefault();
+      const input = document.getElementById('pin-input').value.trim();
+      const error = document.getElementById('pin-error');
+      
+      if (input === PIN_ADMIN) {
+        currentUserRole = 'admin';
+        unlockApp("Wendy Hernandez", "Administrador (PIN)");
+      } else if (input === PIN_VIEWER) {
+        currentUserRole = 'viewer';
+        unlockApp("Modo Consulta", "Solo Visualización");
+      } else {
+        error.classList.remove('hidden');
+        document.getElementById('pin-input').value = '';
+      }
+    }
+
+    function unlockApp(name, roleText) {
+      document.getElementById('pin-lock-screen').classList.add('hidden');
+      document.getElementById('app-container').classList.remove('hidden');
+      document.getElementById('user-display-name').textContent = name;
+      document.getElementById('user-role-desc').textContent = roleText;
+      
+      if (currentUserRole === 'viewer') {
+        const adminBtns = document.getElementById('admin-action-buttons');
+        if (adminBtns) adminBtns.style.display = 'none';
+        const adminMov = document.getElementById('admin-mov-buttons');
+        if (adminMov) adminMov.style.display = 'none';
+        const adminOrd = document.getElementById('admin-order-btn');
+        if (adminOrd) adminOrd.style.display = 'none';
+      }
+
+      initFirebaseSync();
+    }
+
+    function lockApp() {
+      if (window.firebaseAuth) window.signOut(window.firebaseAuth);
+      location.reload();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.app-screen').forEach(s => s.classList.add('hidden'));
+      const activeScreen = document.getElementById(`screen-${tabId}`);
+      if (activeScreen) activeScreen.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-brand-500', 'text-white', 'shadow-md');
+        btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+        if (btn.getAttribute('data-tab') === tabId) {
+          btn.classList.add('bg-brand-500', 'text-white', 'shadow-md');
+          btn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+        }
+      });
+    }
+
+    function toggleMobileSidebar() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+      document.getElementById('sidebar-backdrop').classList.toggle('hidden');
+    }
+
+    function initFirebaseSync() {
+      const checkDb = setInterval(() => {
+        if (window.db) {
+          clearInterval(checkDb);
+          const { collection, onSnapshot } = window;
+          onSnapshot(collection(window.db, "inventory"), (snapshot) => {
+            inventory = [];
+            snapshot.forEach((doc) => { inventory.push({ id: doc.id, ...doc.data() }); });
+            renderInventory();
+          });
+          onSnapshot(collection(window.db, "movements"), (snapshot) => {
+            movements = [];
+            snapshot.forEach((doc) => { movements.push({ id: doc.id, ...doc.data() }); });
+            renderMovements();
+          });
+          onSnapshot(collection(window.db, "orders"), (snapshot) => {
+            orders = [];
+            snapshot.forEach((doc) => { orders.push({ id: doc.id, ...doc.data() }); });
+            renderOrders();
+          });
+        }
+      }, 200);
+    }
+
+    function renderInventory() {
+      const tbody = document.getElementById('inventory-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = inventory.map(item => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-3 px-4 font-mono text-xs font-semibold text-brand-400">${item.sku || ''}</td>
+          <td class="py-3 px-4 font-medium text-white">${item.name || ''}</td>
+          <td class="py-3 px-4 text-slate-300">${item.category || ''}</td>
+          <td class="py-3 px-4 text-slate-300">${item.location || ''}</td>
+          <td class="py-3 px-4 text-right font-bold text-white">${item.qty || 0}</td>
+          ${currentUserRole === 'admin' ? '<td class="py-3 px-4 text-right"></td>' : ''}
+        </tr>
+      `).join('');
+      
+      document.getElementById('metric-total-refs').textContent = inventory.length;
+      document.getElementById('metric-total-units').textContent = inventory.reduce((a, b) => a + (Number(b.qty) || 0), 0);
+      document.getElementById('nav-badge-inv').textContent = inventory.length;
+    }
+
+    function renderMovements() {
+      const list = document.getElementById('movements-list');
+      if (!list) return;
+      list.innerHTML = movements.map(m => `
+        <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+          <div>
+            <p class="font-bold text-sm text-white">${m.type} - ${m.productName || 'Producto'}</p>
+            <p class="text-xs text-slate-400">Cantidad: ${m.qty} | Usuario: ${m.user || 'Wendy'}</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full font-semibold ${m.type === 'ENTRADA' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-brand-500/10 text-brand-400'}">${m.type}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderOrders() {
+      const tbody = document.getElementById('orders-tbody');
+      if (!tbody) return;
+      const search = (document.getElementById('order-search')?.value || '').toLowerCase();
+      const statusFilter = document.getElementById('order-status-filter')?.value || 'TODOS';
+
+      const filtered = orders.filter(o => {
+        const matchesSearch = (o.client || '').toLowerCase().includes(search) || (o.invoice || '').toLowerCase().includes(search);
+        const matchesStatus = statusFilter === 'TODOS' || o.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
+
+      tbody.innerHTML = filtered.map(o => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="py-3 px-4 text-xs text-slate-400">${o.date || '2026-11-07'}</td>
+          <td class="py-3 px-4 font-mono font-bold text-xs text-brand-400">${o.orderId || 'PED-1'}</td>
+          <td class="py-3 px-4 text-xs text-slate-300">${o.invoice || 'S/N'}</td>
+          <td class="py-3 px-4 font-medium text-white">${o.client || 'Cliente'}</td>
+          <td class="py-3 px-4">
+            <span class="text-xs px-2.5 py-1 rounded-full font-semibold ${o.status === 'Completado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}">
+              ${o.status || 'En Bodega'}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-right">
+            ${currentUserRole === 'admin' ? `<button onclick="alert('Función de gestionar pedido')" class="text-xs text-brand-400 font-semibold hover:underline">Gestionar</button>` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function openOrderModal() {
+      const client = prompt("Nombre del cliente (ej. Ferretería Mota):");
+      if (!client) return;
+      const invoice = prompt("Número de factura:") || "FAC-000";
+      const orderId = "PED-" + (orders.length + 1);
+
+      if (window.db) {
+        const { collection, addDoc } = window;
+        await addDoc(collection(window.db, "orders"), {
+          orderId,
+          invoice,
+          client,
+          status: "En Bodega",
+          date: new Date().toISOString().split('T')[0]
+        });
+        alert("¡Pedido registrado en bodega correctamente!");
+      }
+    }
+
+    function openProductModal() { alert("Modal de nuevo producto"); }
+    function openMovementModal(type) { alert("Registro de " + type); }
+  </script>
+</body>
+</html>
