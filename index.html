@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JadeverBodega | Gestión de Inventario (Cloud)</title>
+  <title>JadeverBodega | Gestión de Inventario (Cloud & Excel)</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -89,12 +89,8 @@
         visibility: visible !important;
         opacity: 1 !important;
       }
-      #print-only-header {
-        display: flex !important;
-      }
-      #print-movements-table-wrapper {
-        display: block !important;
-      }
+      #print-only-header { display: flex !important; }
+      #print-movements-table-wrapper { display: block !important; }
       .print-card {
         background: #ffffff !important;
         color: #0f172a !important;
@@ -102,9 +98,7 @@
         box-shadow: none !important;
         break-inside: avoid;
       }
-      .print-card * {
-        color: #0f172a !important;
-      }
+      .print-card * { color: #0f172a !important; }
     }
   </style>
 </head>
@@ -124,13 +118,10 @@
       <span class="font-bold text-lg tracking-tight app-title-display">JadeverBodega</span>
     </div>
     <button onclick="toggleMobileSidebar()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 focus:outline-none">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
   </header>
 
-  <!-- Mobile Sidebar Backdrop -->
   <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden backdrop-blur-xs"></div>
 
   <!-- Left Dark Sidebar -->
@@ -153,7 +144,6 @@
         </button>
       </div>
 
-      <!-- Navigation Menu -->
       <nav class="space-y-1.5" id="sidebar-nav">
         <button onclick="switchTab('inventario')" data-tab="inventario" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all bg-brand-500 text-white shadow-md shadow-brand-500/20">
           <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -202,7 +192,6 @@
       </nav>
     </div>
 
-    <!-- Sidebar Footer -->
     <div class="p-4 border-t border-slate-800 bg-slate-900/90 space-y-3">
       <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-800/70 border border-slate-700/60">
         <div class="flex items-center gap-2.5 text-xs font-medium text-slate-300">
@@ -243,7 +232,7 @@
       <section id="screen-inventario" class="app-screen space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <p id="dynamic-date-header" class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">CARGANDO NUBE...</p>
+            <p id="dynamic-date-header" class="text-xs font-bold tracking-widest uppercase text-brand-600 dark:text-brand-400 mb-1">CARGANDO DE LA NUBE...</p>
             <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Inventario</h2>
           </div>
           <div class="flex flex-wrap items-center gap-3">
@@ -258,7 +247,6 @@
           </div>
         </div>
 
-        <!-- Metrics -->
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
             <div>
@@ -298,7 +286,6 @@
           </div>
         </div>
 
-        <!-- Search & Category Chips -->
         <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
           <div class="relative">
             <svg class="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.3-4.3"/></svg>
@@ -307,7 +294,6 @@
           <div id="category-chips" class="flex items-center gap-2 overflow-x-auto pb-1"></div>
         </div>
 
-        <!-- Inventory Product Table -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -530,19 +516,45 @@
       <section id="screen-carga" class="app-screen hidden space-y-6">
         <div class="flex justify-between items-center">
           <div>
-            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 mb-1">Importación Cloud</p>
+            <p class="text-xs font-bold tracking-widest uppercase text-brand-600 mb-1">Importación Cloud & Excel</p>
             <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Carga masiva</h2>
           </div>
           <button onclick="downloadExcelTemplate()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 border hover:border-brand-500">Descargar Plantilla .XLSX</button>
         </div>
-        <div id="bulk-dropzone" onclick="document.getElementById('bulk-file-input').click()" ondragover="handleBulkDragOver(event)" ondragleave="handleBulkDragLeave(event)" ondrop="handleBulkDrop(event)" class="cursor-pointer bg-white dark:bg-slate-900 border-2 border-dashed rounded-2xl p-12 text-center transition-all">
+
+        <div id="bulk-dropzone" onclick="document.getElementById('bulk-file-input').click()" ondragover="handleBulkDragOver(event)" ondragleave="handleBulkDragLeave(event)" ondrop="handleBulkDrop(event)" class="cursor-pointer bg-white dark:bg-slate-900 border-2 border-dashed rounded-2xl p-12 text-center transition-all hover:border-brand-500">
           <input type="file" id="bulk-file-input" accept=".csv,.xlsx,.xls" onchange="handleBulkFileSelect(event)" class="hidden" />
-          <h3 class="text-base font-bold">Arrastra tu archivo Excel (.xlsx) o CSV aquí</h3>
-          <p class="text-xs text-slate-500 mt-1">Los datos se guardarán directamente en Cloud Firestore.</p>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">Arrastra y suelta tu archivo Excel (.xlsx) o CSV aquí</h3>
+          <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Columnas soportadas: <span class="font-mono font-bold">SKU, Producto, Categoría, Ubicación, Cantidad, Mínimo, Precio</span></p>
+          <span class="inline-block mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold">Seleccionar archivo Excel</span>
         </div>
+
         <div id="bulk-preview-panel" class="hidden bg-white dark:bg-slate-900 rounded-2xl border overflow-hidden">
-          <div class="p-4 border-b flex justify-between items-center"><span id="bulk-file-summary" class="text-sm font-bold">0 filas</span><div class="flex gap-2"><button onclick="clearBulkPreview()" class="px-3 py-2 text-xs font-semibold">Cancelar</button><button onclick="commitBulkUpload()" class="px-4 py-2 text-xs font-bold bg-brand-500 text-white">Guardar en la Nube</button></div></div>
-          <div class="overflow-x-auto max-h-96"><table class="w-full text-left text-xs"><thead><tr class="bg-slate-50 dark:bg-slate-950 border-b font-bold"><th class="py-3 px-4">Estado</th><th class="py-3 px-4">SKU</th><th class="py-3 px-4">Producto</th><th class="py-3 px-4">Categoría</th><th class="py-3 px-4 text-right">Cantidad</th></tr></thead><tbody id="bulk-preview-tbody" class="divide-y"></tbody></table></div>
+          <div class="p-4 border-b flex justify-between items-center">
+            <div>
+              <h3 id="bulk-file-summary" class="text-sm font-bold">0 filas</h3>
+              <p class="text-xs text-slate-500">Verifica los datos antes de guardar en la nube.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="clearBulkPreview()" class="px-3 py-2 text-xs font-semibold text-slate-600">Cancelar</button>
+              <button onclick="commitBulkUpload()" class="px-4 py-2 text-xs font-bold bg-brand-500 text-white rounded-xl shadow-md">Guardar y Sincronizar en Firestore</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto max-h-96">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 dark:bg-slate-950 border-b font-bold uppercase text-slate-500">
+                  <th class="py-3 px-4">Estado</th>
+                  <th class="py-3 px-4">SKU</th>
+                  <th class="py-3 px-4">Producto</th>
+                  <th class="py-3 px-4">Categoría</th>
+                  <th class="py-3 px-4">Ubicación</th>
+                  <th class="py-3 px-4 text-right">Cantidad</th>
+                </tr>
+              </thead>
+              <tbody id="bulk-preview-tbody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -643,11 +655,9 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT & CLOUD FIRESTORE SYNC -->
+  <!-- JAVASCRIPT & CLOUD FIRESTORE SYNC & FULL EXCEL PARSING -->
   <script>
-    // ==========================================
     // 1. CONFIGURA TUS CREDENCIALES DE FIREBASE
-    // ==========================================
     const firebaseConfig = {
       apiKey: "TU_API_KEY",
       authDomain: "TU_PROYECTO.firebaseapp.com",
@@ -693,23 +703,19 @@
       renderAll();
     });
 
-    // ==========================================
     // 2. SINCRONIZACIÓN CON CLOUD FIRESTORE
-    // ==========================================
     async function loadStateFromCloud() {
       try {
         const docRef = db.collection("jadever_bodega").doc("main_state");
         const doc = await docRef.get();
         if (doc.exists) {
-          const cloudData = doc.data();
-          state = { ...state, ...cloudData };
+          state = { ...state, ...doc.data() };
           showToast("Sincronizado con Cloud Firestore");
         } else {
-          // Si no existe en la nube, inicializamos con documento vacío
           await docRef.set(state);
         }
       } catch (e) {
-        console.warn("Error cargando desde Firestore, usando respaldo local:", e);
+        console.warn("Uso de respaldo local:", e);
         try {
           const saved = localStorage.getItem("jadever_bodega_state_v1");
           if (saved) state = { ...state, ...JSON.parse(saved) };
@@ -718,18 +724,14 @@
     }
 
     async function saveState() {
-      // Respaldo local de seguridad
-      try {
-        localStorage.setItem("jadever_bodega_state_v1", JSON.stringify(state));
-      } catch (e) {}
-
+      try { localStorage.setItem("jadever_bodega_state_v1", JSON.stringify(state)); } catch (e) {}
       if (isSyncing) return;
       isSyncing = true;
       try {
         await db.collection("jadever_bodega").doc("main_state").set(state);
       } catch (e) {
         console.error("Error guardando en la nube:", e);
-        showToast("Error al sincronizar con la nube", "error");
+        showToast("Error al sincronizar con Firestore", "error");
       } finally {
         isSyncing = false;
       }
@@ -745,9 +747,8 @@
       const now = new Date();
       const days = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
       const months = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-      const formatted = `${days[now.getDay()]}, ${now.getDate()} DE ${months[now.getMonth()]}`;
       const el = document.getElementById("dynamic-date-header");
-      if (el) el.textContent = formatted;
+      if (el) el.textContent = `${days[now.getDay()]}, ${now.getDate()} DE ${months[now.getMonth()]}`;
     }
 
     function populateCategoryDropdowns() {
@@ -869,7 +870,7 @@
       const filtered = state.products.filter(p => (state.selectedCategory === "Todas" || p.category === state.selectedCategory) && (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)));
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400">No hay productos en inventario cloud.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400">No hay productos en inventario cloud. Usa "Carga masiva" para importar tu archivo Excel.</td></tr>`;
         return;
       }
 
@@ -944,7 +945,7 @@
       state.products = state.products.filter(p => p.id !== id);
       await saveState();
       renderAll();
-      showToast("Producto eliminado en la nube", "warning");
+      showToast("Producto eliminado de la nube", "warning");
     }
 
     function openMovementModal(type = "ENTRADA") {
@@ -984,7 +985,7 @@
       await saveState();
       closeMovementModal();
       renderAll();
-      showToast("Movimiento sincronizado en Firestore");
+      showToast("Movimiento registrado en Firestore");
     }
 
     function renderMovements() {
@@ -1006,7 +1007,204 @@
       showToast("Movimiento eliminado", "warning");
     }
 
-    function simulateSampleInvoiceOCR(keep = false) {
+    // ==========================================
+    // 3. PARSER Y CARGA DE ARCHIVOS EXCEL (SHEETJS)
+    // ==========================================
+    function handleBulkDragOver(e) {
+      e.preventDefault();
+      document.getElementById("bulk-dropzone").classList.add("border-brand-500");
+    }
+
+    function handleBulkDragLeave(e) {
+      e.preventDefault();
+      document.getElementById("bulk-dropzone").classList.remove("border-brand-500");
+    }
+
+    function handleBulkDrop(e) {
+      e.preventDefault();
+      handleBulkDragLeave(e);
+      const file = e.dataTransfer.files[0];
+      if (file) parseSpreadsheetFile(file);
+    }
+
+    function handleBulkFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) parseSpreadsheetFile(file);
+    }
+
+    function parseSpreadsheetFile(file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = new Uint8Array(ev.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonRows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+
+          if (!jsonRows.length) {
+            showToast("El archivo está vacío o no contiene filas válidas", "warning");
+            return;
+          }
+
+          bulkParsedRows = jsonRows.map((r, index) => {
+            const sku = String(r.SKU || r.sku || r.Codigo || r.Código || `SKU-${1000 + index}`).trim().toUpperCase();
+            const name = String(r.Producto || r.Nombre || r.producto || r.name || "Herramienta Sin Nombre").trim();
+            const rawCat = String(r.Categoria || r.Categoría || r.category || "").trim();
+            const matchedCat = CATEGORIES.find(c => c.toLowerCase() === rawCat.toLowerCase()) || CATEGORIES[4];
+            const location = String(r.Ubicacion || r.Ubicación || r.location || "Bodega General").trim();
+            const qty = parseInt(r.Cantidad || r.Stock || r.qty || 0, 10) || 0;
+            const minStock = parseInt(r.Minimo || r.Mínimo || r.minStock || 5, 10) || 5;
+            const price = parseFloat(r.Precio || r.price || 0) || 0;
+            const exists = state.products.some(p => p.sku.toUpperCase() === sku);
+
+            return { sku, name, category: matchedCat, location, qty, minStock, price, isUpdate: exists };
+          });
+
+          renderBulkPreview();
+        } catch (err) {
+          console.error(err);
+          showToast("No se pudo leer el archivo Excel/CSV. Verifica la estructura.", "error");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderBulkPreview() {
+      const panel = document.getElementById("bulk-preview-panel");
+      const summary = document.getElementById("bulk-file-summary");
+      const tbody = document.getElementById("bulk-preview-tbody");
+
+      const updates = bulkParsedRows.filter(r => r.isUpdate).length;
+      const news = bulkParsedRows.length - updates;
+
+      summary.textContent = `${bulkParsedRows.length} filas leídas (${news} nuevos, ${updates} actualizaciones)`;
+      tbody.innerHTML = bulkParsedRows.map(r => `
+        <tr>
+          <td class="py-2.5 px-4">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.isUpdate ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"}">${r.isUpdate ? "Actualizar" : "Nuevo"}</span>
+          </td>
+          <td class="py-2.5 px-4 font-mono font-bold text-brand-600">${escapeHtml(r.sku)}</td>
+          <td class="py-2.5 px-4 font-semibold">${escapeHtml(r.name)}</td>
+          <td class="py-2.5 px-4">${escapeHtml(r.category)}</td>
+          <td class="py-2.5 px-4 text-slate-500">${escapeHtml(r.location)}</td>
+          <td class="py-2.5 px-4 text-right font-bold">${r.qty} UND</td>
+        </tr>
+      `).join("");
+
+      panel.classList.remove("hidden");
+    }
+
+    function clearBulkPreview() {
+      bulkParsedRows = [];
+      document.getElementById("bulk-file-input").value = "";
+      document.getElementById("bulk-preview-panel").classList.add("hidden");
+    }
+
+    async function commitBulkUpload() {
+      if (!bulkParsedRows.length) return;
+      let added = 0;
+      let updated = 0;
+
+      bulkParsedRows.forEach(row => {
+        const existing = state.products.find(p => p.sku.toUpperCase() === row.sku.toUpperCase());
+        if (existing) {
+          existing.name = row.name;
+          existing.category = row.category;
+          existing.location = row.location;
+          existing.qty = row.qty;
+          existing.minStock = row.minStock;
+          existing.price = row.price;
+          updated++;
+        } else {
+          state.products.unshift({
+            id: "prod-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+            sku: row.sku,
+            name: row.name,
+            category: row.category,
+            location: row.location,
+            qty: row.qty,
+            minStock: row.minStock,
+            price: row.price
+          });
+          added++;
+        }
+      });
+
+      await saveState();
+      clearBulkPreview();
+      switchTab("inventario");
+      showToast(`Carga masiva completada y subida a Firestore: ${added} nuevos, ${updated} actualizados`);
+    }
+
+    function downloadExcelTemplate() {
+      const sampleRows = [
+        { SKU: "JDPE4315", Producto: "Taladro Percutor 650W Jadever", Categoria: "Construcción", Ubicacion: "Pasillo A-1", Cantidad: 24, Minimo: 6, Precio: 48.50 },
+        { SKU: "JDSWB911A", Producto: "Llave Combinada 11mm Cr-V", Categoria: "Automotriz", Ubicacion: "Estante B-3", Cantidad: 60, Minimo: 15, Precio: 4.20 },
+        { SKU: "JDCD1510", Producto: "Taladro Inalámbrico 12V Litio", Categoria: "Electricidad", Ubicacion: "Vitrina C-2", Cantidad: 14, Minimo: 5, Precio: 62.00 }
+      ];
+      const ws = XLSX.utils.json_to_sheet(sampleRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Plantilla_Jadever");
+      XLSX.writeFile(wb, "Plantilla_Carga_JadeverBodega.xlsx");
+      showToast("Plantilla Excel descargada");
+    }
+
+    function importOrdersExcel(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          const data = new Uint8Array(ev.target.result);
+          const wb = XLSX.read(data, { type: "array" });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+          let count = 0;
+          rows.forEach(r => {
+            const prod = String(r.Producto || r.Producto_Referencia || r.Descripcion || "").trim();
+            if (!prod) return;
+            state.orders.unshift({
+              id: "ord-" + Date.now() + Math.random().toString(36).slice(2, 6),
+              product: prod,
+              client: String(r.Cliente || "Mostrador").trim(),
+              priority: String(r.Estado || "Pendiente").trim(),
+              qty: Math.max(1, parseInt(r.Cantidad || 1, 10) || 1),
+              requester: String(r.Solicitado_Por || "Wendy Hernandez").trim(),
+              notes: String(r.Observaciones || "").trim(),
+              dateISO: new Date().toISOString()
+            });
+            count++;
+          });
+          await saveState();
+          renderAll();
+          showToast(`Importados ${count} pedidos desde Excel`);
+        } catch (err) {
+          showToast("Error al importar pedidos de Excel", "error");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function exportOrdersExcel() {
+      const rows = state.orders.map((o, i) => ({
+        Item: i + 1,
+        Fecha: o.dateISO.slice(0, 10),
+        Cliente: o.client || "General",
+        Producto_Referencia: o.product,
+        Cantidad: o.qty,
+        Estado: o.priority || "Pendiente",
+        Solicitado_Por: o.requester,
+        Observaciones: o.notes || ""
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ Mensaje: "Sin pedidos" }]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Pedidos");
+      XLSX.writeFile(wb, `Control_Pedidos_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      showToast("Pedidos exportados a Excel");
+    }
+
+    // OCR Modal & Simulator
+    function simulateSampleInvoiceOCR() {
       ocrExtractedRows = [
         { sku: "JDPE4315", name: "Taladro Percutor 650W Jadever", category: "Construcción", qty: 5 },
         { sku: "JDSWB911A", name: "Llave Combinada 11mm", category: "Automotriz", qty: 12 }
@@ -1035,30 +1233,53 @@
       await saveState();
       closeOcrModal();
       renderAll();
-      showToast("Factura procesada y guardada en la nube");
+      showToast("Factura procesada y guardada en Firestore");
     }
 
     function openOcrModal() { document.getElementById("ocr-modal").classList.remove("hidden"); document.getElementById("ocr-modal").classList.add("flex"); }
     function closeOcrModal() { document.getElementById("ocr-modal").classList.add("hidden"); document.getElementById("ocr-modal").classList.remove("flex"); }
 
-    function addOrder(e) { e.preventDefault(); showToast("Pedido simulado"); }
-    function renderOrders() {}
+    function addOrder(e) {
+      e.preventDefault();
+      const product = document.getElementById("order-product").value.trim();
+      const client = document.getElementById("order-client").value.trim();
+      const priority = document.getElementById("order-priority").value;
+      const qty = parseInt(document.getElementById("order-qty").value, 10) || 1;
+      const requester = document.getElementById("order-requester").value.trim();
+      const notes = document.getElementById("order-notes").value.trim();
+
+      state.orders.unshift({ id: "ord-" + Date.now(), product, client, priority, qty, requester, notes, dateISO: new Date().toISOString() });
+      saveState();
+      renderAll();
+      showToast("Pedido registrado");
+    }
+
+    function renderOrders() {
+      const container = document.getElementById("orders-list");
+      if (!container) return;
+      if (state.orders.length === 0) { container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Sin pedidos pendientes.</p>`; return; }
+      container.innerHTML = state.orders.map(o => `
+        <div class="p-3 rounded-xl bg-slate-50 border flex justify-between items-center text-xs">
+          <div><strong>${o.product}</strong> (${o.qty} UND) - Cliente: ${o.client}</div>
+          <button onclick="fulfillOrder('${o.id}')" class="px-2 py-1 bg-emerald-600 text-white rounded-lg font-bold">✓ Surtir</button>
+        </div>
+      `).join("");
+    }
+
+    async function fulfillOrder(id) {
+      state.orders = state.orders.filter(o => o.id !== id);
+      await saveState();
+      renderAll();
+      showToast("Pedido completado");
+    }
+
     function renderReports() {}
     function renderUsersSettings() {}
     function updateCatalogDatalist() {}
-    function exportOrdersExcel() {}
-    function importOrdersExcel() {}
     function saveCurrentReportToArchive() {}
     function exportReportPDF() {}
     function printReportView() {}
     function exportReportExcel() {}
-    function downloadExcelTemplate() {}
-    function handleBulkDragOver(e) { e.preventDefault(); }
-    function handleBulkDragLeave(e) { e.preventDefault(); }
-    function handleBulkDrop(e) { e.preventDefault(); }
-    function handleBulkFileSelect(e) {}
-    function clearBulkPreview() {}
-    function commitBulkUpload() {}
     function openInviteModal() { document.getElementById("invite-modal").classList.remove("hidden"); document.getElementById("invite-modal").classList.add("flex"); }
     function closeInviteModal() { document.getElementById("invite-modal").classList.add("hidden"); document.getElementById("invite-modal").classList.remove("flex"); }
     function sendUserInvite(e) { e.preventDefault(); closeInviteModal(); showToast("Invitación enviada"); }
