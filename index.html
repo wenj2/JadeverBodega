@@ -1,1135 +1,606 @@
 <!DOCTYPE html>
-<html lang="es" class="light">
+<html lang="es" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JadeverBodega - Ferretería & Control</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#fff7ed',
-                            100: '#ffedd5',
-                            500: '#ea580c',
-                            600: '#d97706',
-                            700: '#b45309',
-                            900: '#78350f',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Font Inter & FontAwesome -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS for Excel parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- html2pdf for PDF export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JadeverBodega - Ferretería & Control</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#ea580c',
+                            600: '#d97706',
+                            700: '#b45309',
+                            900: '#78350f',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Inter & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Excel parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- html2pdf for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        window.firebaseModules = {
-            initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
-            getFirestore, doc, setDoc, getDoc, onSnapshot, collection
-        };
-        window.dispatchEvent(new Event('firebase-loaded'));
-    </script>
-    <style>
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 3px; }
-        @media print {
-            aside, header, .no-print, #auth-overlay, #toast-container, #global-modal { display: none !important; }
-            body, main { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; overflow: visible !important; }
-            #report-printable-area { border: none !important; box-shadow: none !important; padding: 0 !important; background: white !important; color: black !important; }
-        }
-    </style>
+        window.firebaseModules = {
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
+            getFirestore, doc, setDoc, getDoc, onSnapshot, collection
+        };
+        window.dispatchEvent(new Event('firebase-loaded'));
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 3px; }
+        @media print {
+            aside, header, .no-print, #auth-overlay, #toast-container, #global-modal { display: none !important; }
+            body, main { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; overflow: visible !important; }
+            #report-printable-area { border: none !important; box-shadow: none !important; padding: 0 !important; background: white !important; color: black !important; }
+        }
+    </style>
 </head>
-<body id="app-body" class="bg-gray-100 text-gray-800 flex h-screen overflow-hidden">
-
-    <!-- Toast Notification container -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
-
-    <!-- Modal Container -->
-    <div id="global-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"></div>
-
-    <!-- PANTALLA DE BLOQUEO Y ACCESO POR CLAVE -->
-    <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center p-4">
-        <div class="max-w-md w-full bg-gray-900 border border-gray-800 rounded-3xl p-8 space-y-6 text-center shadow-2xl">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white text-2xl mx-auto shadow-lg shadow-amber-600/30">
-                <i class="fa-solid fa-lock"></i>
-            </div>
-            
-            <div>
-                <h2 class="text-xl font-bold text-white tracking-tight">JadeverBodega</h2>
-                <p class="text-xs text-amber-500 font-semibold tracking-wide uppercase mt-1">Acceso Protegido</p>
-                <p class="text-xs text-gray-400 mt-2">Ingresa tu PIN de acceso para continuar</p>
-            </div>
-
-            <form onsubmit="handleAuthLogin(event)" class="space-y-4">
-                <div class="relative">
-                    <input type="password" id="auth-pin-input" maxlength="10" placeholder="••••" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3.5 text-center text-2xl tracking-widest text-white focus:outline-none focus:border-amber-500 transition">
-                </div>
-                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg shadow-amber-600/20">
-                    Ingresar al Sistema
-                </button>
-            </form>
-
-            <div class="border-t border-gray-800 pt-4 text-[11px] text-gray-500">
-                <span>Admin: 2626 | Observador: 123</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-30 shadow-xl shrink-0 text-gray-800">
-        <!-- Logo Header -->
-        <div class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-            <div class="flex items-center space-x-3 overflow-hidden">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-600/30 shrink-0">
-                    <i class="fa-solid fa-screwdriver-wrench"></i>
-                </div>
-                <div class="sidebar-text">
-                    <h1 id="logo-title" class="font-bold text-base tracking-tight text-gray-900 leading-tight">JadeverBodega</h1>
-                    <span class="text-xs text-amber-500 font-semibold tracking-wide">FERRETERÍA & CONTROL</span>
-                </div>
-            </div>
-            <button onclick="toggleSidebar()" title="Plegar / Expandir Menú" class="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                <i class="fa-solid fa-bars text-sm"></i>
-            </button>
-        </div>
-
-        <!-- NAVIGATION MENU -->
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-            <button onclick="switchTab('inventario')" id="nav-inventario" class="nav-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors bg-amber-600 text-white shadow-md">
-                <div class="flex items-center space-x-3">
-                    <i class="fa-solid fa-boxes-stacked w-5 text-center"></i>
-                    <span class="sidebar-text">Inventario</span>
-                </div>
-                <span id="badge-inventario" class="sidebar-text px-2 py-0.5 text-xs bg-white/20 rounded-full font-bold">0</span>
-            </button>
-
-            <button onclick="switchTab('movimientos')" id="nav-movimientos" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
-                <i class="fa-solid fa-right-left w-5 text-center"></i>
-                <span class="sidebar-text">Movimientos</span>
-            </button>
-
-            <button onclick="switchTab('pedidos')" id="nav-pedidos" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
-                <i class="fa-solid fa-cart-shopping w-5 text-center"></i>
-                <span class="sidebar-text">Pedidos</span>
-            </button>
-
-            <button onclick="switchTab('informes')" id="nav-informes" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
-                <i class="fa-solid fa-chart-pie w-5 text-center"></i>
-                <span class="sidebar-text">Informes</span>
-            </button>
-
-            <button onclick="switchTab('mas')" id="nav-mas" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
-                <i class="fa-solid fa-gear w-5 text-center"></i>
-                <span class="sidebar-text">Más</span>
-            </button>
-
-            <button onclick="switchTab('cargamasiva')" id="nav-cargamasiva" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
-                <i class="fa-solid fa-file-excel w-5 text-center text-emerald-500"></i>
-                <span class="sidebar-text">Carga masiva</span>
-            </button>
-        </nav>
-
-        <!-- Dark Mode Toggle & User Profile -->
-        <div class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
-            <div id="theme-card" class="flex items-center justify-between bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-2.5 rounded-xl">
-                <div class="flex items-center space-x-2 text-xs font-medium text-gray-700 dark:text-gray-300 sidebar-text" id="theme-label-box">
-                    <i class="fa-solid fa-sun text-amber-500" id="theme-icon"></i>
-                    <span id="theme-text">Modo Claro</span>
-                </div>
-                <button onclick="toggleTheme()" class="p-1 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-amber-500 transition">
-                    <i class="fa-solid fa-circle-half-stroke text-sm"></i>
-                </button>
-            </div>
-
-            <div class="flex items-center justify-between p-2">
-                <div class="flex items-center space-x-3 overflow-hidden">
-                    <div id="user-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-bold text-white text-sm shadow shrink-0">
-                        WH
-                    </div>
-                    <div class="overflow-hidden sidebar-text">
-                        <p id="user-name" class="text-sm font-semibold text-gray-900 dark:text-white truncate">Wendy Hernandez</p>
-                        <p id="user-role" class="text-xs text-amber-500 font-medium flex items-center space-x-1">
-                            <i class="fa-solid fa-shield-halved text-[10px]"></i>
-                            <span>Administrator</span>
-                        </p>
-                    </div>
-                </div>
-                <button onclick="logoutAuth()" title="Cerrar Sesión" class="text-gray-400 hover:text-red-500 text-xs p-1 sidebar-text">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
-            </div>
-        </div>
-    </aside>
-
-    <!-- MAIN CONTENT AREA -->
-    <main id="app-main" class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-100">
-        
-        <!-- TOP APP BAR -->
-        <header id="top-header" class="h-16 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 flex items-center justify-between z-20 text-gray-800">
-            <div class="flex items-center space-x-4">
-                <button onclick="toggleSidebar()" class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white p-2 rounded-lg bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 transition">
-                    <i class="fa-solid fa-bars text-sm"></i>
-                </button>
-                <!-- Indicador Foco Cloud Firestore -->
-                <div id="sync-status-badge" class="flex items-center space-x-2 px-3 py-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-full text-xs font-semibold text-amber-700 dark:text-amber-400" title="Estado Cloud">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" id="sync-dot"></span>
-                    <i class="fa-solid fa-lightbulb text-xs"></i>
-                    <span id="sync-text">Sincronizando...</span>
-                </div>
-            </div>
-
-            <div class="flex items-center space-x-3">
-                <button id="btn-top-excel" onclick="switchTab('cargamasiva')" class="flex items-center space-x-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-300 dark:border-gray-700 transition shadow-sm">
-                    <i class="fa-solid fa-file-excel text-emerald-500"></i>
-                    <span>Cargar Excel</span>
-                </button>
-                <button id="btn-top-add-product" onclick="openAddProductModal()" class="flex items-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-amber-600/30 transition">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>+ Producto</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- DYNAMIC VIEWS CONTAINER -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar" id="main-content-view">
-            <!-- Dynamic Content -->
-        </div>
-
-    </main>
-
-    <!-- APPLICATION LOGIC & STATE -->
-    <script>
-        let state = {
-            currentTab: 'inventario',
-            darkMode: false,
-            sidebarCollapsed: false,
-            currentUserRole: null,
-            lastLoginTime: null,
-            inventario: [],
-            movimientos: [],
-            pedidos: [],
-            informesGuardados: [],
-            evidenciasFacturas: []
-        };
-
-        let db = null;
-        let auth = null;
-        let unsubscribeFirestore = null;
-        let isSyncingFromCloud = false;
-
-        let pendingParsedRows = null;
-        let invSearch = '';
-        let invCategory = 'Todas';
-
-        const defaultCategories = [
-            'Herramientas Manuales',
-            'Herramientas Eléctricas',
-            'Fijación y Tornillería',
-            'Fontanería y Plomería',
-            'Pinturas y Acabados',
-            'Seguridad e Iluminación',
-            'Construcción y Medición'
-        ];
-
-        window.addEventListener('firebase-loaded', async () => {
-            try {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'jadever-bodega-default';
-                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-                    apiKey: "AIzaSyB4hiDPrrUhiu8HHoH_gdbFVX5nU0vOgM",
-                    authDomain: "jadever-bodega.firebaseapp.com",
-                    projectId: "jadeverbodega",
-                    storageBucket: "jadeverbodega.appspot.com",
-                    messagingSenderId: "801005563673",
-                    appId: "1:801005563673:web:01ad1465257cf9e9b3df88"
-                };
-
-                const app = window.firebaseModules.initializeApp(firebaseConfig);
-                db = window.firebaseModules.getFirestore(app);
-                auth = window.firebaseModules.getAuth(app);
-
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await window.firebaseModules.signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await window.firebaseModules.signInAnonymously(auth);
-                }
-
-                initRealtimeSync(appId);
-            } catch(e) {
-                setSyncStatus(false, "Modo Local");
-                loadStateLocal();
-            }
-        });
-
-        function setSyncStatus(isOnline, text) {
-            const dot = document.getElementById('sync-dot');
-            const txt = document.getElementById('sync-text');
-            if (!dot || !txt) return;
-            if (isOnline) {
-                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50";
-                txt.innerText = text || "Sincronizado con Cloud";
-            } else {
-                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
-                txt.innerText = text || "Trabajando Local";
-            }
-        }
-
-        function initRealtimeSync(appId) {
-            if (!db || !auth) return;
-            const userId = auth.currentUser ? auth.currentUser.uid : 'default-user';
-            const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'users', userId);
-
-            if (unsubscribeFirestore) unsubscribeFirestore();
-
-            unsubscribeFirestore = window.firebaseModules.onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const cloudData = docSnap.data();
-                    if (cloudData && cloudData.payload) {
-                        isSyncingFromCloud = true;
-                        try {
-                            const parsed = JSON.parse(cloudData.payload);
-                            state = { ...state, ...parsed };
-                            updateBadges();
-                            checkAuthSessionValidity();
-                            renderView();
-                            setSyncStatus(true, "Sincronizado con Cloud");
-                        } catch(err) {
-                            console.error("Error parsing cloud state", err);
-                        }
-                        isSyncingFromCloud = false;
-                    }
-                } else {
-                    saveState();
-                }
-            }, (error) => {
-                setSyncStatus(false, "Sin conexión Cloud");
-                loadStateLocal();
-            });
-        }
-
-        function toggleSidebar() {
-            state.sidebarCollapsed = !state.sidebarCollapsed;
-            applySidebarState();
-        }
-
-        function applySidebarState() {
-            const sidebar = document.getElementById('sidebar');
-            const texts = document.querySelectorAll('.sidebar-text');
-            if (state.sidebarCollapsed) {
-                sidebar.classList.remove('w-64');
-                sidebar.classList.add('w-20');
-                texts.forEach(el => el.classList.add('hidden'));
-            } else {
-                sidebar.classList.remove('w-20');
-                sidebar.classList.add('w-64');
-                texts.forEach(el => el.classList.remove('hidden'));
-            }
-        }
-
-        function suggestCategoryByName(name) {
-            const n = name.toLowerCase();
-            if (n.includes('taladro') || n.includes('esmeril') || n.includes('sierra')) return 'Herramientas Eléctricas';
-            if (n.includes('llave') || n.includes('destornillador') || n.includes('martillo')) return 'Herramientas Manuales';
-            if (n.includes('tornillo') || n.includes('clavo') || n.includes('tuerca')) return 'Fijación y Tornillería';
-            if (n.includes('tubo') || n.includes('codo') || n.includes('valvula')) return 'Fontanería y Plomería';
-            if (n.includes('pintura') || n.includes('brocha') || n.includes('silicona')) return 'Pinturas y Acabados';
-            if (n.includes('casco') || n.includes('guante') || n.includes('foco')) return 'Seguridad e Iluminación';
-            if (n.includes('automotriz') || n.includes('aceite') || n.includes('filtro')) return 'Automotriz';
-            return 'Construcción y Medición';
-        }
-
-        function handleAuthLogin(e) {
-            e.preventDefault();
-            const pin = document.getElementById('auth-pin-input').value.trim();
-            const overlay = document.getElementById('auth-overlay');
-
-            if (pin === '2626') {
-                state.currentUserRole = 'admin';
-                state.lastLoginTime = Date.now();
-                showToast("Acceso como Administrador", "success");
-            } else if (pin === '123') {
-                state.currentUserRole = 'observer';
-                state.lastLoginTime = Date.now();
-                showToast("Acceso como Observador (Solo Lectura)", "success");
-            } else {
-                showToast("PIN incorrecto. Intenta nuevamente.", "error");
-                return;
-            }
-
-            document.getElementById('auth-pin-input').value = '';
-            if (overlay) overlay.classList.add('hidden');
-            saveState();
-            updateUserUI();
-            renderView();
-        }
-
-        function checkAuthSessionValidity() {
-            const overlay = document.getElementById('auth-overlay');
-            const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
-
-            if (state.currentUserRole && state.lastLoginTime) {
-                const now = Date.now();
-                const elapsed = now - state.lastLoginTime;
-
-                if (elapsed < TWELVE_HOURS_MS) {
-                    if (overlay) overlay.classList.add('hidden');
-                    updateUserUI();
-                    return true;
-                } else {
-                    state.currentUserRole = null;
-                    state.lastLoginTime = null;
-                    saveState();
-                    showToast("Tu sesión de 12 horas ha expirado. Ingresa tu PIN nuevamente.", "error");
-                }
-            }
-
-            if (overlay) overlay.classList.remove('hidden');
-            return false;
-        }
-
-        function logoutAuth() {
-            state.currentUserRole = null;
-            state.lastLoginTime = null;
-            saveState();
-            const overlay = document.getElementById('auth-overlay');
-            if (overlay) overlay.classList.remove('hidden');
-        }
-
-        function updateUserUI() {
-            const userName = document.getElementById('user-name');
-            const userRole = document.getElementById('user-role');
-            const userAvatar = document.getElementById('user-avatar');
-            const btnTopExcel = document.getElementById('btn-top-excel');
-            const btnTopAddProduct = document.getElementById('btn-top-add-product');
-            const navCargaMasiva = document.getElementById('nav-cargamasiva');
-
-            if (state.currentUserRole === 'admin') {
-                if (userName) userName.innerText = "Wendy Hernandez";
-                if (userAvatar) userAvatar.innerText = "WH";
-                if (userRole) userRole.innerHTML = `<i class="fa-solid fa-shield-halved text-[10px]"></i><span>Administrador</span>`;
-                if (btnTopExcel) btnTopExcel.style.display = 'flex';
-                if (btnTopAddProduct) btnTopAddProduct.style.display = 'flex';
-                if (navCargaMasiva) navCargaMasiva.style.display = 'flex';
-            } else {
-                if (userName) userName.innerText = "Usuario Observador";
-                if (userAvatar) userAvatar.innerText = "OB";
-                if (userRole) userRole.innerHTML = `<i class="fa-solid fa-eye text-[10px]"></i><span>Solo Lectura</span>`;
-                if (btnTopExcel) btnTopExcel.style.display = 'none';
-                if (btnTopAddProduct) btnTopAddProduct.style.display = 'none';
-                if (navCargaMasiva) navCargaMasiva.style.display = 'none';
-            }
-        }
-
-        function updateDailyDate() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const formatted = now.toLocaleDateString('es-ES', options);
-            const headerDate = document.getElementById('current-date-header');
-            if (headerDate) headerDate.innerText = formatted;
-        }
-
-        function loadStateLocal() {
-            const saved = localStorage.getItem('jadever_bodega_v4');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    state = { ...state, ...parsed };
-                } catch(e) { console.error("Error loading local storage", e); }
-            } else {
-                state.darkMode = false;
-            }
-            updateBadges();
-            checkAuthSessionValidity();
-            renderView();
-        }
-
-        function saveState() {
-            const payloadString = JSON.stringify({
-                inventario: state.inventario,
-                movimientos: state.movimientos,
-                pedidos: state.pedidos,
-                informesGuardados: state.informesGuardados,
-                evidenciasFacturas: state.evidenciasFacturas,
-                darkMode: state.darkMode,
-                currentUserRole: state.currentUserRole,
-                lastLoginTime: state.lastLoginTime
-            });
-
-            localStorage.setItem('jadever_bodega_v4', payloadString);
-            updateBadges();
-
-            if (db && auth && !isSyncingFromCloud) {
-                const user = auth.currentUser;
-                if (!user) return;
-                
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'jadever-bodega-default';
-                const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'users', user.uid);
-                
-                window.firebaseModules.setDoc(docRef, {
-                    payload: payloadString,
-                    updatedAt: Date.now(),
-                    updatedBy: user.uid
-                }, { merge: true })
-                .then(() => setSyncStatus(true, "Sincronizado con Cloud"))
-                .catch(err => setSyncStatus(false, "Error guardando Cloud"));
-            }
-        }
-
-        window.addEventListener('beforeunload', function() {
-            saveState();
-        });
-
-        function updateBadges() {
-            const badge = document.getElementById('badge-inventario');
-            if (badge) {
-                badge.innerText = state.inventario.length;
-            }
-        }
-
-        function toggleTheme() {
-            state.darkMode = !state.darkMode;
-            applyTheme();
-            saveState();
-        }
-
-        function applyTheme() {
-            const html = document.documentElement;
-            const body = document.getElementById('app-body');
-            const main = document.getElementById('app-main');
-            const sidebar = document.getElementById('sidebar');
-            const topHeader = document.getElementById('top-header');
-            const logoTitle = document.getElementById('logo-title');
-            const userName = document.getElementById('user-name');
-            const themeCard = document.getElementById('theme-card');
-            const themeLabelBox = document.getElementById('theme-label-box');
-            const themeIcon = document.getElementById('theme-icon');
-            const themeText = document.getElementById('theme-text');
-
-            if (state.darkMode) {
-                html.classList.add('dark');
-                html.classList.remove('light');
-                body.className = "bg-gray-900 text-gray-100 flex h-screen overflow-hidden";
-                main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-900";
-                sidebar.className = "w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl text-gray-100";
-                topHeader.className = "h-16 bg-gray-950 border-b border-gray-800 px-6 flex items-center justify-between z-20 text-white";
-                if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-white leading-tight";
-                if (userName) userName.className = "text-sm font-semibold text-white truncate";
-                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-900 border border-gray-800 p-2.5 rounded-xl";
-                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-medium text-gray-300";
-                if (themeIcon) themeIcon.className = "fa-solid fa-moon text-amber-500";
-                if (themeText) themeText.innerText = "Modo Oscuro";
-            } else {
-                html.classList.remove('dark');
-                html.classList.add('light');
-                body.className = "bg-gray-100 text-gray-800 flex h-screen overflow-hidden";
-                main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-100";
-                sidebar.className = "w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-30 shadow-xl text-gray-800";
-                topHeader.className = "h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between z-20 text-gray-800";
-                if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-gray-900 leading-tight";
-                if (userName) userName.className = "text-sm font-semibold text-gray-900 truncate";
-                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-50 border border-gray-200 p-2.5 rounded-xl";
-                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-medium text-gray-700";
-                if (themeIcon) themeIcon.className = "fa-solid fa-sun text-amber-500";
-                if (themeText) themeText.innerText = "Modo Claro";
-            }
-            renderView();
-        }
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `flex items-center space-x-3 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium text-white transition-all transform translate-y-2 opacity-0 ${
-                type === 'success' ? 'bg-emerald-600 border border-emerald-500' : 'bg-red-600 border border-red-500'
-            }`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i><span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
-        }
-
-        function switchTab(tab) {
-            state.currentTab = tab;
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.className = `nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium ${state.darkMode ? 'text-gray-400 hover:bg-gray-800/50 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`;
-            });
-            const activeBtn = document.getElementById(`nav-${tab}`);
-            if (activeBtn) {
-                activeBtn.className = "nav-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors bg-amber-600 text-white shadow-md";
-            }
-            renderView();
-        }
-
-        function openModalHTML(htmlContent) {
-            const container = document.getElementById('global-modal');
-            container.innerHTML = htmlContent;
-            container.classList.remove('hidden');
-        }
-
-        function closeModal() {
-            const container = document.getElementById('global-modal');
-            container.classList.add('hidden');
-            container.innerHTML = '';
-        }
-
-        function renderView() {
-            const container = document.getElementById('main-content-view');
-            if (!container) return;
-            container.innerHTML = '';
-            switch(state.currentTab) {
-                case 'inventario': renderInventario(container); break;
-                case 'movimientos': renderMovimientos(container); break;
-                case 'pedidos': renderPedidos(container); break;
-                case 'informes': renderInformes(container); break;
-                case 'mas': renderMas(container); break;
-                case 'cargamasiva': renderCargaMasiva(container); break;
-            }
-            updateBadges();
-            updateUserUI();
-        }
-
-        function renderInventario(container) {
-            const isAdmin = state.currentUserRole === 'admin';
-            const totalRef = state.inventario.length;
-            const totalUnits = state.inventario.reduce((acc, item) => acc + (Number(item.cantidad) || 0), 0);
-            const reorderAlerts = state.inventario.filter(item => Number(item.cantidad) <= Number(item.minimo)).length;
-            const totalMovimientos = state.movimientos.length;
-
-            const presentCategories = Array.from(new Set([
-                ...defaultCategories,
-                ...state.inventario.map(i => i.categoria).filter(Boolean)
-            ]));
-            const categories = ['Todas', ...presentCategories];
-
-            const filteredItems = state.inventario.filter(item => {
-                const matchSearch = item.nombre.toLowerCase().includes(invSearch.toLowerCase()) || item.sku.toLowerCase().includes(invSearch.toLowerCase()) || item.ubicacion.toLowerCase().includes(invSearch.toLowerCase());
-                const matchCat = invCategory === 'Todas' || item.categoria === invCategory;
-                return matchSearch && matchCat;
-            });
-
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-            const tableHeaderBg = state.darkMode ? 'bg-gray-900/50 text-gray-400' : 'bg-gray-100 text-gray-600';
-            const tableRowHover = state.darkMode ? 'hover:bg-gray-900/40' : 'hover:bg-gray-50';
-
-            container.innerHTML = `
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Referencias (SKU)</p>
-                            <h3 class="text-2xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} mt-1">${totalRef}</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-boxes-stacked"></i>
-                        </div>
-                    </div>
-                    <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Unidades Totales</p>
-                            <h3 class="text-2xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} mt-1">${totalUnits.toLocaleString('es-ES')} un.</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-cubes"></i>
-                        </div>
-                    </div>
-                    <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Alertas de Reorden</p>
-                            <h3 class="text-2xl font-bold text-amber-500 mt-1">${reorderAlerts}</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                    </div>
-                    <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Movimientos</p>
-                            <h3 class="text-2xl font-bold text-purple-400 mt-1">${totalMovimientos}</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-bolt"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="${cardBg} border rounded-2xl p-5 space-y-4">
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
-                        <input type="text" value="${invSearch}" oninput="invSearch = this.value; renderView();" placeholder="Buscar por SKU, producto o ubicación..." class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'} border rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-amber-500">
-                    </div>
-
-                    <div class="flex items-center space-x-2 overflow-x-auto pb-2 custom-scrollbar">
-                        ${categories.map(cat => `
-                            <button onclick="invCategory = '${cat}'; renderView();" class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
-                                invCategory === cat 
-                                    ? 'bg-amber-600 text-white shadow-md' 
-                                    : (state.darkMode ? 'bg-gray-900 text-gray-400 border-gray-800' : 'bg-gray-100 text-gray-600 border-gray-200') + ' border'
-                            }">
-                                ${cat}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <div class="${cardBg} border rounded-2xl overflow-hidden">
-                    ${filteredItems.length === 0 ? `
-                        <div class="py-16 text-center space-y-3">
-                            <div class="w-16 h-16 ${state.darkMode ? 'bg-gray-900' : 'bg-gray-100'} text-gray-400 rounded-full flex items-center justify-center mx-auto text-xl">
-                                <i class="fa-solid fa-box-open"></i>
-                            </div>
-                            <h4 class="text-base font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">No hay productos en esta selección</h4>
-                            <p class="text-xs text-gray-400">Carga un Excel o presiona "+ Producto" arriba.</p>
-                        </div>
-                    ` : `
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} ${tableHeaderBg} text-xs font-semibold uppercase tracking-wider">
-                                        <th class="py-3.5 px-4">SKU</th>
-                                        <th class="py-3.5 px-4">Producto</th>
-                                        <th class="py-3.5 px-4">Categoría</th>
-                                        <th class="py-3.5 px-4">Ubicación</th>
-                                        <th class="py-3.5 px-4">Cantidad</th>
-                                        ${isAdmin ? '<th class="py-3.5 px-4 text-right">Acciones</th>' : ''}
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y ${state.darkMode ? 'divide-gray-800/60' : 'divide-gray-200'} text-sm">
-                                    ${filteredItems.map(item => `
-                                        <tr class="${tableRowHover} transition">
-                                            <td class="py-3.5 px-4 font-mono font-medium text-amber-500">${item.sku}</td>
-                                            <td class="py-3.5 px-4 font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">
-                                                ${item.nombre}
-                                            </td>
-                                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg text-xs ${state.darkMode ? 'bg-gray-900 border-gray-800 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-700'} border">${item.categoria}</span></td>
-                                            <td class="py-3.5 px-4 text-gray-400 text-xs">${item.ubicacion}</td>
-                                            <td class="py-3.5 px-4 font-bold ${Number(item.cantidad) <= Number(item.minimo) ? 'text-amber-500' : (state.darkMode ? 'text-white' : 'text-gray-900')}">${item.cantidad} un.</td>
-                                            ${isAdmin ? `
-                                                <td class="py-3.5 px-4 text-right space-x-1.5">
-                                                    <button onclick="openEditProductModal('${item.sku}')" title="Editar" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                        <i class="fa-solid fa-pen"></i>
-                                                    </button>
-                                                    <button onclick="deleteProduct('${item.sku}')" title="Borrar" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            ` : ''}
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `}
-                </div>
-            `;
-        }
-
-        function openAddProductModal() {
-            openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">+ Nuevo Producto</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                    <form onsubmit="handleAddProduct(event)" class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre del Producto</label>
-                            <input type="text" id="add-name" required oninput="document.getElementById('add-cat').value=suggestCategoryByName(this.value)" placeholder="Ej: Taladro" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">SKU / Código</label>
-                            <input type="text" id="add-sku" required placeholder="Ej: JD-1002" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Categoría</label>
-                            <select id="add-cat" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                                ${defaultCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Ubicación</label>
-                                <input type="text" id="add-ub" required placeholder="Ej: Estante C3" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Stock Inicial</label>
-                                <input type="number" id="add-cant" min="0" value="1" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                            </div>
-                        </div>
-                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
-                            Crear Producto
-                        </button>
-                    </form>
-                </div>
-            `);
-        }
-
-        function handleAddProduct(e) {
-            e.preventDefault();
-            const name = document.getElementById('add-name').value.trim();
-            const sku = document.getElementById('add-sku').value.trim();
-            const cat = document.getElementById('add-cat').value;
-            const ub = document.getElementById('add-ub').value.trim();
-            const cant = Number(document.getElementById('add-cant').value) || 0;
-
-            if (state.inventario.some(i => i.sku.toLowerCase() === sku.toLowerCase())) {
-                showToast("El SKU ya existe", "error");
-                return;
-            }
-
-            state.inventario.push({ sku, nombre: name, categoria: cat, ubicacion: ub, cantidad: cant, minimo: 3, precio: 0 });
-            saveState();
-            closeModal();
-            renderView();
-            showToast("Producto creado con éxito", "success");
-        }
-
-        function openEditProductModal(sku) {
-            const item = state.inventario.find(i => i.sku === sku);
-            if (!item) return;
-
-            openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-                    <h3 class="font-bold text-base">Editar Producto (${item.sku})</h3>
-                    <form onsubmit="handleSaveEditProduct(event, '${item.sku}')" class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre</label>
-                            <input type="text" id="edit-name" value="${item.nombre}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300'} border rounded-xl px-3 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Ubicación</label>
-                            <input type="text" id="edit-ub" value="${item.ubicacion}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300'} border rounded-xl px-3 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Cantidad</label>
-                            <input type="number" id="edit-cant" min="0" value="${item.cantidad}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300'} border rounded-xl px-3 py-2 text-sm">
-                        </div>
-                        <button type="submit" class="w-full bg-amber-600 text-white font-semibold py-3 rounded-xl text-sm">Guardar</button>
-                    </form>
-                </div>
-            `);
-        }
-
-        function handleSaveEditProduct(e, sku) {
-            e.preventDefault();
-            const item = state.inventario.find(i => i.sku === sku);
-            if (!item) return;
-            item.nombre = document.getElementById('edit-name').value.trim();
-            item.ubicacion = document.getElementById('edit-ub').value.trim();
-            item.cantidad = Number(document.getElementById('edit-cant').value) || 0;
-            saveState();
-            closeModal();
-            renderView();
-            showToast("Actualizado", "success");
-        }
-
-        function deleteProduct(sku) {
-            if (confirm("¿Eliminar producto?")) {
-                state.inventario = state.inventario.filter(i => i.sku !== sku);
-                saveState();
-                renderView();
-                showToast("Eliminado", "success");
-            }
-        }
-
-        function renderMovimientos(container) {
-            const isAdmin = state.currentUserRole === 'admin';
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-
-            container.innerHTML = `
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Bitácora de Movimientos</h2>
-                        <p class="text-xs text-gray-400">Historial completo de entradas y salidas</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        ${isAdmin ? `
-                            <button onclick="openBatchMoveModal('Entrada')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-arrow-down"></i>
-                                <span>+ Entrada Múltiple</span>
-                            </button>
-                            <button onclick="openBatchMoveModal('Salida')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-arrow-up"></i>
-                                <span>- Salida Múltiple (Con Foto)</span>
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-
-                <div class="${cardBg} border rounded-2xl overflow-hidden">
-                    ${state.movimientos.length === 0 ? `
-                        <div class="py-16 text-center text-gray-400 text-xs">No hay movimientos registrados.</div>
-                    ` : `
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-sm">
-                                <thead>
-                                    <tr class="border-b ${state.darkMode ? 'border-gray-800 bg-gray-900/50 text-gray-400' : 'border-gray-200 bg-gray-100 text-gray-600'} text-xs font-semibold uppercase">
-                                        <th class="py-3 px-4">Fecha</th>
-                                        <th class="py-3 px-4">Tipo</th>
-                                        <th class="py-3 px-4">Producto</th>
-                                        <th class="py-3 px-4">Cliente / Dueño</th>
-                                        <th class="py-3 px-4">Cant.</th>
-                                        <th class="py-3 px-4">Foto</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y ${state.darkMode ? 'divide-gray-800' : 'divide-gray-200'}">
-                                    ${state.movimientos.map(m => `
-                                        <tr>
-                                            <td class="py-3 px-4 text-xs text-gray-400">${m.fecha}</td>
-                                            <td class="py-3 px-4 font-bold text-xs"><span class="px-2 py-0.5 rounded ${m.tipo === 'ENTRADA' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-500'}">${m.tipo}</span></td>
-                                            <td class="py-3 px-4 font-semibold">${m.producto}</td>
-                                            <td class="py-3 px-4 text-xs">${m.cliente || '-'}</td>
-                                            <td class="py-3 px-4 font-bold">${m.cantidad} un.</td>
-                                            <td class="py-3 px-4 text-xs">${m.foto ? `<button onclick="viewMovementFoto('${m.id}')" class="text-amber-500 underline font-semibold">Ver Foto</button>` : 'Sin foto'}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `}
-                </div>
-            `;
-        }
-
-        let currentBatchItems = [];
-
-        function openBatchMoveModal(tipo) {
-            currentBatchItems = [];
-            renderBatchModalContent(tipo);
-        }
-
-        function renderBatchModalContent(tipo) {
-            openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-                    <h3 class="font-bold text-base">Registrar ${tipo} Múltiple</h3>
-                    <div class="space-y-3">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            <div class="sm:col-span-2">
-                                <input type="text" id="batch-item-search" list="inventario-datalist-batch" placeholder="SKU o nombre de producto..." class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300'} border rounded-xl px-3 py-2 text-sm">
-                                <datalist id="inventario-datalist-batch">
-                                    ${state.inventario.map(i => `<option value="${i.sku}">${i.nombre} (Stock: ${i.cantidad})</option>`).join('')}
-                                </datalist>
-                            </div>
-                            <div>
-                                <div class="flex space-x-2">
-                                    <input type="number" id="batch-item-cant" min="1" value="1" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300'} border rounded-xl px-3 py-2 text-sm">
-                                    <button type="button" onclick="addItemToBatch('${tipo}')" class="bg-amber-600 text-white px-3 py-2 rounded-xl text-xs font-bold">+</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="border rounded-xl p-3 space-y-2 max-h-45 overflow-y-auto text-xs">
-                            ${currentBatchItems.length === 0 ? '<p class="text-gray-400 italic">Lista vacía.</p>' : currentBatchItems.map((b, idx) => `
-                                <div class="flex justify-between items-center bg-gray-800/40 p-2 rounded">
-                                    <span>${b.item.nombre} (${b.cantidad} un.)</span>
-                                    <button onclick="currentBatchItems.splice(${idx},1); renderBatchModalContent('${tipo}');" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        ${tipo === 'Salida' ? `
-                            <div>
-                                <input type="text" id="batch-move-cliente" required placeholder="Nombre del cliente o comprador" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300'} border rounded-xl px-3 py-2 text-sm">
-                            </div>
-                            <div>
-                                <input type="file" id="batch-move-foto" accept="image/*" class="w-full text-xs text-gray-400">
-                            </div>
-                        ` : ''}
-
-                        <button type="button" onclick="submitBatchMove('${tipo}')" class="w-full bg-amber-600 text-white font-semibold py-3 rounded-xl text-sm shadow">Procesar ${tipo}</button>
-                    </div>
-                </div>
-            `);
-        }
-
-        function addItemToBatch(tipo) {
-            const searchVal = document.getElementById('batch-item-search').value.trim();
-            const cant = Number(document.getElementById('batch-item-cant').value) || 1;
-            if (!searchVal) return;
-
-            let item = state.inventario.find(i => i.sku.toLowerCase() === searchVal.toLowerCase() || i.nombre.toLowerCase() === searchVal.toLowerCase());
-            if (!item && tipo === 'Entrada') {
-                item = { sku: 'JD-' + Math.floor(1000 + Math.random() * 9000), nombre: searchVal, categoria: suggestCategoryByName(searchVal), ubicacion: 'Bodega Principal', cantidad: 0, minimo: 3, precio: 0 };
-                state.inventario.push(item);
-            }
-            if (!item) { showToast("Producto no encontrado", "error"); return; }
-            currentBatchItems.push({ item, sku: item.sku, cantidad: cant });
-            renderBatchModalContent(tipo);
-        }
-
-        function submitBatchMove(tipo) {
-            if (currentBatchItems.length === 0) { showToast("Agrega al menos un producto", "error"); return; }
-            const cliente = tipo === 'Salida' ? (document.getElementById('batch-move-cliente').value.trim() || 'Cliente General') : 'Entrada Lote';
-            const fileInput = document.getElementById('batch-move-foto');
-
-            const finalizar = (fotoUrl) => {
-                const now = new Date();
-                currentBatchItems.forEach(b => {
-                    if (tipo === 'Entrada') b.item.cantidad += b.cantidad;
-                    else b.item.cantidad = Math.max(0, b.item.cantidad - b.cantidad);
-
-                    state.movimientos.unshift({
-                        id: Date.now() + Math.random(),
-                        fecha: now.toLocaleString('es-ES'),
-                        tipo: tipo.toUpperCase(),
-                        sku: b.sku,
-                        producto: b.item.nombre,
-                        cliente,
-                        cantidad: b.cantidad,
-                        responsable: state.currentUserRole === 'admin' ? 'Wendy' : 'Observador',
-                        foto: fotoUrl
-                    });
-                });
-                saveState();
-                closeModal();
-                renderView();
-                showToast("Movimiento registrado", "success");
-            };
-
-            if (fileInput && fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => finalizar(e.target.result);
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                finalizar(null);
-            }
-        }
-
-        function viewMovementFoto(id) {
-            const m = state.movimientos.find(x => String(x.id) === String(id));
-            if (!m || !m.foto) return;
-            openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl text-center">
-                    <h3 class="font-bold">Evidencia Fotográfica</h3>
-                    <img src="${m.foto}" class="max-h-96 mx-auto rounded-xl">
-                    <button onclick="closeModal()" class="w-full bg-gray-800 text-white py-2 rounded-xl text-sm">Cerrar</button>
-                </div>
-            `);
-        }
-
-        function renderPedidos(container) {
-            container.innerHTML = `
-                <div class="space-y-4">
-                    <h2 class="text-xl font-bold">Pedidos y Reabastecimiento</h2>
-                    <p class="text-xs text-gray-400">Control de compras pendientes.</p>
-                </div>
-            `;
-        }
-
-        function renderInformes(container) {
-            const totalEntradas = state.movimientos.filter(m => m.tipo === 'ENTRADA').reduce((a,b) => a + Number(b.cantidad), 0);
-            const totalSalidas = state.movimientos.filter(m => m.tipo === 'SALIDA').reduce((a,b) => a + Number(b.cantidad), 0);
-            const balance = totalEntradas - totalSalidas;
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-
-            container.innerHTML = `
-                <div class="flex justify-between items-center no-print">
-                    <h2 class="text-xl font-bold">Informes y Auditoría</h2>
-                    <div class="flex space-x-2">
-                        <button onclick="window.print()" class="bg-gray-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold">Imprimir / PDF</button>
-                    </div>
-                </div>
-
-                <div id="report-printable-area" class="${cardBg} border rounded-2xl p-6 space-y-6">
-                    <div class="border-b pb-4">
-                        <h1 class="text-2xl font-bold">Jadever Bodega - Informe</h1>
-                        <p class="text-xs text-gray-400 mt-1">Fecha de corte: ${new Date().toLocaleDateString()}</p>
-                        <p class="text-xs font-medium mt-2">Entradas: <span class="text-emerald-500 font-bold">${totalEntradas}</span> · Salidas: <span class="text-amber-500 font-bold">${totalSalidas}</span> · Balance: <span class="font-bold">${balance}</span></p>
-                    </div>
-                    <div>
-                        <h3 class="text-xs font-bold uppercase text-gray-400 mb-2">Detalle de Movimientos</h3>
-                        <div class="border rounded-xl overflow-hidden text-xs">
-                            <table class="w-full text-left">
-                                <thead class="bg-gray-100 dark:bg-gray-900">
-                                    <tr><th class="p-2">Fecha</th><th class="p-2">Tipo</th><th class="p-2">Producto</th><th class="p-2">Cant</th></tr>
-                                </thead>
-                                <tbody>
-                                    ${state.movimientos.length === 0 ? '<tr><td colspan="4" class="p-4 text-center text-gray-400">Sin movimientos</td></tr>' : state.movimientos.map(m => `
-                                        <tr><td class="p-2">${m.fecha}</td><td class="p-2 font-bold">${m.tipo}</td><td class="p-2">${m.producto}</td><td class="p-2 font-bold">${m.cantidad}</td></tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderMas(container) {
-            container.innerHTML = `
-                <div class="space-y-4 max-w-xl">
-                    <h2 class="text-xl font-bold">Más Opciones</h2>
-                    <div class="bg-white dark:bg-gray-800 border p-5 rounded-2xl space-y-3">
-                        <h3 class="font-bold text-red-500">Reiniciar Datos (Poner en 0)</h3>
-                        <button onclick="if(confirm('¿Borrar todo?')){state.inventario=[];state.movimientos=[];saveState();renderView();showToast('Sistema en 0','success');}" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-semibold">Limpiar todo a 0</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderCargaMasiva(container) {
-            container.innerHTML = `
-                <div class="space-y-4 max-w-xl">
-                    <h2 class="text-xl font-bold">Carga Masiva Excel / CSV</h2>
-                    <input type="file" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)" class="w-full text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-emerald-50 file:text-emerald-700">
-                </div>
-            `;
-        }
-
-        function handleExcelUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    const data = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-                    for (let i = 1; i < rows.length; i++) {
-                        const r = rows[i];
-                        if (r && r.length > 0) {
-                            state.inventario.push({
-                                sku: String(r[0] || 'SKU-' + Math.floor(Math.random()*1000)),
-                                nombre: String(r[1] || 'Producto'),
-                                categoria: String(r[2] || 'Herramientas Manuales'),
-                                ubicacion: String(r[3] || 'Bodega Principal'),
-                                cantidad: parseInt(r[4] || 1),
-                                minimo: 3,
-                                precio: 0
-                            });
-                        }
-                    }
-                    saveState();
-                    showToast("Inventario importado correctamente", "success");
-                    switchTab('inventario');
-                } catch(err) {
-                    showToast("Error al leer archivo", "error");
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        window.onload = function() {
-            loadStateLocal();
-        };
-    </script>
-</body>
-</html>
+<body id="app-body" class="bg-gray-900 text-gray-100 flex h-screen overflow-hidden">
+
+    <!-- Toast Notification container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
+
+    <!-- Modal Container -->
+    <div id="global-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"></div>
+
+    <!-- PANTALLA DE BLOQUEO Y ACCESO POR CLAVE -->
+    <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-gray-900 border border-gray-800 rounded-3xl p-8 space-y-6 text-center shadow-2xl">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white text-2xl mx-auto shadow-lg shadow-amber-600/30">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            
+            <div>
+                <h2 class="text-xl font-bold text-white tracking-tight">JadeverBodega</h2>
+                <p class="text-xs text-amber-500 font-semibold tracking-wide uppercase mt-1">Acceso Protegido</p>
+                <p class="text-xs text-gray-400 mt-2">Ingresa tu PIN de acceso para continuar</p>
+            </div>
+
+            <form onsubmit="handleAuthLogin(event)" class="space-y-4">
+                <div class="relative">
+                    <input type="password" id="auth-pin-input" maxlength="10" placeholder="••••" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3.5 text-center text-2xl tracking-widest text-white focus:outline-none focus:border-amber-500 transition">
+                </div>
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg shadow-amber-600/20">
+                    Ingresar al Sistema
+                </button>
+            </form>
+
+            <div class="border-t border-gray-800 pt-4 text-[11px] text-gray-500">
+                <span>Modos disponibles: Administrador (Control Total) u Observador (Solo Lectura)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl shrink-0">
+        <!-- Logo Header -->
+        <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3 overflow-hidden">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-600/30 shrink-0">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+                <div class="sidebar-text">
+                    <h1 id="logo-title" class="font-bold text-base tracking-tight text-white leading-tight">JadeverBodega</h1>
+                    <span class="text-xs text-amber-500 font-semibold tracking-wide">FERRETERÍA & CONTROL</span>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" title="Plegar / Expandir Menú" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
+                <i class="fa-solid fa-bars text-sm"></i>
+            </button>
+        </div>
+
+        <!-- NAVIGATION MENU -->
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+            <button onclick="switchTab('inventario')" id="nav-inventario" class="nav-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors bg-amber-600 text-white shadow-md">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-boxes-stacked w-5 text-center"></i>
+                    <span class="sidebar-text">Inventario</span>
+                </div>
+                <span id="badge-inventario" class="sidebar-text px-2 py-0.5 text-xs bg-white/20 rounded-full font-bold">0</span>
+            </button>
+
+            <button onclick="switchTab('movimientos')" id="nav-movimientos" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
+                <i class="fa-solid fa-right-left w-5 text-center"></i>
+                <span class="sidebar-text">Movimientos</span>
+            </button>
+
+            <button onclick="switchTab('pedidos')" id="nav-pedidos" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
+                <i class="fa-solid fa-cart-shopping w-5 text-center"></i>
+                <span class="sidebar-text">Pedidos</span>
+            </button>
+
+            <button onclick="switchTab('informes')" id="nav-informes" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
+                <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                <span class="sidebar-text">Informes</span>
+            </button>
+
+            <button onclick="switchTab('mas')" id="nav-mas" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
+                <i class="fa-solid fa-gear w-5 text-center"></i>
+                <span class="sidebar-text">Más</span>
+            </button>
+
+            <button onclick="switchTab('cargamasiva')" id="nav-cargamasiva" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
+                <i class="fa-solid fa-file-excel w-5 text-center text-emerald-400"></i>
+                <span class="sidebar-text">Carga masiva</span>
+            </button>
+        </nav>
+
+        <!-- Dark Mode Toggle & User Profile -->
+        <div class="p-4 border-t border-gray-800 space-y-3">
+            <div id="theme-card" class="flex items-center justify-between bg-gray-900 border border-gray-800 p-2.5 rounded-xl">
+                <div class="flex items-center space-x-2 text-xs font-medium text-gray-300 sidebar-text" id="theme-label-box">
+                    <i class="fa-solid fa-moon text-amber-500" id="theme-icon"></i>
+                    <span id="theme-text">Modo Oscuro</span>
+                </div>
+                <button onclick="toggleTheme()" class="p-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-amber-400 transition">
+                    <i class="fa-solid fa-circle-half-stroke text-sm"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center justify-between p-2">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <div id="user-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-bold text-white text-sm shadow shrink-0">
+                        WH
+                    </div>
+                    <div class="overflow-hidden sidebar-text">
+                        <p id="user-name" class="text-sm font-semibold text-white truncate">Wendy Hernandez</p>
+                        <p id="user-role" class="text-xs text-amber-500 font-medium flex items-center space-x-1">
+                            <i class="fa-solid fa-shield-halved text-[10px]"></i>
+                            <span>Administrator</span>
+                        </p>
+                    </div>
+                </div>
+                <button onclick="logoutAuth()" title="Cerrar Sesión" class="text-gray-400 hover:text-red-400 text-xs p-1 sidebar-text">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main id="app-main" class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-900">
+        
+        <!-- TOP APP BAR -->
+        <header id="top-header" class="h-16 bg-gray-950 border-b border-gray-800 px-6 flex items-center justify-between z-20">
+            <div class="flex items-center space-x-4">
+                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-2 rounded-lg bg-gray-900 border border-gray-800 hover:bg-gray-800 transition">
+                    <i class="fa-solid fa-bars text-sm"></i>
+                </button>
+                <div class="text-xs text-gray-400 font-medium hidden md:block">
+                    <span id="current-date-header" class="font-semibold uppercase tracking-wider"></span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <button id="btn-top-excel" onclick="switchTab('cargamasiva')" class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition shadow-sm">
+                    <i class="fa-solid fa-file-excel text-emerald-400"></i>
+                    <span>Cargar Excel</span>
+                </button>
+                <button id="btn-top-add-product" onclick="openAddProductModal()" class="flex items-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-amber-600/30 transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>+ Producto</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- DYNAMIC VIEWS CONTAINER -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar" id="main-content-view">
+            <!-- Dynamic Content -->
+        </div>
+
+    </main>
+
+    <!-- APPLICATION LOGIC & STATE -->
+    <script>
+        // --- APP STATE ---
+        let state = {
+            currentTab: 'inventario',
+            darkMode: false,
+            sidebarCollapsed: false,
+            currentUserRole: null, // 'admin' | 'observer'
+            lastLoginTime: null,
+            inventario: [],
+            movimientos: [],
+            pedidos: [],
+            informesGuardados: [],
+            evidenciasFacturas: []
+        };
+
+        let db = null;
+        let auth = null;
+        let unsubscribeFirestore = null;
+        let isSyncingFromCloud = false;
+
+        let pendingParsedRows = null;
+        let invSearch = '';
+        let invCategory = 'Todas';
+
+        const defaultCategories = [
+            'Herramientas Manuales',
+            'Herramientas Eléctricas',
+            'Fijación y Tornillería',
+            'Fontanería y Plomería',
+            'Pinturas y Acabados',
+            'Seguridad e Iluminación',
+            'Construcción y Medición'
+        ];
+
+        // Initialize Firebase on window load
+        window.addEventListener('firebase-loaded', async () => {
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'jadever-bodega-default';
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                    apiKey: "AIzaSyDummyKeyForGitHubPagesHosting-JadeverBodega",
+                    authDomain: "jadever-bodega.firebaseapp.com",
+                    projectId: "jadever-bodega",
+                    storageBucket: "jadever-bodega.appspot.com",
+                    messagingSenderId: "123456789",
+                    appId: "1:123456:web:abcde"
+                };
+
+                const app = window.firebaseModules.initializeApp(firebaseConfig);
+                db = window.firebaseModules.getFirestore(app);
+                auth = window.firebaseModules.getAuth(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await window.firebaseModules.signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await window.firebaseModules.signInAnonymously(auth);
+                }
+
+                initRealtimeSync(appId);
+            } catch(e) {
+                console.warn("Cloud Firestore offline or fallback mode:", e);
+                loadStateLocal();
+            }
+        });
+
+        function initRealtimeSync(appId) {
+            if (!db || !auth) return;
+            const userId = auth.currentUser ? auth.currentUser.uid : 'default-user';
+            
+            // RULE 1: Strict paths /artifacts/{appId}/public/data/stateDocument
+            const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'appState');
+
+            if (unsubscribeFirestore) unsubscribeFirestore();
+
+            unsubscribeFirestore = window.firebaseModules.onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const cloudData = docSnap.data();
+                    if (cloudData && cloudData.payload) {
+                        isSyncingFromCloud = true;
+                        try {
+                            const parsed = JSON.parse(cloudData.payload);
+                            state = { ...state, ...parsed };
+                            updateBadges();
+                            checkAuthSessionValidity();
+                            renderView();
+                        } catch(err) {
+                            console.error("Error parsing cloud state", err);
+                        }
+                        isSyncingFromCloud = false;
+                    }
+                } else {
+                    // Initialize document if empty
+                    saveState();
+                }
+            }, (error) => {
+                console.error("Firestore sync error:", error);
+                loadStateLocal();
+            });
+        }
+
+        function toggleSidebar() {
+            state.sidebarCollapsed = !state.sidebarCollapsed;
+            applySidebarState();
+        }
+
+        function applySidebarState() {
+            const sidebar = document.getElementById('sidebar');
+            const texts = document.querySelectorAll('.sidebar-text');
+            if (state.sidebarCollapsed) {
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-20');
+                texts.forEach(el => el.classList.add('hidden'));
+            } else {
+                sidebar.classList.remove('w-20');
+                sidebar.classList.add('w-64');
+                texts.forEach(el => el.classList.remove('hidden'));
+            }
+        }
+
+        function suggestCategoryByName(name) {
+            const n = name.toLowerCase();
+            if (n.includes('taladro') || n.includes('esmeril') || n.includes('sierra') || n.includes('aspiradora') || n.includes('pulidora')) return 'Herramientas Eléctricas';
+            if (n.includes('llave') || n.includes('destornillador') || n.includes('alicate') || n.includes('martillo') || n.includes('cizalla')) return 'Herramientas Manuales';
+            if (n.includes('tornillo') || n.includes('clavo') || n.includes('remache') || n.includes('tuerca') || n.includes('arandela')) return 'Fijación y Tornillería';
+            if (n.includes('tubo') || n.includes('codo') || n.includes('valvula') || n.includes('grifo') || n.includes('llave de chorro') || n.includes('pvc')) return 'Fontanería y Plomería';
+            if (n.includes('pintura') || n.includes('brocha') || n.includes('rodillo') || n.includes('silicona') || n.includes('sellador')) return 'Pinturas y Acabados';
+            if (n.includes('casco') || n.includes('guante') || n.includes('cable') || n.includes('foco') || n.includes('linterna') || n.includes('bombillo')) return 'Seguridad e Iluminación';
+            if (n.includes('automotriz') || n.includes('aceite') || n.includes('filtro') || n.includes('bateria') || n.includes('carro')) return 'Automotriz';
+            return 'Construcción y Medición';
+        }
+
+        function handleAuthLogin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('auth-pin-input').value.trim();
+            const overlay = document.getElementById('auth-overlay');
+
+            if (pin === '2626') {
+                state.currentUserRole = 'admin';
+                state.lastLoginTime = Date.now();
+                showToast("Acceso como Administrador", "success");
+            } else if (pin === '123') {
+                state.currentUserRole = 'observer';
+                state.lastLoginTime = Date.now();
+                showToast("Acceso como Observador (Solo Lectura)", "success");
+            } else {
+                showToast("PIN incorrecto. Intenta nuevamente.", "error");
+                return;
+            }
+
+            document.getElementById('auth-pin-input').value = '';
+            if (overlay) overlay.classList.add('hidden');
+            saveState();
+            updateUserUI();
+            renderView();
+        }
+
+        function checkAuthSessionValidity() {
+            const overlay = document.getElementById('auth-overlay');
+            const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+
+            if (state.currentUserRole && state.lastLoginTime) {
+                const now = Date.now();
+                const elapsed = now - state.lastLoginTime;
+
+                if (elapsed < TWELVE_HOURS_MS) {
+                    if (overlay) overlay.classList.add('hidden');
+                    updateUserUI();
+                    return true;
+                } else {
+                    state.currentUserRole = null;
+                    state.lastLoginTime = null;
+                    saveState();
+                    showToast("Tu sesión de 12 horas ha expirado. Ingresa tu PIN nuevamente.", "error");
+                }
+            }
+
+            if (overlay) overlay.classList.remove('hidden');
+            return false;
+        }
+
+        function logoutAuth() {
+            state.currentUserRole = null;
+            state.lastLoginTime = null;
+            saveState();
+            const overlay = document.getElementById('auth-overlay');
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function updateUserUI() {
+            const userName = document.getElementById('user-name');
+            const userRole = document.getElementById('user-role');
+            const userAvatar = document.getElementById('user-avatar');
+            const btnTopExcel = document.getElementById('btn-top-excel');
+            const btnTopAddProduct = document.getElementById('btn-top-add-product');
+            const navCargaMasiva = document.getElementById('nav-cargamasiva');
+
+            if (state.currentUserRole === 'admin') {
+                if (userName) userName.innerText = "Wendy Hernandez";
+                if (userAvatar) userAvatar.innerText = "WH";
+                if (userRole) userRole.innerHTML = `<i class="fa-solid fa-shield-halved text-[10px]"></i><span>Administrador</span>`;
+                if (btnTopExcel) btnTopExcel.style.display = 'flex';
+                if (btnTopAddProduct) btnTopAddProduct.style.display = 'flex';
+                if (navCargaMasiva) navCargaMasiva.style.display = 'flex';
+            } else {
+                if (userName) userName.innerText = "Usuario Observador";
+                if (userAvatar) userAvatar.innerText = "OB";
+                if (userRole) userRole.innerHTML = `<i class="fa-solid fa-eye text-[10px]"></i><span>Solo Lectura</span>`;
+                if (btnTopExcel) btnTopExcel.style.display = 'none';
+                if (btnTopAddProduct) btnTopAddProduct.style.display = 'none';
+                if (navCargaMasiva) navCargaMasiva.style.display = 'none';
+            }
+        }
+
+        function updateDailyDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const formatted = now.toLocaleDateString('es-ES', options);
+            const headerDate = document.getElementById('current-date-header');
+            if (headerDate) headerDate.innerText = formatted;
+        }
+
+        function loadState() {
+            // Check if Firebase is ready, otherwise fallback to local storage
+            if (!db) {
+                loadStateLocal();
+            }
+        }
+
+        function loadStateLocal() {
+            const saved = localStorage.getItem('jadever_bodega_v4');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state = { ...state, ...parsed };
+                } catch(e) { console.error("Error loading local storage", e); }
+            } else {
+                state.darkMode = false;
+            }
+            updateBadges();
+            checkAuthSessionValidity();
+            renderView();
+        }
+
+        function saveState() {
+            const payloadString = JSON.stringify({
+                inventario: state.inventario,
+                movimientos: state.movimientos,
+                pedidos: state.pedidos,
+                informesGuardados: state.informesGuardados,
+                evidenciasFacturas: state.evidenciasFacturas,
+                darkMode: state.darkMode,
+                currentUserRole: state.currentUserRole,
+                lastLoginTime: state.lastLoginTime
+            });
+
+            // Save locally
+            localStorage.setItem('jadever_bodega_v4', payloadString);
+            updateBadges();
+
+            // Save to Cloud Firestore in real-time if connected and not currently syncing incoming cloud data
+            if (db && auth && !isSyncingFromCloud) {
+                const user = auth.currentUser;
+                if (!user) return; // RULE 3: Auth before queries
+                
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'jadever-bodega-default';
+                const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'appState');
+                
+                window.firebaseModules.setDoc(docRef, {
+                    payload: payloadString,
+                    updatedAt: Date.now(),
+                    updatedBy: user.uid
+                }, { merge: true }).catch(err => {
+                    console.error("Error saving to cloud:", err);
+                });
+            }
+        }
+
+        window.addEventListener('beforeunload', function() {
+            saveState();
+        });
+
+        function updateBadges() {
+            const badge = document.getElementById('badge-inventario');
+            if (badge) {
+                badge.innerText = state.inventario.length;
+            }
+        }
+
+        function toggleTheme() {
+            state.darkMode = !state.darkMode;
+            applyTheme();
+            saveState();
+        }
+
+        function applyTheme() {
+            const html = document.documentElement;
+            const body = document.getElementById('app-body');
+            const main = document.getElementById('app-main');
+            const sidebar = document.getElementById('sidebar');
+            const topHeader = document.getElementById('top-header');
+            const logoTitle = document.getElementById('logo-title');
+            const userName = document.getElementById('user-name');
+            const themeCard = document.getElementById('theme-card');
+            const themeLabelBox = document.getElementById('theme-label-box');
+            const themeIcon = document.getElementById('theme-icon');
+            const themeText = document.getElementById('theme-text');
+
+            if (state.darkMode) {
+                html.classList.add('dark');
+                html.classList.remove('light');
+                body.className = "bg-gray-900 text-gray-100 flex h-screen overflow-hidden";
+                main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-900";
+                sidebar.className = "w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl";
+                topHeader.className = "h-16 bg-gray-950 border-b border-gray-800 px-6 flex items-center justify-between z-20 text-white";
+                if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-white leading-tight";
+                if (userName) userName.className = "text-sm font-semibold text-white truncate";
+                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-900 border border-gray-800 p-2.5 rounded-xl";
+                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-medium text-gray-300";
+                if (themeIcon) themeIcon.className = "fa-solid fa-moon text-amber-500";
+                if (themeText) themeText.innerText = "Modo Oscuro";
+            } else {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                body.className = "bg-gray-100 text-gray-800 flex h-screen overflow-hidden";
+                main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-100";
+                sidebar.className = "w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-30 shadow-xl text-gray-800";
+                topHeader.className = "h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between z-20 text-gray-800";
+                if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-gray-900 leading-tight";
+                if (userName) userName.className = "text-sm font-semibold text-gray-900 truncate";
+                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-50 border border-gray-200 p-2.5 rounded-xl";
+                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-medium text-gray-700";
+                if (themeIcon) themeIcon.className = "fa-solid fa-sun text-amber-500";
+                if (themeText) themeText.innerText = "Modo Claro";
+            }
+            renderView();
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `flex items-center space-x-3 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium text-white transition-all transform translate-y-2 opacity-0 ${
+                type === 'success' ? 'bg-emerald-600 border border-emerald-500' : 'bg-red-600 border border-red-500'
+            }`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function switchTab(tab) {
+            state.currentTab = tab;
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = `nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium ${state.darkMode ? 'text-gray-400 hover:bg-gray-800/50 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`;
+            });
+            const activeBtn = document.getElementById(`nav-${tab}`);
+            if (activeBtn) {
+                activeBtn.className = "nav-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors bg-amber-600 text-white shadow-md";
+            }
+            renderView();
+        }
+
+        function openModalHTML(htmlContent) {
+            const container = document.getElementById('global-modal');
+            container.innerHTML = htmlContent;
+            container.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            const container = document.getElementById('global-modal');
+            container.classList.add('hidden');
+            container.innerHTML = '';
+        }
+
+        function renderView() {
+            const container = document.getElementById('main-content-view');
+            if (!container) return;
+            container.innerHTML = '';
+            switch(state.currentTab) {
+                case 'inventario': renderInventario(container); break;
+                case 'movimientos': renderMovimientos(container); break;
+                case 'pedidos': renderPedidos(container); break;
+                case 'informes': renderInformes(container); break;
+                case 'mas': renderMas(container); break;
+                case 'cargamasiva': renderCargaMasiva(container); break;
+            }
+            updateBadges();
+            updateUserUI();
+        }
+
+        // ================= 1. INVENTARIO ==========
