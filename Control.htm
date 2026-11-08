@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Pedidos Jadever</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Librerías jsPDF y AutoTable para generación y descarga directa de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'jadever-dark': '#004d25',
+                        'jadever-light': '#006d34',
+                        'jadever-accent': '#ff6600',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .custom-checkbox:checked {
+            background-color: #ff6600;
+            border-color: #ff6600;
+        }
+        .custom-checkbox:checked::after {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: white;
+            font-size: 11px;
+        }
+        .custom-checkbox:hover {
+            border-color: #ff6600;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Pantalla de Inicio de Sesión (Login Modal / Overlay) -->
+    <div id="loginOverlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border-t-8 border-jadever-dark">
+            <div class="bg-jadever-dark p-6 text-white text-center">
+                <div class="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <i class="fa-solid fa-boxes-stacked text-3xl text-white"></i>
+                </div>
+                <h2 id="authTitle" class="text-xl font-bold">CONTROL DE PEDIDOS JADEVER</h2>
+                <p id="authSubtitle" class="text-xs text-emerald-200 mt-1">Inicia sesión con tu cuenta de acceso</p>
+            </div>
+            
+            <!-- Formulario de Iniciar Sesión / Registro -->
+    <form id="authForm" onsubmit="handleAuthSubmit(event)" class="p-6 space-y-4">
+        <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Correo Electrónico</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    <i class="fa-solid fa-envelope"></i>
+                </span>
+                <input type="email" id="loginEmail" required placeholder="correo@ejemplo.com" class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+            </div>
+        </div>
+        <div>
+            <div class="flex justify-between items-center mb-1">
+                <label class="block text-xs font-semibold text-slate-600">Contraseña</label>
+                <button type="button" onclick="sendPasswordReset()" id="forgotPasswordBtn" class="text-[11px] text-orange-600 font-semibold hover:underline">¿Olvidaste tu contraseña?</button>
+            </div>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    <i class="fa-solid fa-lock"></i>
+                </span>
+                <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+            </div>
+        </div>
+        <div id="loginError" class="text-red-500 text-xs font-medium text-center hidden"></div>
+        
+        <button type="submit" id="authSubmitBtn" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm shadow-lg transition">
+            Iniciar Sesión
+        </button>
+
+        <div class="text-center pt-2 border-t border-slate-100">
+            <button type="button" onclick="toggleAuthMode()" id="authSwitchBtn" class="text-xs text-jadever-dark font-semibold hover:underline">
+                ¿No tienes cuenta? Regístrate aquí
+            </button>
+        </div>
+    </form>
+        </div>
+    </div>
+
+    <!-- Header Principal Corporativo con Verde Jadever y Naranja Brillante -->
+    <header class="bg-jadever-dark text-white shadow-lg sticky top-0 z-40 border-b-4 border-orange-500">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-orange-500 p-2.5 rounded-xl shadow-md border border-orange-400">
+                    <i class="fa-solid fa-boxes-stacked text-2xl text-white"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl md:text-2xl font-bold tracking-wide">CONTROL DE PEDIDOS JADEVER</h1>
+                        <span class="bg-orange-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-widest shadow">NUBE</span>
+                    </div>
+                    <p id="userStatusText" class="text-xs text-emerald-200">Sincronizado con Firebase</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 flex-wrap justify-center">
+                <button onclick="openModal()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg flex items-center gap-2 transition duration-200 transform hover:scale-105">
+                    <i class="fa-solid fa-plus text-xs"></i> Nuevo Pedido
+                </button>
+                <button onclick="downloadPDF()" id="pdfBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-400 px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg flex items-center gap-2 transition duration-200 transform hover:scale-105">
+                    <i class="fa-solid fa-file-pdf"></i> Descargar Informe PDF
+                </button>
+                <button onclick="logoutUser()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2.5 rounded-xl text-sm font-bold shadow transition" title="Cerrar Sesión">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full bg-slate-100">
+        
+        <!-- Tarjetas KPI Resumen -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between border-l-4 border-l-jadever-dark">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Pedidos</p>
+                    <h3 id="kpi-total" class="text-2xl font-bold text-slate-800">0</h3>
+                </div>
+                <div class="p-3 bg-emerald-50 text-jadever-dark rounded-xl">
+                    <i class="fa-solid fa-clipboard-list text-xl"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between border-l-4 border-l-emerald-500">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Completados</p>
+                    <h3 id="kpi-completados" class="text-2xl font-bold text-emerald-600">0</h3>
+                </div>
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <i class="fa-solid fa-circle-check text-xl"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between border-l-4 border-l-orange-500">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">En Proceso</p>
+                    <h3 id="kpi-proceso" class="text-2xl font-bold text-orange-600">0</h3>
+                </div>
+                <div class="p-3 bg-orange-50 text-orange-600 rounded-xl">
+                    <i class="fa-solid fa-spinner text-xl"></i>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between border-l-4 border-l-amber-500">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">% Cumplimiento Global</p>
+                    <h3 id="kpi-cumplimiento" class="text-2xl font-bold text-jadever-dark">0%</h3>
+                </div>
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                    <i class="fa-solid fa-chart-pie text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Búsqueda, Filtro de Estado y Filtro de Fecha -->
+        <div id="filterBar" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="relative w-full md:w-80">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" id="searchInput" oninput="renderTable()" placeholder="Buscar cliente, pedido o factura..." 
+                    class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+            </div>
+            
+            <div class="flex items-center gap-3 flex-wrap w-full md:w-auto justify-end">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-slate-500 uppercase"><i class="fa-solid fa-calendar-days text-orange-500 mr-1"></i> Fecha:</span>
+                    <select id="dateFilter" onchange="renderTable()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-orange-500 outline-none font-medium">
+                        <option value="TODOS">Todos</option>
+                        <option value="HOY">Día de Hoy</option>
+                        <option value="MES">Mes Actual</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-slate-500 uppercase">Estado:</span>
+                    <select id="statusFilter" onchange="renderTable()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-orange-500 outline-none font-medium">
+                        <option value="TODOS">Todos</option>
+                        <option value="Completado">Completado</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Pendiente">Pendiente</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Estilizada de Pedidos -->
+        <div class="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[1100px]">
+                    <thead>
+                        <tr class="text-white text-xs uppercase tracking-wider font-semibold border-b border-orange-500">
+                            <th class="py-3 px-3 w-28 bg-jadever-dark border-r border-emerald-800">Fecha</th>
+                            <th class="py-3 px-3 w-28 bg-jadever-dark border-r border-emerald-800">Nº Pedido</th>
+                            <th class="py-3 px-3 w-40 bg-jadever-dark border-r border-emerald-800">Factura</th>
+                            <th class="py-3 px-3 w-56 bg-jadever-dark border-r border-emerald-800">Cliente</th>
+                            <th colspan="5" class="py-3 px-3 text-center bg-orange-600 text-white border-x border-orange-700 font-bold tracking-widest shadow-inner">
+                                <i class="fa-solid fa-list-check mr-1 text-yellow-200"></i> ETAPAS DEL PEDIDO
+                            </th>
+                            <th class="py-3 px-3 w-36 text-center bg-jadever-dark border-r border-emerald-800 font-bold text-amber-300">% Cumplimiento</th>
+                            <th class="py-3 px-3 w-32 bg-jadever-dark border-r border-emerald-800">Estado</th>
+                            <th class="py-3 px-3 w-44 bg-jadever-dark border-r border-emerald-800">Observaciones</th>
+                            <th class="py-3 px-3 w-20 text-center bg-jadever-dark action-col">Acciones</th>
+                        </tr>
+                        <tr class="bg-orange-500 text-white text-[11px] font-bold uppercase border-b border-orange-600">
+                            <th class="bg-jadever-dark border-r border-emerald-800"></th>
+                            <th class="bg-jadever-dark border-r border-emerald-800"></th>
+                            <th class="bg-jadever-dark border-r border-emerald-800"></th>
+                            <th class="bg-jadever-dark border-r border-emerald-800"></th>
+                            <th class="py-2 px-2 text-center w-28 border-r border-orange-400 bg-orange-600">1. Orden Recibida</th>
+                            <th class="py-2 px-2 text-center w-28 border-r border-orange-400 bg-orange-600">2. En Proceso</th>
+                            <th class="py-2 px-2 text-center w-28 border-r border-orange-400 bg-orange-600">3. Finalizado</th>
+                            <th class="py-2 px-2 text-center w-28 border-r border-orange-400 bg-orange-600">4. Verificado</th>
+                            <th class="py-2 px-2 text-center w-32 border-r border-orange-400 bg-orange-600">5. Entregado (A)</th>
+                            <th class="bg-jadever-dark border-r border-emerald-800"></th>
+                            <th class="bg-jadever-dark border-r border-emerald-800"></th>
+                            <th class="bg-jadever-dark border-r border-emerald-800"></th>
+                            <th class="bg-jadever-dark action-col"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody" class="divide-y divide-slate-200 text-xs text-slate-700 bg-white">
+                        <!-- Renderizado dinámico -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Formulario (Nuevo / Editar Pedido) -->
+    <div id="orderModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all border-t-8 border-orange-500">
+            <div class="bg-jadever-dark px-6 py-4 flex items-center justify-between text-white">
+                <h3 id="modalTitle" class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus text-orange-400"></i> Nuevo Pedido
+                </h3>
+                <button onclick="closeModal()" class="text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <form id="orderForm" onsubmit="saveOrder(event)" class="p-6 space-y-4">
+                <input type="hidden" id="editId" value="">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fecha</label>
+                        <input type="text" id="fecha" required placeholder="DD/MM/YYYY" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nº Pedido</label>
+                        <input type="text" id="pedido" required placeholder="PED-XX" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Factura</label>
+                    <input type="text" id="factura" required placeholder="FAC-XXXXXX" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Cliente</label>
+                    <input type="text" id="cliente" required placeholder="Nombre del cliente..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Observaciones</label>
+                    <textarea id="observaciones" rows="2" placeholder="Notas o detalles del pedido..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg text-sm shadow transition">Guardar Pedido</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación para Borrar -->
+    <div id="deleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden p-6 text-center border-t-8 border-red-500">
+            <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="font-bold text-lg text-slate-800 mb-2">¿Eliminar Pedido?</h3>
+            <p id="deleteModalText" class="text-sm text-slate-600 mb-6">¿Estás seguro de que deseas eliminar este pedido permanentemente?</p>
+            <input type="hidden" id="deleteTargetId" value="">
+            <div class="flex justify-center gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">Cancelar</button>
+                <button type="button" onclick="confirmDelete()" class="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm shadow transition">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 border-l-4 border-orange-500">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-orange-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">Operación realizada con éxito</span>
+    </div>
+
+    <!-- Firebase SDK Imports & Lógica de Sincronización -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuración real de tu proyecto JadeverBodega tomada de la consola
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4hiDPrruHiul8HHoH_gdbFVX5nU0vOgM",
+            authDomain: "jadeverbodega.firebaseapp.com",
+            projectId: "jadeverbodega",
+            storageBucket: "jadeverbodega.firebasestorage.app",
+            messagingSenderId: "801005563673",
+            appId: "1:801005563673:web:3d589450cc55f714b3df88"
+        };
+
+        const appId = 'jadever-central-pedidos';
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let orders = [];
+        let unsubscribeOrders = null;
+        let isRegisterMode = false;
+
+        // Alternar entre Iniciar Sesión y Registrarse
+        window.toggleAuthMode = function(forceRegisterMode = null) {
+            if (forceRegisterMode !== null) {
+                isRegisterMode = forceRegisterMode;
+            } else {
+                isRegisterMode = !isRegisterMode;
+            }
+            
+            const title = document.getElementById('authTitle');
+            const subtitle = document.getElementById('authSubtitle');
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const switchBtn = document.getElementById('authSwitchBtn');
+            const forgotBtn = document.getElementById('forgotPasswordBtn');
+            const errDiv = document.getElementById('loginError');
+            errDiv.classList.add('hidden');
+
+            if (isRegisterMode) {
+                title.innerText = "REGISTRAR NUEVA CUENTA";
+                subtitle.innerText = "Crea tu cuenta corporativa en la nube";
+                submitBtn.innerText = "Registrarse";
+                switchBtn.innerText = "¿Ya tienes cuenta? Inicia sesión";
+                forgotBtn.classList.add('hidden');
+            } else {
+                title.innerText = "CONTROL DE PEDIDOS JADEVER";
+                subtitle.innerText = "Inicia sesión con tu cuenta de acceso";
+                submitBtn.innerText = "Iniciar Sesión";
+                switchBtn.innerText = "¿No tienes cuenta? Regístrate aquí";
+                forgotBtn.classList.remove('hidden');
+            }
+        };
+
+        // Enviar correo de restablecimiento de contraseña
+        window.sendPasswordReset = async function() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const errDiv = document.getElementById('loginError');
+            if (!email) {
+                errDiv.innerHTML = `
+                    <div class="bg-amber-50 border border-amber-300 text-amber-800 p-2.5 rounded-xl text-left text-xs mb-2">
+                        <p class="font-semibold"><i class="fa-solid fa-circle-info text-amber-600 mr-1"></i> Por favor escribe tu correo electrónico arriba para enviarte el enlace de recuperación.</p>
+                    </div>
+                `;
+                errDiv.classList.remove('hidden');
+                return;
+            }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                errDiv.innerHTML = `
+                    <div class="bg-emerald-50 border border-emerald-300 text-emerald-800 p-2.5 rounded-xl text-left text-xs mb-2">
+                        <p class="font-semibold"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Te hemos enviado un correo a <b>${email}</b>. Revisa tu bandeja de entrada o Spam para restablecer tu contraseña.</p>
+                    </div>
+                `;
+                errDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error("Reset pass error:", error);
+                errDiv.innerHTML = `
+                    <div class="bg-red-50 border border-red-300 text-red-800 p-2.5 rounded-xl text-left text-xs mb-2">
+                        <p class="font-semibold"><i class="fa-solid fa-triangle-exclamation text-red-600 mr-1"></i> No pudimos enviar el correo. Verifica que el correo esté bien escrito.</p>
+                    </div>
+                `;
+                errDiv.classList.remove('hidden');
+            }
+        };
+
+        // Verificar estado de autenticación
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('userStatusText').innerText = `Conectado como: ${user.email}`;
+                startRealtimeSync();
+            } else {
+                document.getElementById('loginOverlay').classList.remove('hidden');
+                if (unsubscribeOrders) {
+                    unsubscribeOrders();
+                    unsubscribeOrders = null;
+                }
+            }
+        });
+
+        window.handleAuthSubmit = async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            const errDiv = document.getElementById('loginError');
+            errDiv.classList.add('hidden');
+
+            try {
+                if (isRegisterMode) {
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                    showToast('¡Cuenta registrada e iniciada correctamente!');
+                } else {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    showToast('¡Sesión iniciada con éxito!');
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+                let msg = "Error al autenticarse.";
+                let extraActionHtml = '';
+
+                if (error.code === 'auth/email-already-in-use') {
+                    msg = "Este correo ya existe en tu Firebase.";
+                    extraActionHtml = `
+                        <div class="mt-2 text-center">
+                            <button type="button" onclick="toggleAuthMode(false)" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow transition">
+                                Haz clic aquí para Iniciar Sesión con este correo
+                            </button>
+                        </div>
+                    `;
+                } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    msg = "La contraseña o el correo son incorrectos. Verifica tus datos o usa la opción '¿Olvidaste tu contraseña?'";
+                } else if (error.code === 'auth/weak-password') {
+                    msg = "La contraseña debe tener al menos 6 caracteres.";
+                } else if (error.code === 'auth/invalid-email') {
+                    msg = "Por favor escribe un correo electrónico válido.";
+                } else {
+                    msg = error.message || "Error al autenticarse.";
+                }
+
+                errDiv.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-left text-xs mb-1 shadow-sm">
+                        <p class="font-semibold"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-1"></i> ${msg}</p>
+                        ${extraActionHtml}
+                    </div>
+                `;
+                errDiv.classList.remove('hidden');
+            }
+        };
+
+        window.logoutUser = async function() {
+            await signOut(auth);
+            document.getElementById('loginOverlay').classList.remove('hidden');
+            showToast('Sesión cerrada');
+        };
+
+        // Escuchar cambios en Firestore en tiempo real
+        function startRealtimeSync() {
+            const ordersRef = collection(db, 'apps', appId, 'pedidos');
+            if (unsubscribeOrders) unsubscribeOrders();
+
+            unsubscribeOrders = onSnapshot(ordersRef, (snapshot) => {
+                orders = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // Ordenar por ID o fecha descendente
+                orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                
+                renderTable();
+                updateKPIs();
+            }, (error) => {
+                console.error("Firestore sync error:", error);
+                showToast("Error al sincronizar datos en la nube", true);
+            });
+        }
+
+        // Renderizar la tabla de pedidos
+        window.renderTable = function() {
+            const tbody = document.getElementById('ordersTableBody');
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+
+            const now = new Date();
+            const todayStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+            const currentMonthStr = `/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+
+            let filtered = orders.filter(o => {
+                const textMatch = 
+                    (o.cliente && o.cliente.toLowerCase().includes(search)) ||
+                    (o.pedido && o.pedido.toLowerCase().includes(search)) ||
+                    (o.factura && o.factura.toLowerCase().includes(search)) ||
+                    (o.observaciones && o.observaciones.toLowerCase().includes(search));
+
+                let statusMatch = true;
+                if (statusFilter !== 'TODOS') {
+                    statusMatch = o.estado === statusFilter;
+                }
+
+                let dateMatch = true;
+                if (dateFilter === 'HOY') {
+                    dateMatch = o.fecha === todayStr;
+                } else if (dateFilter === 'MES') {
+                    dateMatch = o.fecha && o.fecha.includes(currentMonthStr);
+                }
+
+                return textMatch && statusMatch && dateMatch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="13" class="py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-inbox text-4xl mb-3 text-slate-300 block"></i>
+                            No se encontraron pedidos registrados o que coincidan con la búsqueda.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(order => {
+                const checks = order.checks || [false, false, false, false, false];
+                const completedCount = checks.filter(Boolean).length;
+                const percentage = Math.round((completedCount / 5) * 100);
+
+                let statusBadge = '';
+                if (order.estado === 'Completado') {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-300 inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Completado</span>`;
+                } else if (order.estado === 'En Proceso') {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full bg-orange-100 text-orange-800 text-[11px] font-bold border border-orange-300 inline-flex items-center gap-1"><i class="fa-solid fa-spinner animate-spin"></i> En Proceso</span>`;
+                } else {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold border border-slate-300 inline-flex items-center gap-1"><i class="fa-solid fa-clock"></i> Pendiente</span>`;
+                }
+
+                return `
+                    <tr class="hover:bg-amber-50/50 transition border-b border-slate-200">
+                        <td class="py-3 px-3 font-medium text-slate-600 border-r border-slate-200">${escapeHtml(order.fecha)}</td>
+                        <td class="py-3 px-3 font-bold text-slate-800 border-r border-slate-200">${escapeHtml(order.pedido)}</td>
+                        <td class="py-3 px-3 font-semibold text-orange-600 border-r border-slate-200">${escapeHtml(order.factura)}</td>
+                        <td class="py-3 px-3 font-medium text-slate-800 border-r border-slate-200">${escapeHtml(order.cliente)}</td>
+                        
+                        <!-- Checkboxes Etapas -->
+                        <td class="py-3 px-2 text-center border-r border-slate-200 bg-slate-50/50">
+                            <input type="checkbox" ${checks[0] ? 'checked' : ''} onchange="toggleCheck('${order.id}', 0)" class="custom-checkbox">
+                        </td>
+                        <td class="py-3 px-2 text-center border-r border-slate-200 bg-slate-50/50">
+                            <input type="checkbox" ${checks[1] ? 'checked' : ''} onchange="toggleCheck('${order.id}', 1)" class="custom-checkbox">
+                        </td>
+                        <td class="py-3 px-2 text-center border-r border-slate-200 bg-slate-50/50">
+                            <input type="checkbox" ${checks[2] ? 'checked' : ''} onchange="toggleCheck('${order.id}', 2)" class="custom-checkbox">
+                        </td>
+                        <td class="py-3 px-2 text-center border-r border-slate-200 bg-slate-50/50">
+                            <input type="checkbox" ${checks[3] ? 'checked' : ''} onchange="toggleCheck('${order.id}', 3)" class="custom-checkbox">
+                        </td>
+                        <td class="py-3 px-2 text-center border-r border-slate-200 bg-slate-50/50">
+                            <input type="checkbox" ${checks[4] ? 'checked' : ''} onchange="toggleCheck('${order.id}', 4)" class="custom-checkbox">
+                        </td>
+
+                        <!-- Porcentaje con barra -->
+                        <td class="py-3 px-3 border-r border-slate-200">
+                            <div class="flex items-center gap-2">
+                                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                    <div class="bg-orange-500 h-2 rounded-full transition-all duration-300" style="width: ${percentage}%"></div>
+                                </div>
+                                <span class="font-bold text-xs w-9 text-right text-slate-700">${percentage}%</span>
+                            </div>
+                        </td>
+
+                        <!-- Estado -->
+                        <td class="py-3 px-3 border-r border-slate-200">${statusBadge}</td>
+
+                        <!-- Observaciones -->
+                        <td class="py-3 px-3 text-slate-600 border-r border-slate-200 truncate max-w-xs" title="${escapeHtml(order.observaciones || '')}">
+                            ${escapeHtml(order.observaciones || '-')}
+                        </td>
+
+                        <!-- Acciones -->
+                        <td class="py-3 px-3 text-center action-col">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="editOrder('${order.id}')" class="text-slate-400 hover:text-orange-500 p-1 transition" title="Editar">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="openDeleteModal('${order.id}')" class="text-slate-400 hover:text-red-500 p-1 transition" title="Eliminar">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        };
+
+        // Cambiar estado de checkbox y guardar en Firestore
+        window.toggleCheck = async function(id, index) {
+            const order = orders.find(o => o.id === id);
+            if (!order) return;
+
+            const newChecks = [...(order.checks || [false, false, false, false, false])];
+            newChecks[index] = !newChecks[index];
+
+            const completedCount = newChecks.filter(Boolean).length;
+            let newStatus = 'Pendiente';
+            if (completedCount === 5) {
+                newStatus = 'Completado';
+            } else if (completedCount > 0) {
+                newStatus = 'En Proceso';
+            }
+
+            try {
+                const docRef = doc(db, 'apps', appId, 'pedidos', id);
+                await updateDoc(docRef, {
+                    checks: newChecks,
+                    estado: newStatus
+                });
+                showToast('Progreso actualizado');
+            } catch (err) {
+                console.error("Error al guardar check:", err);
+                showToast("Error al guardar cambio", true);
+            }
+        };
+
+        // Guardar (Crear / Editar) Pedido en Firestore
+        window.saveOrder = async function(event) {
+            event.preventDefault();
+            const editId = document.getElementById('editId').value;
+            const fecha = document.getElementById('fecha').value.trim();
+            const pedido = document.getElementById('pedido').value.trim();
+            const factura = document.getElementById('factura').value.trim();
+            const cliente = document.getElementById('cliente').value.trim();
+            const observaciones = document.getElementById('observaciones').value.trim();
+
+            try {
+                if (editId) {
+                    const docRef = doc(db, 'apps', appId, 'pedidos', editId);
+                    await updateDoc(docRef, {
+                        fecha, pedido, factura, cliente, observaciones
+                    });
+                    showToast('Pedido actualizado con éxito');
+                } else {
+                    const newId = 'PED-' + Date.now();
+                    const docRef = doc(db, 'apps', appId, 'pedidos', newId);
+                    await setDoc(docRef, {
+                        fecha,
+                        pedido,
+                        factura,
+                        cliente,
+                        observaciones,
+                        checks: [false, false, false, false, false],
+                        estado: 'Pendiente',
+                        createdAt: Date.now()
+                    });
+                    showToast('Nuevo pedido guardado en la nube');
+                }
+                closeModal();
+            } catch (err) {
+                console.error("Error al guardar pedido:", err);
+                showToast("Error al guardar pedido", true);
+            }
+        };
+
+        // Eliminar pedido de Firestore
+        window.confirmDelete = async function() {
+            const id = document.getElementById('deleteTargetId').value;
+            if (!id) return;
+
+            try {
+                const docRef = doc(db, 'apps', appId, 'pedidos', id);
+                await deleteDoc(docRef);
+                showToast('Pedido eliminado correctamente');
+                closeDeleteModal();
+            } catch (err) {
+                console.error("Error al eliminar pedido:", err);
+                showToast("Error al eliminar pedido", true);
+            }
+        };
+
+        // Actualizar KPIs
+        function updateKPIs() {
+            const total = orders.length;
+            const completados = orders.filter(o => o.estado === 'Completado').length;
+            const proceso = orders.filter(o => o.estado === 'En Proceso').length;
+            
+            let totalChecks = 0;
+            orders.forEach(o => {
+                totalChecks += (o.checks || []).filter(Boolean).length;
+            });
+            const maxChecks = total * 5;
+            const cumplimientoGlobal = maxChecks > 0 ? Math.round((totalChecks / maxChecks) * 100) : 0;
+
+            document.getElementById('kpi-total').innerText = total;
+            document.getElementById('kpi-completados').innerText = completados;
+            document.getElementById('kpi-proceso').innerText = proceso;
+            document.getElementById('kpi-cumplimiento').innerText = `${cumplimientoGlobal}%`;
+        }
+
+        // Utilidades UI (Modales y Toasts)
+        window.openModal = function() {
+            document.getElementById('orderForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-folder-plus text-orange-400"></i> Nuevo Pedido';
+            
+            const now = new Date();
+            const todayStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
+            document.getElementById('fecha').value = todayStr;
+            
+            document.getElementById('orderModal').classList.remove('hidden');
+        };
+
+        window.closeModal = function() {
+            document.getElementById('orderModal').classList.add('hidden');
+        };
+
+        window.editOrder = function(id) {
+            const order = orders.find(o => o.id === id);
+            if (!order) return;
+
+            document.getElementById('editId').value = order.id;
+            document.getElementById('fecha').value = order.fecha || '';
+            document.getElementById('pedido').value = order.pedido || '';
+            document.getElementById('factura').value = order.factura || '';
+            document.getElementById('cliente').value = order.cliente || '';
+            document.getElementById('observaciones').value = order.observaciones || '';
+
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-orange-400"></i> Editar Pedido';
+            document.getElementById('orderModal').classList.remove('hidden');
+        };
+
+        window.openDeleteModal = function(id) {
+            const order = orders.find(o => o.id === id);
+            if (!order) return;
+            document.getElementById('deleteTargetId').value = id;
+            document.getElementById('deleteModalText').innerText = `¿Estás seguro de que deseas eliminar el pedido "${order.pedido}" de ${order.cliente}?`;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        };
+
+        window.closeDeleteModal = function() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        };
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMessage.innerText = message;
+            if (isError) {
+                toast.classList.remove('border-orange-500');
+                toast.classList.add('border-red-500');
+                toastIcon.className = 'fa-solid fa-circle-xmark text-red-400 text-lg';
+            } else {
+                toast.classList.remove('border-red-500');
+                toast.classList.add('border-orange-500');
+                toastIcon.className = 'fa-solid fa-circle-check text-orange-400 text-lg';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Generar e imprimir informe PDF profesional
+        window.downloadPDF = function() {
+            if (typeof window.jspdf === 'undefined') {
+                showToast("Cargando librería PDF...", true);
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape', 'pt', 'a4');
+
+            doc.setFillColor(0, 77, 37);
+            doc.rect(0, 0, 842, 60, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
+            doc.text("CONTROL DE PEDIDOS JADEVER", 40, 38);
+
+            doc.setTextColor(255, 102, 0);
+            doc.setFontSize(10);
+            doc.text("INFORME GENERAL EN TIEMPO REAL", 780, 38, { align: 'right' });
+
+            const now = new Date();
+            const dateStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            doc.setTextColor(100, 116, 139);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Fecha de emisión: ${dateStr}`, 40, 80);
+
+            const tableData = orders.map(o => {
+                const checks = o.checks || [false, false, false, false, false];
+                const pct = Math.round((checks.filter(Boolean).length / 5) * 100);
+                return [
+                    o.fecha || '-',
+                    o.pedido || '-',
+                    o.factura || '-',
+                    o.cliente || '-',
+                    checks[0] ? '[X]' : '[ ]',
+                    checks[1] ? '[X]' : '[ ]',
+                    checks[2] ? '[X]' : '[ ]',
+                    checks[3] ? '[X]' : '[ ]',
+                    checks[4] ? '[X]' : '[ ]',
+                    `${pct}%`,
+                    o.estado || 'Pendiente',
+                    o.observaciones || '-'
+                ];
+            });
+
+            doc.autoTable({
+                startY: 95,
+                head: [[
+                    'Fecha', 'Nº Pedido', 'Factura', 'Cliente',
+                    '1. Recibido', '2. Proceso', '3. Finalizado', '4. Verificado', '5. Entregado',
+                    '% Cumpl.', 'Estado', 'Observaciones'
+                ]],
+                body: tableData,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [0, 77, 37],
+                    textColor: [255, 255, 255],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                bodyStyles: {
+                    fontSize: 8,
+                    textColor: [51, 65, 85]
+                },
+                columnStyles: {
+                    0: { cellWidth: 55 },
+                    1: { cellWidth: 55, fontStyle: 'bold' },
+                    2: { cellWidth: 60 },
+                    3: { cellWidth: 90 },
+                    4: { halign: 'center', cellWidth: 45 },
+                    5: { halign: 'center', cellWidth: 45 },
+                    6: { halign: 'center', cellWidth: 45 },
+                    7: { halign: 'center', cellWidth: 45 },
+                    8: { halign: 'center', cellWidth: 45 },
+                    9: { halign: 'center', fontStyle: 'bold', cellWidth: 45 },
+                    10: { cellWidth: 60 },
+                    11: { cellWidth: 'auto' }
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 250, 252]
+                }
+            });
+
+            doc.save(`Informe_Pedidos_Jadever_${Date.now()}.pdf`);
+            showToast('Informe PDF generado e iniciado descarga');
+        };
+    </script>
+</body>
+</html>
