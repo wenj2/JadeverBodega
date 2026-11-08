@@ -44,7 +44,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 dark:bg-gray-900 dark:text-gray-100 flex h-screen overflow-hidden">
+<body id="app-body" class="bg-gray-900 text-gray-100 flex h-screen overflow-hidden">
 
     <!-- Toast Notification container -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
@@ -53,14 +53,14 @@
     <div id="global-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"></div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-64 bg-gray-950 dark:bg-gray-950 light:bg-white border-r border-gray-800 dark:border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl">
+    <aside id="sidebar" class="w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl">
         <!-- Logo Header -->
-        <div class="p-5 border-b border-gray-800 dark:border-gray-800 flex items-center space-x-3">
+        <div class="p-5 border-b border-gray-800 flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-600/30">
                 <i class="fa-solid fa-screwdriver-wrench"></i>
             </div>
             <div>
-                <h1 class="font-bold text-base tracking-tight text-white dark:text-white leading-tight">JadeverBodega</h1>
+                <h1 id="logo-title" class="font-bold text-base tracking-tight text-white leading-tight">JadeverBodega</h1>
                 <span class="text-xs text-amber-500 font-semibold tracking-wide">FERRETERÍA & CONTROL</span>
             </div>
         </div>
@@ -102,9 +102,9 @@
         </nav>
 
         <!-- Dark Mode Toggle & User Profile -->
-        <div class="p-4 border-t border-gray-800 dark:border-gray-800 space-y-3">
-            <div class="flex items-center justify-between bg-gray-900 dark:bg-gray-900 border border-gray-800 p-2.5 rounded-xl">
-                <div class="flex items-center space-x-2 text-xs font-medium text-gray-300">
+        <div class="p-4 border-t border-gray-800 space-y-3">
+            <div id="theme-card" class="flex items-center justify-between bg-gray-900 border border-gray-800 p-2.5 rounded-xl">
+                <div class="flex items-center space-x-2 text-xs font-medium text-gray-300" id="theme-label-box">
                     <i class="fa-solid fa-moon text-amber-500" id="theme-icon"></i>
                     <span id="theme-text">Modo Oscuro</span>
                 </div>
@@ -118,7 +118,7 @@
                     WH
                 </div>
                 <div class="overflow-hidden">
-                    <p class="text-sm font-semibold text-white dark:text-white truncate">Wendy Hernandez</p>
+                    <p id="user-name" class="text-sm font-semibold text-white truncate">Wendy Hernandez</p>
                     <p class="text-xs text-amber-500 font-medium flex items-center space-x-1">
                         <i class="fa-solid fa-shield-halved text-[10px]"></i>
                         <span>Administrator</span>
@@ -129,13 +129,13 @@
     </aside>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-900 dark:bg-gray-900">
+    <main id="app-main" class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-900">
         
         <!-- TOP APP BAR -->
-        <header class="h-16 bg-gray-950 dark:bg-gray-950 border-b border-gray-800 dark:border-gray-800 px-6 flex items-center justify-between z-20">
+        <header id="top-header" class="h-16 bg-gray-950 border-b border-gray-800 px-6 flex items-center justify-between z-20">
             <div class="flex items-center space-x-4">
                 <div class="text-xs text-gray-400 font-medium hidden md:block">
-                    <span id="current-date-header" class="text-white dark:text-white font-semibold uppercase tracking-wider"></span>
+                    <span id="current-date-header" class="font-semibold uppercase tracking-wider"></span>
                 </div>
             </div>
 
@@ -164,18 +164,8 @@
         let state = {
             currentTab: 'inventario',
             darkMode: true,
-            inventario: [
-                { sku: 'JDPE4315', nombre: 'Taladro Percutor 650W', categoria: 'Construcción', ubicacion: 'Estante A1', cantidad: 14, minimo: 3, precio: 45.00 },
-                { sku: 'JDSL8821', nombre: 'Silicona Transparente 280ml', categoria: 'Adhesivos y sellantes', ubicacion: 'Estante B2', cantidad: 45, minimo: 10, precio: 3.50 },
-                { sku: 'JDAV1092', nombre: 'Ventilador Industrial 18"', categoria: 'Aire y ventilación', ubicacion: 'Bodega Central', cantidad: 2, minimo: 5, precio: 85.00 },
-                { sku: 'JDAM5540', nombre: 'Aceite de Motor Sintético 5W30', categoria: 'Automotriz', ubicacion: 'Pasillo 3', cantidad: 18, minimo: 6, precio: 12.00 },
-                { sku: 'JDCZ9910', nombre: 'Candado de Acero 50mm', categoria: 'Cerrajería y seguridad', ubicacion: 'Vitrinas', cantidad: 25, minimo: 8, precio: 9.50 },
-                { sku: 'JDEL1024', nombre: 'Cable THW Calibre 12 (Rollo)', categoria: 'Electricidad', ubicacion: 'Estante E1', cantidad: 8, minimo: 4, precio: 38.00 }
-            ],
-            movimientos: [
-                { id: 'MOV-101', tipo: 'Entrada', sku: 'JDPE4315', producto: 'Taladro Percutor 650W', cantidad: 5, fecha: '06/11/2026 10:30', responsable: 'Wendy Hernandez', clienteFactura: 'Proveedor Ferretero S.A.', fotoEvidencia: null },
-                { id: 'MOV-102', tipo: 'Salida', sku: 'JDSL8821', producto: 'Silicona Transparente 280ml', cantidad: 3, fecha: '07/11/2026 14:15', responsable: 'Wendy Hernandez', clienteFactura: 'Carlos Gómez (Constructora R&R)', fotoEvidencia: null }
-            ],
+            inventario: [],
+            movimientos: [],
             pedidos: [],
             informesGuardados: [],
             evidenciasFacturas: []
@@ -202,7 +192,7 @@
         }
 
         function loadState() {
-            const saved = localStorage.getItem('jadever_bodega_v3');
+            const saved = localStorage.getItem('jadever_bodega_v4');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -214,7 +204,7 @@
         }
 
         function saveState() {
-            localStorage.setItem('jadever_bodega_v3', JSON.stringify({
+            localStorage.setItem('jadever_bodega_v4', JSON.stringify({
                 inventario: state.inventario,
                 movimientos: state.movimientos,
                 pedidos: state.pedidos,
@@ -232,7 +222,7 @@
             }
         }
 
-        // --- MODO CLARO / OSCURO FUNCIONAL ---
+        // --- MODO CLARO / OSCURO FUNCIONAL EN TODA LA APLICACIÓN ---
         function toggleTheme() {
             state.darkMode = !state.darkMode;
             applyTheme();
@@ -241,21 +231,43 @@
 
         function applyTheme() {
             const html = document.documentElement;
+            const body = document.getElementById('app-body');
+            const main = document.getElementById('app-main');
+            const sidebar = document.getElementById('sidebar');
+            const topHeader = document.getElementById('top-header');
+            const logoTitle = document.getElementById('logo-title');
+            const userName = document.getElementById('user-name');
+            const themeCard = document.getElementById('theme-card');
+            const themeLabelBox = document.getElementById('theme-label-box');
             const themeIcon = document.getElementById('theme-icon');
             const themeText = document.getElementById('theme-text');
 
             if (state.darkMode) {
                 html.classList.add('dark');
                 html.classList.remove('light');
+                body.className = "bg-gray-900 text-gray-100 flex h-screen overflow-hidden";
+                main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-900";
+                sidebar.className = "w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl";
+                topHeader.className = "h-16 bg-gray-950 border-b border-gray-800 px-6 flex items-center justify-between z-20 text-white";
+                if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-white leading-tight";
+                if (userName) userName.className = "text-sm font-semibold text-white truncate";
+                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-900 border border-gray-800 p-2.5 rounded-xl";
+                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-medium text-gray-300";
                 if (themeIcon) themeIcon.className = "fa-solid fa-moon text-amber-500";
                 if (themeText) themeText.innerText = "Modo Oscuro";
-                document.body.className = "bg-gray-900 text-gray-100 flex h-screen overflow-hidden";
             } else {
                 html.classList.remove('dark');
                 html.classList.add('light');
+                body.className = "bg-gray-100 text-gray-800 flex h-screen overflow-hidden";
+                main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-100";
+                sidebar.className = "w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-30 shadow-xl text-gray-800";
+                topHeader.className = "h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between z-20 text-gray-800";
+                if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-gray-900 leading-tight";
+                if (userName) userName.className = "text-sm font-semibold text-gray-900 truncate";
+                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-50 border border-gray-200 p-2.5 rounded-xl";
+                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-medium text-gray-700";
                 if (themeIcon) themeIcon.className = "fa-solid fa-sun text-amber-500";
                 if (themeText) themeText.innerText = "Modo Claro";
-                document.body.className = "bg-gray-100 text-gray-800 flex h-screen overflow-hidden";
             }
             renderView();
         }
@@ -278,7 +290,7 @@
         function switchTab(tab) {
             state.currentTab = tab;
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.className = "nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 dark:text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors";
+                btn.className = `nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium ${state.darkMode ? 'text-gray-400 hover:bg-gray-800/50 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`;
             });
             const activeBtn = document.getElementById(`nav-${tab}`);
             if (activeBtn) {
@@ -401,7 +413,8 @@
                             <div class="w-16 h-16 ${state.darkMode ? 'bg-gray-900' : 'bg-gray-100'} text-gray-400 rounded-full flex items-center justify-center mx-auto text-xl">
                                 <i class="fa-solid fa-box-open"></i>
                             </div>
-                            <h4 class="text-base font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">No hay productos que coincidan</h4>
+                            <h4 class="text-base font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">No hay productos en inventario</h4>
+                            <p class="text-xs text-gray-400">Carga un Excel en "Carga Masiva" o presiona "+ Producto" arriba.</p>
                         </div>
                     ` : `
                         <div class="overflow-x-auto">
@@ -622,6 +635,12 @@
                         <p class="text-xs text-gray-400">Registro de Entradas y Salidas con evidencia</p>
                     </div>
                     <div class="flex items-center space-x-2">
+                        ${state.movimientos.length > 0 ? `
+                            <button onclick="clearAllMovimientos()" class="bg-red-600 hover:bg-red-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 shadow">
+                                <i class="fa-solid fa-trash"></i>
+                                <span>Vaciar Historial</span>
+                            </button>
+                        ` : ''}
                         <button onclick="openMoveModal('Entrada')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow">
                             <i class="fa-solid fa-arrow-down"></i>
                             <span>Entrada</span>
@@ -648,10 +667,11 @@
                                         <th class="py-3.5 px-4">Cantidad</th>
                                         <th class="py-3.5 px-4">Responsable</th>
                                         <th class="py-3.5 px-4 text-center">Foto</th>
+                                        <th class="py-3.5 px-4 text-right">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y ${state.darkMode ? 'divide-gray-800/60' : 'divide-gray-200'} text-sm">
-                                    ${state.movimientos.map(m => `
+                                    ${state.movimientos.map((m, idx) => `
                                         <tr>
                                             <td class="py-3.5 px-4 text-xs text-gray-400">${m.fecha}</td>
                                             <td class="py-3.5 px-4">
@@ -673,6 +693,11 @@
                                                     </button>
                                                 ` : '<span class="text-xs text-gray-500">-</span>'}
                                             </td>
+                                            <td class="py-3.5 px-4 text-right">
+                                                <button onclick="deleteMovimiento(${idx})" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -683,12 +708,30 @@
             `;
         }
 
+        function deleteMovimiento(idx) {
+            if (confirm("¿Deseas eliminar este movimiento del historial?")) {
+                state.movimientos.splice(idx, 1);
+                saveState();
+                renderView();
+                showToast("Movimiento eliminado", "success");
+            }
+        }
+
+        function clearAllMovimientos() {
+            if (confirm("¿Deseas borrar TODOS los movimientos registrados?")) {
+                state.movimientos = [];
+                saveState();
+                renderView();
+                showToast("Historial de movimientos limpiado", "success");
+            }
+        }
+
         function quickMoveModal(sku, tipo) {
             openMoveModal(tipo, sku);
         }
 
         function openMoveModal(tipo, preselectedSku = '') {
-            let imgBase64 = null;
+            window.tmpMoveImg = null;
             openModalHTML(`
                 <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
                     <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
@@ -701,7 +744,7 @@
                         <div>
                             <label class="block text-xs font-semibold text-gray-400 mb-1">Seleccionar Producto</label>
                             <select id="move-sku" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                                ${state.inventario.map(i => `<option value="${i.sku}" ${i.sku === preselectedSku ? 'selected' : ''}>[${i.sku}] ${i.nombre} (Stock: ${i.cantidad})</option>`).join('')}
+                                ${state.inventario.length === 0 ? '<option value="">(No hay productos creados)</option>' : state.inventario.map(i => `<option value="${i.sku}" ${i.sku === preselectedSku ? 'selected' : ''}>[${i.sku}] ${i.nombre} (Stock: ${i.cantidad})</option>`).join('')}
                             </select>
                         </div>
                         <div>
@@ -722,7 +765,7 @@
                             <label class="block text-xs font-semibold text-gray-400 mb-1">Foto de Evidencia (Opcional)</label>
                             <input type="file" accept="image/*" onchange="readImageFile(this, (b64) => window.tmpMoveImg = b64)" class="w-full text-xs text-gray-400">
                         </div>
-                        <button type="submit" class="w-full ${tipo === 'Entrada' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-amber-600 hover:bg-amber-500'} text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
+                        <button type="submit" ${state.inventario.length === 0 ? 'disabled' : ''} class="w-full ${tipo === 'Entrada' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-amber-600 hover:bg-amber-500'} text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg disabled:opacity-50">
                             Registrar ${tipo}
                         </button>
                     </form>
@@ -741,6 +784,10 @@
         function handleSaveMove(e, tipo) {
             e.preventDefault();
             const sku = document.getElementById('move-sku').value;
+            if (!sku) {
+                showToast("Agrega un producto al inventario primero", "error");
+                return;
+            }
             const cliente = document.getElementById('move-cliente').value.trim();
             const cant = Number(document.getElementById('move-cant').value);
             const resp = document.getElementById('move-resp').value;
@@ -861,14 +908,12 @@
             renderView();
         }
 
-        // ================= 4. INFORMES CON ACCIONES Y EVIDENCIAS DE FACTURAS =================
+        // ================= 4. INFORMES =================
         function renderInformes(container) {
             const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
 
-            // Ordenar evidencias por fecha descendente
             const sortedEvidencias = [...state.evidenciasFacturas].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
 
-            // Calcular métricas exactas del periodo (Entradas, Salidas, Balance, Movimientos)
             const totalEntradas = state.movimientos
                 .filter(m => m.tipo === 'Entrada')
                 .reduce((acc, m) => acc + (Number(m.cantidad) || 0), 0);
@@ -880,7 +925,6 @@
             const balance = totalEntradas - totalSalidas;
             const totalMovimientos = state.movimientos.length;
 
-            // Formato de fecha para el reporte (Ej: 2026-11-07)
             const todayStr = new Date().toISOString().split('T')[0];
 
             container.innerHTML = `
@@ -906,10 +950,9 @@
                     </div>
                 </div>
 
-                <!-- DISEÑO ESTRUCTURADO Y LIMPIO DEL INFORME (IGUAL A LA IMAGEN) -->
+                <!-- DISEÑO ESTRUCTURADO Y LIMPIO DEL INFORME -->
                 <div id="report-printable-area" class="${cardBg} border rounded-2xl p-8 space-y-6 shadow-md">
                     
-                    <!-- Encabezado del Reporte -->
                     <div class="space-y-1.5 border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-5">
                         <h1 class="text-2xl font-bold tracking-tight ${state.darkMode ? 'text-white' : 'text-gray-900'}">
                             JadeverBodega — Informe
@@ -917,7 +960,6 @@
                         <p class="text-sm font-medium ${state.darkMode ? 'text-gray-300' : 'text-gray-600'}">
                             Reporte de hoy (${todayStr} a ${todayStr})
                         </p>
-                        <!-- Resumen Resaltado en Línea -->
                         <div class="pt-2 text-sm font-medium ${state.darkMode ? 'text-gray-300' : 'text-gray-700'} flex flex-wrap items-center gap-x-2">
                             <span><strong>Entradas:</strong> ${totalEntradas} und</span>
                             <span class="text-gray-400">·</span>
@@ -929,7 +971,6 @@
                         </div>
                     </div>
 
-                    <!-- Tabla Elegante de Movimientos (Encabezado Naranja idéntico a la captura) -->
                     <div class="overflow-x-auto rounded-xl border ${state.darkMode ? 'border-gray-800' : 'border-gray-200'}">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
@@ -966,7 +1007,7 @@
                     </div>
                 </div>
 
-                <!-- MÓDULO EVIDENCIAS DE FACTURAS (ORDENADAS POR FECHA) -->
+                <!-- MÓDULO EVIDENCIAS DE FACTURAS -->
                 <div class="${cardBg} border rounded-2xl p-6 space-y-4 no-print">
                     <div class="flex items-center justify-between">
                         <div>
@@ -982,14 +1023,17 @@
                         <p class="text-xs text-gray-500 py-4 text-center">No hay evidencias de facturas guardadas.</p>
                     ` : `
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            ${sortedEvidencias.map(e => `
-                                <div class="${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'} border rounded-xl p-3 space-y-2">
+                            ${sortedEvidencias.map((e, idx) => `
+                                <div class="${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'} border rounded-xl p-3 space-y-2 relative group">
+                                    <button onclick="deleteEvidenciaFactura(${idx})" title="Borrar Evidencia" class="absolute top-4 right-4 w-7 h-7 rounded-lg bg-red-600 text-white opacity-90 hover:opacity-100 flex items-center justify-center text-xs shadow-md">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
                                     <img src="${e.foto}" class="w-full h-32 object-cover rounded-lg border border-gray-700 cursor-pointer hover:opacity-90 transition" onclick="viewImageModal('${e.foto}')">
-                                    <div class="flex items-center justify-between text-xs">
+                                    <div class="flex items-center justify-between text-xs pt-1">
                                         <span class="font-bold text-amber-500">${e.fecha}</span>
-                                        <span class="text-gray-400">${e.numFactura || 'Factura'}</span>
+                                        <span class="text-gray-400 font-mono">${e.numFactura || 'Factura'}</span>
                                     </div>
-                                    <p class="text-xs text-gray-300 truncate">${e.nota || 'Sin detalles'}</p>
+                                    <p class="text-xs ${state.darkMode ? 'text-gray-300' : 'text-gray-700'} truncate">${e.nota || 'Sin detalles'}</p>
                                 </div>
                             `).join('')}
                         </div>
@@ -1003,11 +1047,16 @@
                         <p class="text-xs text-gray-500">Aún no has guardado informes. Haz clic en "+ Guardar Informe" para archivar el reporte actual.</p>
                     ` : `
                         <div class="space-y-2">
-                            ${state.informesGuardados.map(inf => `
-                                <div class="flex items-center justify-between p-3 rounded-xl ${state.darkMode ? 'bg-gray-900' : 'bg-gray-50'} text-xs">
-                                    <span class="font-bold text-amber-500">${inf.fecha}</span>
-                                    <span class="text-gray-300">${inf.totalMovs} Movimientos</span>
-                                    <span class="text-gray-400">Generado por: ${inf.responsable}</span>
+                            ${state.informesGuardados.map((inf, idx) => `
+                                <div class="flex items-center justify-between p-3 rounded-xl ${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'} border text-xs">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="font-bold text-amber-500">${inf.fecha}</span>
+                                        <span class="${state.darkMode ? 'text-gray-300' : 'text-gray-700'}">${inf.totalMovs} Movimientos</span>
+                                        <span class="text-gray-400">Por: ${inf.responsable}</span>
+                                    </div>
+                                    <button onclick="deleteSavedReport(${idx})" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
                                 </div>
                             `).join('')}
                         </div>
@@ -1016,10 +1065,99 @@
             `;
         }
 
+        function openAddFacturaModal() {
+            window.tmpFacturaImg = null;
+            openModalHTML(`
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
+                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">+ Subir Evidencia de Factura</h3>
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <form onsubmit="handleSaveFactura(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Fecha de la Factura</label>
+                            <input type="date" id="fac-fecha" required value="${new Date().toISOString().split('T')[0]}" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nº Factura / Documento</label>
+                            <input type="text" id="fac-num" required placeholder="Ej: F-90421" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nota / Cliente / Proveedor</label>
+                            <input type="text" id="fac-nota" placeholder="Ej: Compra de material ferretero" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Foto o Imagen (Factura)</label>
+                            <input type="file" id="fac-file" accept="image/*" required onchange="readImageFile(this, (b64) => window.tmpFacturaImg = b64)" class="w-full text-xs text-gray-400">
+                        </div>
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
+                            Guardar Evidencia
+                        </button>
+                    </form>
+                </div>
+            `);
+        }
+
+        function handleSaveFactura(e) {
+            e.preventDefault();
+            const fecha = document.getElementById('fac-fecha').value;
+            const numFactura = document.getElementById('fac-num').value.trim();
+            const nota = document.getElementById('fac-nota').value.trim();
+
+            if (!window.tmpFacturaImg) {
+                showToast("Por favor selecciona una imagen para la foto de la evidencia", "error");
+                return;
+            }
+
+            state.evidenciasFacturas.push({
+                fecha,
+                numFactura,
+                nota,
+                foto: window.tmpFacturaImg
+            });
+
+            window.tmpFacturaImg = null;
+            saveState();
+            closeModal();
+            renderView();
+            showToast("Evidencia de factura guardada exitosamente", "success");
+        }
+
+        function deleteEvidenciaFactura(idx) {
+            if (confirm("¿Deseas eliminar esta foto de evidencia de factura?")) {
+                state.evidenciasFacturas.splice(idx, 1);
+                saveState();
+                renderView();
+                showToast("Evidencia eliminada", "success");
+            }
+        }
+
+        function saveCurrentReport() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            state.informesGuardados.unshift({
+                fecha: todayStr,
+                totalMovs: state.movimientos.length,
+                responsable: 'Wendy Hernandez'
+            });
+            saveState();
+            renderView();
+            showToast("Informe archivado en el historial", "success");
+        }
+
+        function deleteSavedReport(idx) {
+            if (confirm("¿Deseas eliminar este informe del historial?")) {
+                state.informesGuardados.splice(idx, 1);
+                saveState();
+                renderView();
+                showToast("Informe eliminado del historial", "success");
+            }
+        }
+
         function downloadPDF() {
             const todayStr = new Date().toISOString().split('T')[0];
             
-            // Métricas calculadas para el reporte
             const totalEntradas = state.movimientos
                 .filter(m => m.tipo === 'Entrada')
                 .reduce((acc, m) => acc + (Number(m.cantidad) || 0), 0);
@@ -1029,7 +1167,6 @@
             const balance = totalEntradas - totalSalidas;
             const totalMovimientos = state.movimientos.length;
 
-            // Generar contenedor blanco limpio para el PDF en el DOM
             const printElement = document.createElement('div');
             printElement.style.width = '750px';
             printElement.style.backgroundColor = '#ffffff';
@@ -1149,11 +1286,11 @@
 
                         <div class="flex items-center justify-between pb-2">
                             <div>
-                                <h4 class="text-sm font-semibold text-red-400">Reiniciar Datos</h4>
-                                <p class="text-xs text-gray-400">Restablecer la aplicación de fábrica</p>
+                                <h4 class="text-sm font-semibold text-red-400">Reiniciar Datos (Poner en 0)</h4>
+                                <p class="text-xs text-gray-400">Restablecer la aplicación a 0 todo el sistema</p>
                             </div>
                             <button onclick="resetAllData()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold">
-                                Limpiar todo
+                                Limpiar todo a 0
                             </button>
                         </div>
                     </div>
@@ -1162,9 +1299,16 @@
         }
 
         function resetAllData() {
-            if (confirm("¿Estás seguro de que deseas borrar todos los datos del sistema?")) {
-                localStorage.removeItem('jadever_bodega_v3');
-                location.reload();
+            if (confirm("¿Estás seguro de que deseas borrar todos los datos y dejar todo en 0?")) {
+                localStorage.removeItem('jadever_bodega_v4');
+                state.inventario = [];
+                state.movimientos = [];
+                state.pedidos = [];
+                state.informesGuardados = [];
+                state.evidenciasFacturas = [];
+                saveState();
+                renderView();
+                showToast("Sistema restablecido completamente a 0", "success");
             }
         }
 
@@ -1183,7 +1327,6 @@
                             <p class="text-xs text-gray-400">Carga tu lista de productos masivamente. El sistema leerá todas las columnas (SKU, Producto, Categoría, Ubicación, Cantidad, Mínimo, Precio).</p>
                         </div>
 
-                        <!-- Selector de Modo Preventivo -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left pt-2">
                             <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 space-y-2">
                                 <div class="flex items-center space-x-2 text-amber-500 font-bold text-sm">
@@ -1202,7 +1345,6 @@
                             </div>
                         </div>
 
-                        <!-- Area de arrastrar o seleccionar archivo -->
                         <div class="border-2 border-dashed ${state.darkMode ? 'border-gray-800 bg-gray-900/40' : 'border-gray-300 bg-gray-50'} hover:border-amber-500 rounded-2xl p-8 relative transition">
                             <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" onchange="handleExcelSelect(this)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
                             <div class="space-y-3 pointer-events-none">
