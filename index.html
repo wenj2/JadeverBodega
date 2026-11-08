@@ -52,6 +52,34 @@
     <!-- Modal Container -->
     <div id="global-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"></div>
 
+    <!-- PANTALLA DE BLOQUEO Y ACCESO POR CLAVE -->
+    <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-gray-900 border border-gray-800 rounded-3xl p-8 space-y-6 text-center shadow-2xl">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white text-2xl mx-auto shadow-lg shadow-amber-600/30">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            
+            <div>
+                <h2 class="text-xl font-bold text-white tracking-tight">JadeverBodega</h2>
+                <p class="text-xs text-amber-500 font-semibold tracking-wide uppercase mt-1">Acceso Protegido</p>
+                <p class="text-xs text-gray-400 mt-2">Ingresa tu PIN de acceso para continuar</p>
+            </div>
+
+            <form onsubmit="handleAuthLogin(event)" class="space-y-4">
+                <div class="relative">
+                    <input type="password" id="auth-pin-input" maxlength="10" placeholder="••••" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3.5 text-center text-2xl tracking-widest text-white focus:outline-none focus:border-amber-500 transition">
+                </div>
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg shadow-amber-600/20">
+                    Ingresar al Sistema
+                </button>
+            </form>
+
+            <div class="border-t border-gray-800 pt-4 text-[11px] text-gray-500">
+                <span>Modos disponibles: Administrador (Control Total) u Observador (Solo Lectura)</span>
+            </div>
+        </div>
+    </div>
+
     <!-- SIDEBAR -->
     <aside id="sidebar" class="w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl">
         <!-- Logo Header -->
@@ -113,17 +141,22 @@
                 </button>
             </div>
 
-            <div class="flex items-center space-x-3 p-2">
-                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-bold text-white text-sm shadow">
-                    WH
+            <div class="flex items-center justify-between p-2">
+                <div class="flex items-center space-x-3">
+                    <div id="user-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-bold text-white text-sm shadow">
+                        WH
+                    </div>
+                    <div class="overflow-hidden">
+                        <p id="user-name" class="text-sm font-semibold text-white truncate">Wendy Hernandez</p>
+                        <p id="user-role" class="text-xs text-amber-500 font-medium flex items-center space-x-1">
+                            <i class="fa-solid fa-shield-halved text-[10px]"></i>
+                            <span>Administrator</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="overflow-hidden">
-                    <p id="user-name" class="text-sm font-semibold text-white truncate">Wendy Hernandez</p>
-                    <p class="text-xs text-amber-500 font-medium flex items-center space-x-1">
-                        <i class="fa-solid fa-shield-halved text-[10px]"></i>
-                        <span>Administrator</span>
-                    </p>
-                </div>
+                <button onclick="logoutAuth()" title="Cerrar Sesión" class="text-gray-400 hover:text-red-400 text-xs p-1">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
             </div>
         </div>
     </aside>
@@ -140,11 +173,11 @@
             </div>
 
             <div class="flex items-center space-x-3">
-                <button onclick="switchTab('cargamasiva')" class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition shadow-sm">
+                <button id="btn-top-excel" onclick="switchTab('cargamasiva')" class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition shadow-sm">
                     <i class="fa-solid fa-file-excel text-emerald-400"></i>
                     <span>Cargar Excel</span>
                 </button>
-                <button onclick="openAddProductModal()" class="flex items-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-amber-600/30 transition">
+                <button id="btn-top-add-product" onclick="openAddProductModal()" class="flex items-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-amber-600/30 transition">
                     <i class="fa-solid fa-plus"></i>
                     <span>+ Producto</span>
                 </button>
@@ -164,6 +197,7 @@
         let state = {
             currentTab: 'inventario',
             darkMode: true,
+            currentUserRole: null, // 'admin' | 'observer'
             inventario: [],
             movimientos: [],
             pedidos: [],
@@ -180,8 +214,75 @@
             loadState();
             updateDailyDate();
             setInterval(updateDailyDate, 60000);
+            checkAuth();
             applyTheme();
         };
+
+        // --- SISTEMA DE AUTENTICACIÓN Y ROLES ---
+        function checkAuth() {
+            const overlay = document.getElementById('auth-overlay');
+            if (!state.currentUserRole) {
+                if (overlay) overlay.classList.remove('hidden');
+            } else {
+                if (overlay) overlay.classList.add('hidden');
+                updateUserUI();
+            }
+        }
+
+        function handleAuthLogin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('auth-pin-input').value.trim();
+            const overlay = document.getElementById('auth-overlay');
+
+            if (pin === '2626') {
+                state.currentUserRole = 'admin';
+                showToast("Acceso como Administrador", "success");
+            } else if (pin === '123') {
+                state.currentUserRole = 'observer';
+                showToast("Acceso como Observador (Solo Lectura)", "success");
+            } else {
+                showToast("PIN incorrecto. Intenta nuevamente.", "error");
+                return;
+            }
+
+            document.getElementById('auth-pin-input').value = '';
+            if (overlay) overlay.classList.add('hidden');
+            saveState();
+            updateUserUI();
+            renderView();
+        }
+
+        function logoutAuth() {
+            state.currentUserRole = null;
+            saveState();
+            const overlay = document.getElementById('auth-overlay');
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function updateUserUI() {
+            const userName = document.getElementById('user-name');
+            const userRole = document.getElementById('user-role');
+            const userAvatar = document.getElementById('user-avatar');
+            const btnTopExcel = document.getElementById('btn-top-excel');
+            const btnTopAddProduct = document.getElementById('btn-top-add-product');
+            const navCargaMasiva = document.getElementById('nav-cargamasiva');
+
+            if (state.currentUserRole === 'admin') {
+                if (userName) userName.innerText = "Wendy Hernandez";
+                if (userAvatar) userAvatar.innerText = "WH";
+                if (userRole) userRole.innerHTML = `<i class="fa-solid fa-shield-halved text-[10px]"></i><span>Administrador</span>`;
+                if (btnTopExcel) btnTopExcel.style.display = 'flex';
+                if (btnTopAddProduct) btnTopAddProduct.style.display = 'flex';
+                if (navCargaMasiva) navCargaMasiva.style.display = 'flex';
+            } else {
+                if (userName) userName.innerText = "Usuario Observador";
+                if (userAvatar) userAvatar.innerText = "OB";
+                if (userRole) userRole.innerHTML = `<i class="fa-solid fa-eye text-[10px]"></i><span>Solo Lectura</span>`;
+                if (btnTopExcel) btnTopExcel.style.display = 'none';
+                if (btnTopAddProduct) btnTopAddProduct.style.display = 'none';
+                if (navCargaMasiva) navCargaMasiva.style.display = 'none';
+            }
+        }
 
         function updateDailyDate() {
             const now = new Date();
@@ -210,7 +311,8 @@
                 pedidos: state.pedidos,
                 informesGuardados: state.informesGuardados,
                 evidenciasFacturas: state.evidenciasFacturas,
-                darkMode: state.darkMode
+                darkMode: state.darkMode,
+                currentUserRole: state.currentUserRole
             }));
             updateBadges();
         }
@@ -324,10 +426,12 @@
                 case 'cargamasiva': renderCargaMasiva(container); break;
             }
             updateBadges();
+            updateUserUI();
         }
 
         // ================= 1. INVENTARIO =================
         function renderInventario(container) {
+            const isAdmin = state.currentUserRole === 'admin';
             const totalRef = state.inventario.length;
             const totalUnits = state.inventario.reduce((acc, item) => acc + (Number(item.cantidad) || 0), 0);
             const reorderAlerts = state.inventario.filter(item => Number(item.cantidad) <= Number(item.minimo)).length;
@@ -414,7 +518,7 @@
                                 <i class="fa-solid fa-box-open"></i>
                             </div>
                             <h4 class="text-base font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">No hay productos en inventario</h4>
-                            <p class="text-xs text-gray-400">Carga un Excel en "Carga Masiva" o presiona "+ Producto" arriba.</p>
+                            <p class="text-xs text-gray-400">${isAdmin ? 'Carga un Excel en "Carga Masiva" o presiona "+ Producto" arriba.' : 'Esperando que un administrador cargue inventario.'}</p>
                         </div>
                     ` : `
                         <div class="overflow-x-auto">
@@ -426,7 +530,7 @@
                                         <th class="py-3.5 px-4">Categoría</th>
                                         <th class="py-3.5 px-4">Ubicación</th>
                                         <th class="py-3.5 px-4">Cantidad</th>
-                                        <th class="py-3.5 px-4 text-right">Acciones</th>
+                                        ${isAdmin ? '<th class="py-3.5 px-4 text-right">Acciones</th>' : ''}
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y ${state.darkMode ? 'divide-gray-800/60' : 'divide-gray-200'} text-sm">
@@ -440,20 +544,22 @@
                                             <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg text-xs ${state.darkMode ? 'bg-gray-900 border-gray-800 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-700'} border">${item.categoria}</span></td>
                                             <td class="py-3.5 px-4 text-gray-400 text-xs">${item.ubicacion}</td>
                                             <td class="py-3.5 px-4 font-bold ${Number(item.cantidad) <= Number(item.minimo) ? 'text-amber-500' : (state.darkMode ? 'text-white' : 'text-gray-900')}">${item.cantidad} un.</td>
-                                            <td class="py-3.5 px-4 text-right space-x-1.5">
-                                                <button onclick="openEditProductModal('${item.sku}')" title="Editar Producto" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                    <i class="fa-solid fa-pen"></i>
-                                                </button>
-                                                <button onclick="quickMoveModal('${item.sku}', 'Entrada')" title="Entrada" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                    <i class="fa-solid fa-arrow-down"></i>
-                                                </button>
-                                                <button onclick="quickMoveModal('${item.sku}', 'Salida')" title="Salida (Con cliente y Foto)" class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                    <i class="fa-solid fa-arrow-up"></i>
-                                                </button>
-                                                <button onclick="deleteProduct('${item.sku}')" title="Borrar Producto" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </td>
+                                            ${isAdmin ? `
+                                                <td class="py-3.5 px-4 text-right space-x-1.5">
+                                                    <button onclick="openEditProductModal('${item.sku}')" title="Editar Producto" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                        <i class="fa-solid fa-pen"></i>
+                                                    </button>
+                                                    <button onclick="quickMoveModal('${item.sku}', 'Entrada')" title="Entrada" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                        <i class="fa-solid fa-arrow-down"></i>
+                                                    </button>
+                                                    <button onclick="quickMoveModal('${item.sku}', 'Salida')" title="Salida (Con cliente y Foto)" class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                        <i class="fa-solid fa-arrow-up"></i>
+                                                    </button>
+                                                    <button onclick="deleteProduct('${item.sku}')" title="Borrar Producto" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            ` : ''}
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -626,6 +732,7 @@
 
         // ================= 2. MOVIMIENTOS =================
         function renderMovimientos(container) {
+            const isAdmin = state.currentUserRole === 'admin';
             const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
 
             container.innerHTML = `
@@ -634,22 +741,24 @@
                         <h2 class="text-lg font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Bitácora de Movimientos</h2>
                         <p class="text-xs text-gray-400">Registro de Entradas y Salidas con evidencia</p>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        ${state.movimientos.length > 0 ? `
-                            <button onclick="clearAllMovimientos()" class="bg-red-600 hover:bg-red-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 shadow">
-                                <i class="fa-solid fa-trash"></i>
-                                <span>Vaciar Historial</span>
+                    ${isAdmin ? `
+                        <div class="flex items-center space-x-2">
+                            ${state.movimientos.length > 0 ? `
+                                <button onclick="clearAllMovimientos()" class="bg-red-600 hover:bg-red-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 shadow">
+                                    <i class="fa-solid fa-trash"></i>
+                                    <span>Vaciar Historial</span>
+                                </button>
+                            ` : ''}
+                            <button onclick="openMoveModal('Entrada')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow">
+                                <i class="fa-solid fa-arrow-down"></i>
+                                <span>Entrada</span>
                             </button>
-                        ` : ''}
-                        <button onclick="openMoveModal('Entrada')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow">
-                            <i class="fa-solid fa-arrow-down"></i>
-                            <span>Entrada</span>
-                        </button>
-                        <button onclick="openMoveModal('Salida')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow">
-                            <i class="fa-solid fa-arrow-up"></i>
-                            <span>Salida</span>
-                        </button>
-                    </div>
+                            <button onclick="openMoveModal('Salida')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow">
+                                <i class="fa-solid fa-arrow-up"></i>
+                                <span>Salida</span>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
 
                 <div class="${cardBg} border rounded-2xl overflow-hidden">
@@ -667,7 +776,7 @@
                                         <th class="py-3.5 px-4">Cantidad</th>
                                         <th class="py-3.5 px-4">Responsable</th>
                                         <th class="py-3.5 px-4 text-center">Foto</th>
-                                        <th class="py-3.5 px-4 text-right">Acción</th>
+                                        ${isAdmin ? '<th class="py-3.5 px-4 text-right">Acción</th>' : ''}
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y ${state.darkMode ? 'divide-gray-800/60' : 'divide-gray-200'} text-sm">
@@ -693,11 +802,13 @@
                                                     </button>
                                                 ` : '<span class="text-xs text-gray-500">-</span>'}
                                             </td>
-                                            <td class="py-3.5 px-4 text-right">
-                                                <button onclick="deleteMovimiento(${idx})" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </td>
+                                            ${isAdmin ? `
+                                                <td class="py-3.5 px-4 text-right">
+                                                    <button onclick="deleteMovimiento(${idx})" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            ` : ''}
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -910,6 +1021,7 @@
 
         // ================= 4. INFORMES =================
         function renderInformes(container) {
+            const isAdmin = state.currentUserRole === 'admin';
             const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
 
             const sortedEvidencias = [...state.evidenciasFacturas].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
@@ -932,9 +1044,11 @@
                 <div class="${cardBg} border rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 no-print">
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Acciones de Informe:</span>
                     <div class="flex flex-wrap items-center gap-2">
-                        <button onclick="saveCurrentReport()" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-md">
-                            <i class="fa-solid fa-plus mr-1"></i> Guardar Informe
-                        </button>
+                        ${isAdmin ? `
+                            <button onclick="saveCurrentReport()" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-md">
+                                <i class="fa-solid fa-plus mr-1"></i> Guardar Informe
+                            </button>
+                        ` : ''}
                         <button onclick="downloadPDF()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-sm">
                             <i class="fa-solid fa-file-pdf text-red-400 mr-1"></i> Descargar PDF
                         </button>
@@ -1014,9 +1128,11 @@
                             <h4 class="text-sm font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">EVIDENCIAS DE FACTURAS Y FOTOS</h4>
                             <p class="text-xs text-gray-400">Guarda las facturas físicas ordenadas cronológicamente por fecha</p>
                         </div>
-                        <button onclick="openAddFacturaModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow transition">
-                            + Subir Evidencia
-                        </button>
+                        ${isAdmin ? `
+                            <button onclick="openAddFacturaModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow transition">
+                                + Subir Evidencia
+                            </button>
+                        ` : ''}
                     </div>
 
                     ${sortedEvidencias.length === 0 ? `
@@ -1025,9 +1141,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             ${sortedEvidencias.map((e, idx) => `
                                 <div class="${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'} border rounded-xl p-3 space-y-2 relative group">
-                                    <button onclick="deleteEvidenciaFactura(${idx})" title="Borrar Evidencia" class="absolute top-4 right-4 w-7 h-7 rounded-lg bg-red-600 text-white opacity-90 hover:opacity-100 flex items-center justify-center text-xs shadow-md">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
+                                    ${isAdmin ? `
+                                        <button onclick="deleteEvidenciaFactura(${idx})" title="Borrar Evidencia" class="absolute top-4 right-4 w-7 h-7 rounded-lg bg-red-600 text-white opacity-90 hover:opacity-100 flex items-center justify-center text-xs shadow-md">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    ` : ''}
                                     <img src="${e.foto}" class="w-full h-32 object-cover rounded-lg border border-gray-700 cursor-pointer hover:opacity-90 transition" onclick="viewImageModal('${e.foto}')">
                                     <div class="flex items-center justify-between text-xs pt-1">
                                         <span class="font-bold text-amber-500">${e.fecha}</span>
@@ -1044,7 +1162,7 @@
                 <div class="${cardBg} border rounded-2xl p-6 space-y-3 no-print">
                     <h4 class="text-sm font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">HISTORIAL DE INFORMES GUARDADOS</h4>
                     ${state.informesGuardados.length === 0 ? `
-                        <p class="text-xs text-gray-500">Aún no has guardado informes. Haz clic en "+ Guardar Informe" para archivar el reporte actual.</p>
+                        <p class="text-xs text-gray-500">Aún no hay informes archivados.</p>
                     ` : `
                         <div class="space-y-2">
                             ${state.informesGuardados.map((inf, idx) => `
@@ -1054,9 +1172,11 @@
                                         <span class="${state.darkMode ? 'text-gray-300' : 'text-gray-700'}">${inf.totalMovs} Movimientos</span>
                                         <span class="text-gray-400">Por: ${inf.responsable}</span>
                                     </div>
-                                    <button onclick="deleteSavedReport(${idx})" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
+                                    ${isAdmin ? `
+                                        <button onclick="deleteSavedReport(${idx})" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    ` : ''}
                                 </div>
                             `).join('')}
                         </div>
@@ -1257,6 +1377,7 @@
 
         // ================= 5. MÁS / CONFIGURACIÓN =================
         function renderMas(container) {
+            const isAdmin = state.currentUserRole === 'admin';
             const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
 
             container.innerHTML = `
@@ -1284,15 +1405,17 @@
                             </button>
                         </div>
 
-                        <div class="flex items-center justify-between pb-2">
-                            <div>
-                                <h4 class="text-sm font-semibold text-red-400">Reiniciar Datos (Poner en 0)</h4>
-                                <p class="text-xs text-gray-400">Restablecer la aplicación a 0 todo el sistema</p>
+                        ${isAdmin ? `
+                            <div class="flex items-center justify-between pb-2">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-red-400">Reiniciar Datos (Poner en 0)</h4>
+                                    <p class="text-xs text-gray-400">Restablecer la aplicación a 0 todo el sistema</p>
+                                </div>
+                                <button onclick="resetAllData()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold">
+                                    Limpiar todo a 0
+                                </button>
                             </div>
-                            <button onclick="resetAllData()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold">
-                                Limpiar todo a 0
-                            </button>
-                        </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
