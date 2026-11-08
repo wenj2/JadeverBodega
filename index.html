@@ -36,11 +36,11 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         window.firebaseModules = {
             initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
-            getFirestore, doc, setDoc, getDoc, onSnapshot, collection
+            getFirestore, doc, setDoc, getDoc, onSnapshot
         };
         window.dispatchEvent(new Event('firebase-loaded'));
     </script>
@@ -85,15 +85,11 @@
                     Ingresar al Sistema
                 </button>
             </form>
-
-            <div class="border-t border-gray-800 pt-4 text-[11px] text-gray-500">
-                <span>Modos disponibles: Administrador (Control Total) u Observador (Solo Lectura)</span>
-            </div>
         </div>
     </div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl shrink-0">
+    <aside id="sidebar" class="w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl shrink-0 absolute md:relative inset-y-0 left-0 -translate-x-full md:translate-x-0">
         <!-- Logo Header -->
         <div class="p-4 border-b border-gray-800 flex items-center justify-between">
             <div class="flex items-center space-x-3 overflow-hidden">
@@ -178,34 +174,33 @@
         </div>
     </aside>
 
+    <!-- OVERLAY FOR MOBILE MENU -->
+    <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden"></div>
+
     <!-- MAIN CONTENT AREA -->
     <main id="app-main" class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-900">
         
         <!-- TOP APP BAR -->
-        <header id="top-header" class="h-16 bg-gray-950 border-b border-gray-800 px-6 flex items-center justify-between z-20">
-            <div class="flex items-center space-x-4">
+        <header id="top-header" class="h-16 bg-gray-950 border-b border-gray-800 px-4 md:px-6 flex items-center justify-between z-10">
+            <div class="flex items-center space-x-3">
                 <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-2 rounded-lg bg-gray-900 border border-gray-800 hover:bg-gray-800 transition">
                     <i class="fa-solid fa-bars text-sm"></i>
                 </button>
-                <div class="text-xs text-gray-400 font-medium hidden md:block">
-                    <span id="current-date-header" class="font-semibold uppercase tracking-wider"></span>
+                <div class="text-xs text-gray-300 font-semibold tracking-wide">
+                    <span id="current-date-header" class="uppercase"></span>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-3">
-                <button id="btn-top-excel" onclick="switchTab('cargamasiva')" class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition shadow-sm">
-                    <i class="fa-solid fa-file-excel text-emerald-400"></i>
-                    <span>Cargar Excel</span>
-                </button>
-                <button id="btn-top-add-product" onclick="openAddProductModal()" class="flex items-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-amber-600/30 transition">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>+ Producto</span>
-                </button>
+            <div class="flex items-center space-x-2">
+                <div id="cloud-status-badge" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[11px] font-medium border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Nube Conectada</span>
+                </div>
             </div>
         </header>
 
         <!-- DYNAMIC VIEWS CONTAINER -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar" id="main-content-view">
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 custom-scrollbar" id="main-content-view">
             <!-- Dynamic Content -->
         </div>
 
@@ -216,8 +211,8 @@
         // --- APP STATE ---
         let state = {
             currentTab: 'inventario',
-            darkMode: false,
-            sidebarCollapsed: false,
+            darkMode: true,
+            sidebarCollapsed: true,
             currentUserRole: null, // 'admin' | 'observer'
             lastLoginTime: null,
             inventario: [],
@@ -246,19 +241,20 @@
             'Construcción y Medición'
         ];
 
+        // Firebase Configuration provided by user
+        const firebaseConfig = {
+            apiKey: "AIzaSyB4hiDPrruHiul8HHoH_gdbFVX5nU0vOgM",
+            authDomain: "jadeverbodega.firebaseapp.com",
+            projectId: "jadeverbodega",
+            storageBucket: "jadeverbodega.firebasestorage.app",
+            messagingSenderId: "801005563673",
+            appId: "1:801005563673:web:01ad1465257cf9e9b3df88"
+        };
+
         // Initialize Firebase on window load
         window.addEventListener('firebase-loaded', async () => {
             try {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'jadever-bodega-default';
-                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-                    apiKey: "AIzaSyDummyKeyForGitHubPagesHosting-JadeverBodega",
-                    authDomain: "jadever-bodega.firebaseapp.com",
-                    projectId: "jadever-bodega",
-                    storageBucket: "jadever-bodega.appspot.com",
-                    messagingSenderId: "123456789",
-                    appId: "1:123456:web:abcde"
-                };
-
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'jadever-bodega-main';
                 const app = window.firebaseModules.initializeApp(firebaseConfig);
                 db = window.firebaseModules.getFirestore(app);
                 auth = window.firebaseModules.getAuth(app);
@@ -271,17 +267,20 @@
 
                 initRealtimeSync(appId);
             } catch(e) {
-                console.warn("Cloud Firestore offline or fallback mode:", e);
+                console.warn("Cloud Firestore fallback to local mode:", e);
+                const cloudBadge = document.getElementById('cloud-status-badge');
+                if (cloudBadge) cloudBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Modo Local</span>`;
                 loadStateLocal();
             }
         });
 
         function initRealtimeSync(appId) {
             if (!db || !auth) return;
-            const userId = auth.currentUser ? auth.currentUser.uid : 'default-user';
+            const user = auth.currentUser;
+            if (!user) return;
             
-            // FIX: Use user-scoped or public-safe collection path to avoid permission errors
-            const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'users', userId);
+            // Shared Cloud Document Path for Realtime Synchronization across all devices
+            const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'shared_state');
 
             if (unsubscribeFirestore) unsubscribeFirestore();
 
@@ -292,7 +291,11 @@
                         isSyncingFromCloud = true;
                         try {
                             const parsed = JSON.parse(cloudData.payload);
-                            state = { ...state, ...parsed };
+                            state.inventario = parsed.inventario || [];
+                            state.movimientos = parsed.movimientos || [];
+                            state.pedidos = parsed.pedidos || [];
+                            state.informesGuardados = parsed.informesGuardados || [];
+                            state.evidenciasFacturas = parsed.evidenciasFacturas || [];
                             updateBadges();
                             checkAuthSessionValidity();
                             renderView();
@@ -302,31 +305,48 @@
                         isSyncingFromCloud = false;
                     }
                 } else {
-                    // Initialize document if empty
                     saveState();
                 }
             }, (error) => {
-                console.warn("Firestore sync permission notice (using local storage fallback):", error);
+                console.warn("Cloud sync warning:", error);
                 loadStateLocal();
             });
         }
 
         function toggleSidebar() {
-            state.sidebarCollapsed = !state.sidebarCollapsed;
-            applySidebarState();
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            const isMobile = window.innerWidth < 768;
+
+            if (isMobile) {
+                if (sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                }
+            } else {
+                state.sidebarCollapsed = !state.sidebarCollapsed;
+                applySidebarState();
+            }
         }
 
         function applySidebarState() {
             const sidebar = document.getElementById('sidebar');
             const texts = document.querySelectorAll('.sidebar-text');
-            if (state.sidebarCollapsed) {
-                sidebar.classList.remove('w-64');
-                sidebar.classList.add('w-20');
-                texts.forEach(el => el.classList.add('hidden'));
-            } else {
-                sidebar.classList.remove('w-20');
-                sidebar.classList.add('w-64');
-                texts.forEach(el => el.classList.remove('hidden'));
+            const isMobile = window.innerWidth < 768;
+
+            if (!isMobile) {
+                if (state.sidebarCollapsed) {
+                    sidebar.classList.remove('w-64');
+                    sidebar.classList.add('w-20');
+                    texts.forEach(el => el.classList.add('hidden'));
+                } else {
+                    sidebar.classList.remove('w-20');
+                    sidebar.classList.add('w-64');
+                    texts.forEach(el => el.classList.remove('hidden'));
+                }
             }
         }
 
@@ -383,7 +403,7 @@
                     state.currentUserRole = null;
                     state.lastLoginTime = null;
                     saveState();
-                    showToast("Tu sesión de 12 horas ha expirado. Ingresa tu PIN nuevamente.", "error");
+                    showToast("Sesión expirada. Ingresa tu PIN nuevamente.", "error");
                 }
             }
 
@@ -403,23 +423,17 @@
             const userName = document.getElementById('user-name');
             const userRole = document.getElementById('user-role');
             const userAvatar = document.getElementById('user-avatar');
-            const btnTopExcel = document.getElementById('btn-top-excel');
-            const btnTopAddProduct = document.getElementById('btn-top-add-product');
             const navCargaMasiva = document.getElementById('nav-cargamasiva');
 
             if (state.currentUserRole === 'admin') {
                 if (userName) userName.innerText = "Wendy Hernandez";
                 if (userAvatar) userAvatar.innerText = "WH";
                 if (userRole) userRole.innerHTML = `<i class="fa-solid fa-shield-halved text-[10px]"></i><span>Administrador</span>`;
-                if (btnTopExcel) btnTopExcel.style.display = 'flex';
-                if (btnTopAddProduct) btnTopAddProduct.style.display = 'flex';
                 if (navCargaMasiva) navCargaMasiva.style.display = 'flex';
             } else {
                 if (userName) userName.innerText = "Usuario Observador";
                 if (userAvatar) userAvatar.innerText = "OB";
                 if (userRole) userRole.innerHTML = `<i class="fa-solid fa-eye text-[10px]"></i><span>Solo Lectura</span>`;
-                if (btnTopExcel) btnTopExcel.style.display = 'none';
-                if (btnTopAddProduct) btnTopAddProduct.style.display = 'none';
                 if (navCargaMasiva) navCargaMasiva.style.display = 'none';
             }
         }
@@ -432,13 +446,6 @@
             if (headerDate) headerDate.innerText = formatted;
         }
 
-        function loadState() {
-            // Check if Firebase is ready, otherwise fallback to local storage
-            if (!db) {
-                loadStateLocal();
-            }
-        }
-
         function loadStateLocal() {
             const saved = localStorage.getItem('jadever_bodega_v4');
             if (saved) {
@@ -446,8 +453,6 @@
                     const parsed = JSON.parse(saved);
                     state = { ...state, ...parsed };
                 } catch(e) { console.error("Error loading local storage", e); }
-            } else {
-                state.darkMode = false;
             }
             updateBadges();
             checkAuthSessionValidity();
@@ -455,31 +460,34 @@
         }
 
         function saveState() {
-            const payloadString = JSON.stringify({
+            const payloadObj = {
                 inventario: state.inventario,
                 movimientos: state.movimientos,
                 pedidos: state.pedidos,
                 informesGuardados: state.informesGuardados,
-                evidenciasFacturas: state.evidenciasFacturas,
+                evidenciasFacturas: state.evidenciasFacturas
+            };
+
+            const payloadString = JSON.stringify({
+                ...payloadObj,
                 darkMode: state.darkMode,
                 currentUserRole: state.currentUserRole,
                 lastLoginTime: state.lastLoginTime
             });
 
-            // Save locally
             localStorage.setItem('jadever_bodega_v4', payloadString);
             updateBadges();
 
-            // Save to Cloud Firestore in real-time if connected and not currently syncing incoming cloud data
+            // Realtime Sync to Cloud Firestore if connected
             if (db && auth && !isSyncingFromCloud) {
                 const user = auth.currentUser;
-                if (!user) return; // RULE 3: Auth before queries
+                if (!user) return;
                 
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'jadever-bodega-default';
-                const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'users', user.uid);
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'jadever-bodega-main';
+                const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'shared_state');
                 
                 window.firebaseModules.setDoc(docRef, {
-                    payload: payloadString,
+                    payload: JSON.stringify(payloadObj),
                     updatedAt: Date.now(),
                     updatedBy: user.uid
                 }, { merge: true }).catch(err => {
@@ -487,10 +495,6 @@
                 });
             }
         }
-
-        window.addEventListener('beforeunload', function() {
-            saveState();
-        });
 
         function updateBadges() {
             const badge = document.getElementById('badge-inventario');
@@ -523,8 +527,8 @@
                 html.classList.remove('light');
                 body.className = "bg-gray-900 text-gray-100 flex h-screen overflow-hidden";
                 main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-900";
-                sidebar.className = "w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl";
-                topHeader.className = "h-16 bg-gray-950 border-b border-gray-800 px-6 flex items-center justify-between z-20 text-white";
+                sidebar.className = "w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl shrink-0 absolute md:relative inset-y-0 left-0 -translate-x-full md:translate-x-0";
+                topHeader.className = "h-16 bg-gray-950 border-b border-gray-800 px-4 md:px-6 flex items-center justify-between z-10 text-white";
                 if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-white leading-tight";
                 if (userName) userName.className = "text-sm font-semibold text-white truncate";
                 if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-900 border border-gray-800 p-2.5 rounded-xl";
@@ -534,14 +538,14 @@
             } else {
                 html.classList.remove('dark');
                 html.classList.add('light');
-                body.className = "bg-gray-100 text-gray-800 flex h-screen overflow-hidden";
-                main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-100";
-                sidebar.className = "w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-30 shadow-xl text-gray-800";
-                topHeader.className = "h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between z-20 text-gray-800";
+                body.className = "bg-gray-100 text-gray-900 flex h-screen overflow-hidden";
+                main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-100 text-gray-900";
+                sidebar.className = "w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-30 shadow-xl shrink-0 absolute md:relative inset-y-0 left-0 -translate-x-full md:translate-x-0 text-gray-900";
+                topHeader.className = "h-16 bg-white border-b border-gray-200 px-4 md:px-6 flex items-center justify-between z-10 text-gray-900";
                 if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-gray-900 leading-tight";
                 if (userName) userName.className = "text-sm font-semibold text-gray-900 truncate";
-                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-50 border border-gray-200 p-2.5 rounded-xl";
-                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-medium text-gray-700";
+                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-100 border border-gray-300 p-2.5 rounded-xl";
+                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-semibold text-gray-900";
                 if (themeIcon) themeIcon.className = "fa-solid fa-sun text-amber-500";
                 if (themeText) themeText.innerText = "Modo Claro";
             }
@@ -565,8 +569,14 @@
 
         function switchTab(tab) {
             state.currentTab = tab;
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('mobile-overlay').classList.add('hidden');
+            }
+
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.className = `nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium ${state.darkMode ? 'text-gray-400 hover:bg-gray-800/50 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`;
+                btn.className = `nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium ${state.darkMode ? 'text-gray-400 hover:bg-gray-800/50 hover:text-white' : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900'} transition-colors`;
             });
             const activeBtn = document.getElementById(`nav-${tab}`);
             if (activeBtn) {
@@ -623,15 +633,15 @@
                 return matchSearch && matchCat;
             });
 
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-            const tableHeaderBg = state.darkMode ? 'bg-gray-900/50 text-gray-400' : 'bg-gray-100 text-gray-600';
+            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800 text-gray-100' : 'bg-white border-gray-300 text-gray-900 shadow-sm';
+            const tableHeaderBg = state.darkMode ? 'bg-gray-900/50 text-gray-300' : 'bg-gray-100 text-gray-900 font-bold';
             const tableRowHover = state.darkMode ? 'hover:bg-gray-900/40' : 'hover:bg-gray-50';
 
             container.innerHTML = `
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Referencias (SKU)</p>
+                            <p class="text-xs font-semibold ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider">Total Referencias (SKU)</p>
                             <h3 class="text-2xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} mt-1">${totalRef}</h3>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg">
@@ -640,16 +650,16 @@
                     </div>
                     <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Unidades Totales en Stock</p>
+                            <p class="text-xs font-semibold ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider">Unidades Totales</p>
                             <h3 class="text-2xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} mt-1">${totalUnits.toLocaleString('es-ES')} un.</h3>
                         </div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-lg">
                             <i class="fa-solid fa-cubes"></i>
                         </div>
                     </div>
                     <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Alertas de Reorden</p>
+                            <p class="text-xs font-semibold ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider">Alertas Reorden</p>
                             <h3 class="text-2xl font-bold text-amber-500 mt-1">${reorderAlerts}</h3>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg">
@@ -658,19 +668,33 @@
                     </div>
                     <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Movimientos Registrados</p>
-                            <h3 class="text-2xl font-bold text-purple-400 mt-1">${totalMovimientos}</h3>
+                            <p class="text-xs font-semibold ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} uppercase tracking-wider">Movimientos Registrados</p>
+                            <h3 class="text-2xl font-bold text-purple-500 mt-1">${totalMovimientos}</h3>
                         </div>
-                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-lg">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-lg">
                             <i class="fa-solid fa-bolt"></i>
                         </div>
                     </div>
                 </div>
 
                 <div class="${cardBg} border rounded-2xl p-5 space-y-4">
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
-                        <input type="text" value="${invSearch}" oninput="invSearch = this.value; renderView();" placeholder="Buscar por SKU, producto o ubicación..." class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'} border rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-amber-500">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
+                            <input type="text" value="${invSearch}" oninput="invSearch = this.value; renderView();" placeholder="Buscar por SKU, producto o ubicación..." class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+                        ${isAdmin ? `
+                            <div class="flex items-center space-x-2">
+                                <button onclick="switchTab('cargamasiva')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-3 rounded-xl text-xs font-semibold transition border border-gray-700 flex items-center space-x-2">
+                                    <i class="fa-solid fa-file-excel text-emerald-400"></i>
+                                    <span>Cargar Excel</span>
+                                </button>
+                                <button onclick="openAddProductModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-lg shadow-amber-600/30 transition flex items-center space-x-2">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>+ Agregar Producto</span>
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <div class="flex items-center space-x-2 overflow-x-auto pb-2 custom-scrollbar">
@@ -678,7 +702,7 @@
                             <button onclick="invCategory = '${cat}'; renderView();" class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
                                 invCategory === cat 
                                     ? 'bg-amber-600 text-white shadow-md' 
-                                    : (state.darkMode ? 'bg-gray-900 text-gray-400 border-gray-800' : 'bg-gray-100 text-gray-600 border-gray-200') + ' border'
+                                    : (state.darkMode ? 'bg-gray-900 text-gray-300 border-gray-800' : 'bg-gray-100 text-gray-800 border-gray-300') + ' border'
                             }">
                                 ${cat}
                             </button>
@@ -693,13 +717,13 @@
                                 <i class="fa-solid fa-box-open"></i>
                             </div>
                             <h4 class="text-base font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">No hay productos en esta selección</h4>
-                            <p class="text-xs text-gray-400">${isAdmin ? 'Carga un Excel o presiona "+ Producto" arriba.' : 'Sin datos disponibles.'}</p>
+                            <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">${isAdmin ? 'Agrega uno con el botón "+ Agregar Producto".' : 'Sin datos disponibles.'}</p>
                         </div>
                     ` : `
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} ${tableHeaderBg} text-xs font-semibold uppercase tracking-wider">
+                                    <tr class="border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} ${tableHeaderBg} text-xs uppercase tracking-wider">
                                         <th class="py-3.5 px-4">SKU</th>
                                         <th class="py-3.5 px-4">Producto</th>
                                         <th class="py-3.5 px-4">Categoría</th>
@@ -711,26 +735,20 @@
                                 <tbody class="divide-y ${state.darkMode ? 'divide-gray-800/60' : 'divide-gray-200'} text-sm">
                                     ${filteredItems.map(item => `
                                         <tr class="${tableRowHover} transition">
-                                            <td class="py-3.5 px-4 font-mono font-medium text-amber-500">${item.sku}</td>
-                                            <td class="py-3.5 px-4 font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">
+                                            <td class="py-3.5 px-4 font-mono font-bold text-amber-600">${item.sku}</td>
+                                            <td class="py-3.5 px-4 font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">
                                                 ${item.nombre}
-                                                ${Number(item.cantidad) <= Number(item.minimo) ? '<span class="ml-2 px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-500 font-bold border border-amber-500/20">REORDEN</span>' : ''}
+                                                ${Number(item.cantidad) <= Number(item.minimo) ? '<span class="ml-2 px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-600 font-bold border border-amber-500/20">REORDEN</span>' : ''}
                                             </td>
-                                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg text-xs ${state.darkMode ? 'bg-gray-900 border-gray-800 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-700'} border">${item.categoria}</span></td>
-                                            <td class="py-3.5 px-4 text-gray-400 text-xs">${item.ubicacion}</td>
-                                            <td class="py-3.5 px-4 font-bold ${Number(item.cantidad) <= Number(item.minimo) ? 'text-amber-500' : (state.darkMode ? 'text-white' : 'text-gray-900')}">${item.cantidad} un.</td>
+                                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg text-xs ${state.darkMode ? 'bg-gray-900 border-gray-800 text-gray-300' : 'bg-gray-100 border-gray-300 text-gray-900 font-medium'} border">${item.categoria}</span></td>
+                                            <td class="py-3.5 px-4 ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} text-xs font-medium">${item.ubicacion}</td>
+                                            <td class="py-3.5 px-4 font-bold ${Number(item.cantidad) <= Number(item.minimo) ? 'text-amber-600' : (state.darkMode ? 'text-white' : 'text-gray-900')}">${item.cantidad} un.</td>
                                             ${isAdmin ? `
                                                 <td class="py-3.5 px-4 text-right space-x-1.5">
-                                                    <button onclick="openEditProductModal('${item.sku}')" title="Editar Producto" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                    <button onclick="openEditProductModal('${item.sku}')" title="Editar Producto" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white transition inline-flex items-center justify-center text-xs">
                                                         <i class="fa-solid fa-pen"></i>
                                                     </button>
-                                                    <button onclick="quickMoveModal('${item.sku}', 'Entrada')" title="Entrada" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                        <i class="fa-solid fa-arrow-down"></i>
-                                                    </button>
-                                                    <button onclick="quickMoveModal('${item.sku}', 'Salida')" title="Salida (Con cliente y Foto)" class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                        <i class="fa-solid fa-arrow-up"></i>
-                                                    </button>
-                                                    <button onclick="deleteProduct('${item.sku}')" title="Borrar Producto" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                    <button onclick="deleteProduct('${item.sku}')" title="Borrar Producto" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition inline-flex items-center justify-center text-xs">
                                                         <i class="fa-solid fa-trash"></i>
                                                     </button>
                                                 </td>
@@ -747,50 +765,50 @@
 
         function openAddProductModal() {
             openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
                     <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
                         <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">+ Nuevo Producto</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white flex items-center justify-center">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
                     <form onsubmit="handleAddProduct(event)" class="space-y-3">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre del Producto</label>
-                            <input type="text" id="add-name" required oninput="autoSuggestCategory(this.value)" placeholder="Ej: Taladro Percutor 650W" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Nombre del Producto</label>
+                            <input type="text" id="add-name" required oninput="autoSuggestCategory(this.value)" placeholder="Ej: Taladro Percutor 650W" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">SKU / Código</label>
-                            <input type="text" id="add-sku" required placeholder="Ej: JD-1002" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">SKU / Código</label>
+                            <input type="text" id="add-sku" required placeholder="Ej: JD-1002" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Categoría</label>
-                            <select id="add-cat" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Categoría</label>
+                            <select id="add-cat" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                                 ${defaultCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
                                 <option value="Automotriz">Automotriz</option>
                             </select>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Ubicación</label>
-                                <input type="text" id="add-ub" required placeholder="Ej: Estante C3" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Ubicación</label>
+                                <input type="text" id="add-ub" required placeholder="Ej: Estante C3" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Stock Inicial</label>
-                                <input type="number" id="add-cant" min="0" value="1" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Stock Inicial</label>
+                                <input type="number" id="add-cant" min="0" value="1" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Stock Mínimo</label>
-                                <input type="number" id="add-min" min="1" value="3" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Stock Mínimo</label>
+                                <input type="number" id="add-min" min="1" value="3" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Precio ($)</label>
-                                <input type="number" step="0.01" id="add-precio" min="0" value="0.00" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Precio ($)</label>
+                                <input type="number" step="0.01" id="add-precio" min="0" value="0.00" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg">
                             Crear Producto
                         </button>
                     </form>
@@ -917,46 +935,46 @@
             if (!item) return;
 
             openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
                     <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
                         <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Editar Producto (${item.sku})</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-white flex items-center justify-center">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
                     <form onsubmit="handleSaveEditProduct(event, '${item.sku}')" class="space-y-3">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre del Producto</label>
-                            <input type="text" id="edit-name" value="${item.nombre}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Nombre del Producto</label>
+                            <input type="text" id="edit-name" value="${item.nombre}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Categoría</label>
-                            <select id="edit-cat" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Categoría</label>
+                            <select id="edit-cat" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                                 ${defaultCategories.map(cat => `<option value="${cat}" ${item.categoria === cat ? 'selected' : ''}>${cat}</option>`).join('')}
                                 <option value="Automotriz" ${item.categoria === 'Automotriz' ? 'selected' : ''}>Automotriz</option>
                             </select>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Ubicación</label>
-                                <input type="text" id="edit-ub" value="${item.ubicacion}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Ubicación</label>
+                                <input type="text" id="edit-ub" value="${item.ubicacion}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Cantidad / Stock</label>
-                                <input type="number" id="edit-cant" min="0" value="${item.cantidad}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Cantidad / Stock</label>
+                                <input type="number" id="edit-cant" min="0" value="${item.cantidad}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Stock Mínimo</label>
-                                <input type="number" id="edit-min" min="1" value="${item.minimo}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Stock Mínimo</label>
+                                <input type="number" id="edit-min" min="1" value="${item.minimo}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Precio ($)</label>
-                                <input type="number" step="0.01" id="edit-precio" min="0" value="${item.precio || 0}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Precio ($)</label>
+                                <input type="number" step="0.01" id="edit-precio" min="0" value="${item.precio || 0}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg">
                             Guardar Cambios
                         </button>
                     </form>
@@ -983,79 +1001,29 @@
         }
 
         function deleteProduct(sku) {
-            if (confirm(`¿Estás seguro de eliminar el producto ${sku}?`)) {
-                state.inventario = state.inventario.filter(i => i.sku !== sku);
-                saveState();
-                renderView();
-                showToast("Producto eliminado", "success");
-            }
-        }
-
-        function quickMoveModal(sku, tipo) {
-            const item = state.inventario.find(i => i.sku === sku);
-            if (!item) return;
-
             openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Registrar ${tipo} - ${item.sku}</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+                    <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center text-xl mx-auto">
+                        <i class="fa-solid fa-trash-can"></i>
                     </div>
-                    <form onsubmit="handleQuickMove(event, '${sku}', '${tipo}')" class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Producto</label>
-                            <input type="text" value="${item.nombre}" disabled class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-600'} border rounded-xl px-3.5 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Cantidad</label>
-                            <input type="number" id="move-cant" min="1" max="${tipo === 'Salida' ? item.cantidad : 99999}" value="1" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                        </div>
-                        ${tipo === 'Salida' ? `
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Cliente / Quien se llevó el listado</label>
-                                <input type="text" id="move-cliente" required placeholder="Nombre del cliente o comprador" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Evidencia Fotográfica (Opcional)</label>
-                                <input type="file" id="move-foto" accept="image/*" class="w-full text-xs text-gray-400">
-                            </div>
-                        ` : ''}
-                        <button type="submit" class="w-full ${tipo === 'Entrada' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-amber-600 hover:bg-amber-500'} text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
-                            Confirmar ${tipo}
-                        </button>
-                    </form>
+                    <div>
+                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">¿Eliminar producto?</h3>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1">El producto con SKU <strong>${sku}</strong> se eliminará definitivamente.</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="closeModal()" class="flex-1 bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 font-semibold py-2.5 rounded-xl text-xs transition">Cancelar</button>
+                        <button onclick="confirmDeleteProduct('${sku}')" class="flex-1 bg-red-600 text-white hover:bg-red-500 font-semibold py-2.5 rounded-xl text-xs transition shadow">Eliminar</button>
+                    </div>
                 </div>
             `);
         }
 
-        function handleQuickMove(e, sku, tipo) {
-            e.preventDefault();
-            const item = state.inventario.find(i => i.sku === sku);
-            if (!item) return;
-
-            const cant = Number(document.getElementById('move-cant').value) || 0;
-            let cliente = 'Entrada Stock';
-
-            if (tipo === 'Salida') {
-                if (cant > item.cantidad) {
-                    showToast("No hay suficiente stock para realizar esta salida", "error");
-                    return;
-                }
-                cliente = document.getElementById('move-cliente').value.trim() || 'Cliente General';
-                const fileInput = document.getElementById('move-foto');
-                if (fileInput && fileInput.files && fileInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        saveMovementBatch([{ item, sku, cantidad: cant }], tipo, cliente, evt.target.result);
-                    };
-                    reader.readAsDataURL(fileInput.files[0]);
-                    return;
-                }
-            }
-
-            saveMovementBatch([{ item, sku, cantidad: cant }], tipo, cliente, null);
+        function confirmDeleteProduct(sku) {
+            state.inventario = state.inventario.filter(i => i.sku !== sku);
+            saveState();
+            closeModal();
+            renderView();
+            showToast("Producto eliminado", "success");
         }
 
         function saveMovementBatch(batchItems, tipo, cliente, foto) {
@@ -1088,34 +1056,29 @@
             saveState();
             closeModal();
             renderView();
-            showToast(`${tipo} masiva registrada con éxito`, "success");
+            showToast(`${tipo} registrada con éxito`, "success");
         }
 
         // ================= 2. MOVIMIENTOS =================
         function renderMovimientos(container) {
             const isAdmin = state.currentUserRole === 'admin';
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
+            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800 text-gray-100' : 'bg-white border-gray-300 text-gray-900 shadow-sm';
 
             container.innerHTML = `
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Bitácora de Movimientos</h2>
-                        <p class="text-xs text-gray-400">Historial completo de entradas y salidas registradas</p>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">Historial completo de entradas y salidas registradas</p>
                     </div>
                     <div class="flex items-center space-x-2">
                         ${isAdmin ? `
-                            <button onclick="openBatchMoveModal('Entrada')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-1.5">
+                            <button onclick="openBatchMoveModal('Entrada')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-arrow-down"></i>
                                 <span>+ Entrada Múltiple</span>
                             </button>
-                            <button onclick="openBatchMoveModal('Salida')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-1.5">
+                            <button onclick="openBatchMoveModal('Salida')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center space-x-1.5">
                                 <i class="fa-solid fa-arrow-up"></i>
-                                <span>- Salida Múltiple (Con Foto)</span>
-                            </button>
-                        ` : ''}
-                        ${isAdmin && state.movimientos.length > 0 ? `
-                            <button onclick="clearAllMovements()" class="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold transition border border-red-500/20">
-                                <i class="fa-solid fa-trash mr-1"></i> Borrar
+                                <span>- Salida Múltiple</span>
                             </button>
                         ` : ''}
                     </div>
@@ -1128,50 +1091,53 @@
                                 <i class="fa-solid fa-right-left"></i>
                             </div>
                             <h4 class="text-base font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">No hay movimientos registrados</h4>
-                            <p class="text-xs text-gray-400">Usa los botones superiores de "+ Entrada Múltiple" o "- Salida Múltiple" para registrar lotes.</p>
+                            <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">Usa los botones superiores de "+ Entrada Múltiple" o "- Salida Múltiple" para registrar movimientos.</p>
                         </div>
                     ` : `
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} ${state.darkMode ? 'bg-gray-900/50 text-gray-400' : 'bg-gray-100 text-gray-600'} text-xs font-semibold uppercase tracking-wider">
+                                    <tr class="border-b ${state.darkMode ? 'border-gray-800 bg-gray-900/50 text-gray-300' : 'border-gray-200 bg-gray-100 text-gray-900 font-bold'} text-xs uppercase tracking-wider">
                                         <th class="py-3.5 px-4">Fecha</th>
                                         <th class="py-3.5 px-4">Tipo</th>
                                         <th class="py-3.5 px-4">SKU</th>
                                         <th class="py-3.5 px-4">Producto</th>
-                                        <th class="py-3.5 px-4">Cliente / Dueño Factura</th>
+                                        <th class="py-3.5 px-4">Cliente / Origen</th>
                                         <th class="py-3.5 px-4">Cant.</th>
                                         <th class="py-3.5 px-4">Evidencia</th>
                                         <th class="py-3.5 px-4">Responsable</th>
-                                        ${isAdmin ? '<th class="py-3.5 px-4 text-right">Acción</th>' : ''}
+                                        ${isAdmin ? '<th class="py-3.5 px-4 text-right">Acciones</th>' : ''}
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y ${state.darkMode ? 'divide-gray-800/60' : 'divide-gray-200'} text-sm">
                                     ${state.movimientos.map(m => `
                                         <tr class="${state.darkMode ? 'hover:bg-gray-900/40' : 'hover:bg-gray-50'} transition">
-                                            <td class="py-3.5 px-4 text-xs text-gray-400">${m.fecha}</td>
+                                            <td class="py-3.5 px-4 text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-700 font-medium'}">${m.fecha}</td>
                                             <td class="py-3.5 px-4 font-bold text-xs">
-                                                <span class="px-2.5 py-1 rounded-lg ${m.tipo === 'ENTRADA' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}">
+                                                <span class="px-2.5 py-1 rounded-lg ${m.tipo === 'ENTRADA' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'}">
                                                     ${m.tipo}
                                                 </span>
                                             </td>
-                                            <td class="py-3.5 px-4 font-mono text-amber-500 text-xs font-medium">${m.sku}</td>
-                                            <td class="py-3.5 px-4 font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">${m.producto}</td>
-                                            <td class="py-3.5 px-4 text-gray-300 text-xs font-medium">${m.cliente || '-'}</td>
+                                            <td class="py-3.5 px-4 font-mono text-amber-600 text-xs font-bold">${m.sku}</td>
+                                            <td class="py-3.5 px-4 font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">${m.producto}</td>
+                                            <td class="py-3.5 px-4 ${state.darkMode ? 'text-gray-300' : 'text-gray-800'} text-xs font-medium">${m.cliente || '-'}</td>
                                             <td class="py-3.5 px-4 font-bold">${m.cantidad} un.</td>
                                             <td class="py-3.5 px-4 text-xs">
                                                 ${m.foto ? `
-                                                    <button onclick="viewMovementFoto('${m.id}')" class="text-amber-500 hover:text-amber-400 underline font-semibold flex items-center space-x-1">
+                                                    <button onclick="viewMovementFoto('${m.id}')" class="text-amber-600 hover:text-amber-500 underline font-bold flex items-center space-x-1">
                                                         <i class="fa-solid fa-image"></i>
                                                         <span>Ver Foto</span>
                                                     </button>
-                                                ` : '<span class="text-gray-500 font-normal">Sin foto</span>'}
+                                                ` : '<span class="text-gray-400 font-normal">Sin foto</span>'}
                                             </td>
-                                            <td class="py-3.5 px-4 text-xs text-gray-400">${m.responsable}</td>
+                                            <td class="py-3.5 px-4 text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-700'}">${m.responsable}</td>
                                             ${isAdmin ? `
-                                                <td class="py-3.5 px-4 text-right">
-                                                    <button onclick="deleteMovement(${m.id})" class="text-gray-400 hover:text-red-400 p-1">
-                                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                                <td class="py-3.5 px-4 text-right space-x-1">
+                                                    <button onclick="openEditMovementModal(${m.id})" title="Editar Movimiento" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                        <i class="fa-solid fa-pen"></i>
+                                                    </button>
+                                                    <button onclick="deleteMovement(${m.id})" title="Borrar Movimiento" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white transition inline-flex items-center justify-center text-xs">
+                                                        <i class="fa-solid fa-trash"></i>
                                                     </button>
                                                 </td>
                                             ` : ''}
@@ -1185,6 +1151,69 @@
             `;
         }
 
+        function openEditMovementModal(id) {
+            const mov = state.movimientos.find(m => String(m.id) === String(id));
+            if (!mov) return;
+
+            openModalHTML(`
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
+                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Editar Movimiento</h3>
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400 flex items-center justify-center">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <form onsubmit="handleSaveEditMovement(event, ${mov.id})" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Tipo de Movimiento</label>
+                            <select id="edit-mov-tipo" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
+                                <option value="ENTRADA" ${mov.tipo === 'ENTRADA' ? 'selected' : ''}>ENTRADA</option>
+                                <option value="SALIDA" ${mov.tipo === 'SALIDA' ? 'selected' : ''}>SALIDA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Producto</label>
+                            <input type="text" id="edit-mov-prod" value="${mov.producto}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">SKU</label>
+                                <input type="text" id="edit-mov-sku" value="${mov.sku}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Cantidad</label>
+                                <input type="number" id="edit-mov-cant" min="1" value="${mov.cantidad}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Cliente / Origen</label>
+                            <input type="text" id="edit-mov-cliente" value="${mov.cliente || ''}" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
+                        </div>
+                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg">
+                            Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            `);
+        }
+
+        function handleSaveEditMovement(e, id) {
+            e.preventDefault();
+            const mov = state.movimientos.find(m => String(m.id) === String(id));
+            if (!mov) return;
+
+            mov.tipo = document.getElementById('edit-mov-tipo').value;
+            mov.producto = document.getElementById('edit-mov-prod').value.trim();
+            mov.sku = document.getElementById('edit-mov-sku').value.trim();
+            mov.cantidad = Number(document.getElementById('edit-mov-cant').value) || 1;
+            mov.cliente = document.getElementById('edit-mov-cliente').value.trim();
+
+            saveState();
+            closeModal();
+            renderView();
+            showToast("Movimiento actualizado", "success");
+        }
+
         let currentBatchItems = [];
 
         function openBatchMoveModal(tipo) {
@@ -1194,10 +1223,10 @@
 
         function renderBatchModalContent(tipo) {
             openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                     <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Registrar ${tipo} Múltiple (Lote / Pedidos)</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
+                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Registrar ${tipo} Múltiple</h3>
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400 flex items-center justify-center">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
@@ -1205,16 +1234,16 @@
                     <div class="space-y-3">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <div class="sm:col-span-2">
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Buscar Producto o SKU</label>
-                                <input type="text" id="batch-item-search" list="inventario-datalist-batch" placeholder="Escribe nombre o SKU..." class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Buscar Producto o SKU</label>
+                                <input type="text" id="batch-item-search" list="inventario-datalist-batch" placeholder="Escribe nombre o SKU..." class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3 py-2 text-sm">
                                 <datalist id="inventario-datalist-batch">
                                     ${state.inventario.map(i => `<option value="${i.sku}">${i.nombre} (Stock: ${i.cantidad})</option>`).join('')}
                                 </datalist>
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Cantidad</label>
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Cantidad</label>
                                 <div class="flex space-x-2">
-                                    <input type="number" id="batch-item-cant" min="1" value="1" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3 py-2 text-sm">
+                                    <input type="number" id="batch-item-cant" min="1" value="1" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3 py-2 text-sm">
                                     <button type="button" onclick="addItemToBatch('${tipo}')" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
                                         <i class="fa-solid fa-plus"></i>
                                     </button>
@@ -1222,18 +1251,18 @@
                             </div>
                         </div>
 
-                        <div class="border ${state.darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-gray-200 bg-gray-50'} rounded-xl p-3 space-y-2">
-                            <p class="text-xs font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Productos en la lista actual (${currentBatchItems.length}):</p>
+                        <div class="border ${state.darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-gray-300 bg-gray-50'} rounded-xl p-3 space-y-2">
+                            <p class="text-xs font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Productos en la lista (${currentBatchItems.length}):</p>
                             ${currentBatchItems.length === 0 ? `
-                                <p class="text-xs text-gray-400 italic">Agrega productos usando el buscador superior.</p>
+                                <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} italic">Agrega productos usando el buscador superior.</p>
                             ` : `
                                 <div class="space-y-1.5 max-h-40 overflow-y-auto">
                                     ${currentBatchItems.map((b, idx) => `
-                                        <div class="flex items-center justify-between bg-gray-800/40 px-3 py-2 rounded-lg text-xs">
-                                            <span class="font-semibold text-white">${b.item.nombre} <span class="text-amber-500 font-mono">(${b.sku})</span></span>
+                                        <div class="flex items-center justify-between ${state.darkMode ? 'bg-gray-800/40 text-white' : 'bg-white border border-gray-200 text-gray-900'} px-3 py-2 rounded-lg text-xs">
+                                            <span class="font-semibold">${b.item.nombre} <span class="text-amber-600 font-mono">(${b.sku})</span></span>
                                             <div class="flex items-center space-x-3">
                                                 <span class="font-bold">${b.cantidad} un.</span>
-                                                <button type="button" onclick="removeBatchItem(${idx}, '${tipo}')" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>
+                                                <button type="button" onclick="removeBatchItem(${idx}, '${tipo}')" class="text-red-500 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
                                             </div>
                                         </div>
                                     `).join('')}
@@ -1243,16 +1272,16 @@
 
                         ${tipo === 'Salida' ? `
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre del Cliente / Dueño de la factura</label>
-                                <input type="text" id="batch-move-cliente" required placeholder="Nombre del cliente o comprador" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Nombre del Cliente / Dueño de la factura</label>
+                                <input type="text" id="batch-move-cliente" required placeholder="Nombre del cliente o comprador" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Foto / Evidencia de Salida (Opcional)</label>
+                                <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Foto / Evidencia de Salida (Opcional)</label>
                                 <input type="file" id="batch-move-foto" accept="image/*" class="w-full text-xs text-gray-400">
                             </div>
                         ` : ''}
 
-                        <button type="button" onclick="submitBatchMove('${tipo}')" class="w-full ${tipo === 'Entrada' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-amber-600 hover:bg-amber-500'} text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
+                        <button type="button" onclick="submitBatchMove('${tipo}')" class="w-full ${tipo === 'Entrada' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-amber-600 hover:bg-amber-500'} text-white font-bold py-3 rounded-xl text-sm transition shadow-lg">
                             Guardar Lote de ${tipo}s (${currentBatchItems.length} items)
                         </button>
                     </div>
@@ -1334,35 +1363,45 @@
             if (!mov || !mov.foto) return;
 
             openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
                     <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
                         <div>
                             <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Evidencia de Salida</h3>
-                            <p class="text-xs text-gray-400">${mov.producto} - ${mov.cliente}</p>
+                            <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">${mov.producto} - ${mov.cliente}</p>
                         </div>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400 flex items-center justify-center">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
-                    <div class="rounded-xl overflow-hidden border ${state.darkMode ? 'border-gray-800' : 'border-gray-200'}">
+                    <div class="rounded-xl overflow-hidden border ${state.darkMode ? 'border-gray-800' : 'border-gray-300'}">
                         <img src="${mov.foto}" alt="Evidencia Salida" class="w-full h-auto max-h-96 object-contain">
                     </div>
                 </div>
             `);
         }
 
-        function clearAllMovements() {
-            if (confirm("¿Deseas vaciar todo el historial de movimientos?")) {
-                state.movimientos = [];
-                saveState();
-                renderView();
-                showToast("Historial de movimientos borrado", "success");
-            }
+        function deleteMovement(id) {
+            openModalHTML(`
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+                    <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center text-xl mx-auto">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">¿Eliminar movimiento?</h3>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1">Esta acción borrará el registro de la bitácora.</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="closeModal()" class="flex-1 bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 font-semibold py-2.5 rounded-xl text-xs transition">Cancelar</button>
+                        <button onclick="confirmDeleteMovement(${id})" class="flex-1 bg-red-600 text-white hover:bg-red-500 font-semibold py-2.5 rounded-xl text-xs transition shadow">Eliminar</button>
+                    </div>
+                </div>
+            `);
         }
 
-        function deleteMovement(id) {
+        function confirmDeleteMovement(id) {
             state.movimientos = state.movimientos.filter(m => m.id !== id);
             saveState();
+            closeModal();
             renderView();
             showToast("Movimiento eliminado", "success");
         }
@@ -1370,13 +1409,13 @@
         // ================= 3. PEDIDOS =================
         function renderPedidos(container) {
             const isAdmin = state.currentUserRole === 'admin';
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
+            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800 text-gray-100' : 'bg-white border-gray-300 text-gray-900 shadow-sm';
 
             container.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Reabastecimiento & Pedidos</h2>
-                        <p class="text-xs text-gray-400">Control de pedidos pendientes por surtir</p>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">Control de pedidos pendientes por surtir</p>
                     </div>
                 </div>
 
@@ -1386,21 +1425,21 @@
                             <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-sm">Anotar lo que hace falta</h3>
                             <form onsubmit="handleAddPedido(event)" class="space-y-3">
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Producto / SKU</label>
-                                    <select id="ped-sku" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                    <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Producto / SKU</label>
+                                    <select id="ped-sku" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                                         <option value="">-- Seleccionar de Inventario --</option>
                                         ${state.inventario.map(i => `<option value="${i.sku}">${i.sku} - ${i.nombre}</option>`).join('')}
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Cantidad Faltante</label>
-                                    <input type="number" id="ped-cant" min="1" value="1" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                    <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Cantidad Faltante</label>
+                                    <input type="number" id="ped-cant" min="1" value="1" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Proveedor / Observaciones</label>
-                                    <input type="text" id="ped-obs" placeholder="Ej: Pedir a Ferretería El Sol" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                    <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Proveedor / Observaciones</label>
+                                    <input type="text" id="ped-obs" placeholder="Ej: Pedir a Ferretería El Sol" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                                 </div>
-                                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-md">
+                                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl text-sm transition shadow-md">
                                     + Agregar Pedido
                                 </button>
                             </form>
@@ -1410,19 +1449,19 @@
                     <div class="${isAdmin ? 'lg:col-span-2' : 'lg:col-span-3'} ${cardBg} border rounded-2xl p-5 space-y-4">
                         <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-sm">Control de Pedidos por Surtir (${state.pedidos.length})</h3>
                         ${state.pedidos.length === 0 ? `
-                            <div class="py-12 text-center text-gray-400 text-xs">
+                            <div class="py-12 text-center ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} text-xs">
                                 No hay pedidos pendientes registrados.
                             </div>
                         ` : `
                             <div class="space-y-3">
                                 ${state.pedidos.map(p => `
-                                    <div class="flex items-center justify-between p-3.5 rounded-xl ${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'} border">
+                                    <div class="flex items-center justify-between p-3.5 rounded-xl ${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-300 text-gray-900'} border">
                                         <div>
                                             <p class="font-bold text-sm ${state.darkMode ? 'text-white' : 'text-gray-900'}">${p.producto} (${p.sku})</p>
-                                            <p class="text-xs text-gray-400">Cantidad: <span class="text-amber-500 font-semibold">${p.cantidad} un.</span> · ${p.obs || 'Sin observaciones'}</p>
+                                            <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-700'}">Cantidad: <span class="text-amber-600 font-bold">${p.cantidad} un.</span> · ${p.obs || 'Sin observaciones'}</p>
                                         </div>
                                         ${isAdmin ? `
-                                            <button onclick="resolvePedido(${p.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow">
+                                            <button onclick="resolvePedido(${p.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow">
                                                 Completar
                                             </button>
                                         ` : ''}
@@ -1467,7 +1506,7 @@
             const totalEntradas = state.movimientos.filter(m => m.tipo === 'ENTRADA').reduce((a,b) => a + Number(b.cantidad), 0);
             const totalSalidas = state.movimientos.filter(m => m.tipo === 'SALIDA').reduce((a,b) => a + Number(b.cantidad), 0);
             const balance = totalEntradas - totalSalidas;
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
+            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800 text-gray-100' : 'bg-white border-gray-300 text-gray-900 shadow-sm';
 
             const todayStr = new Date().toISOString().split('T')[0];
 
@@ -1475,31 +1514,31 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 no-print">
                     <div>
                         <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Analítica & Auditoría</h2>
-                        <p class="text-xs text-gray-400">Resumen operativo y reporte listo para exportación</p>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">Resumen operativo y reporte listo para exportación</p>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <button onclick="saveCurrentReport()" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-md">
+                        <button onclick="saveCurrentReport()" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-md">
                             + Guardar Informe
                         </button>
-                        <button onclick="downloadPDF()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition">
+                        <button onclick="downloadPDF()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-bold border border-gray-700 transition">
                             <i class="fa-solid fa-file-pdf text-red-400 mr-1"></i> Descargar PDF
                         </button>
-                        <button onclick="triggerPrintReport()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition">
+                        <button onclick="triggerPrintReport()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-bold border border-gray-700 transition">
                             <i class="fa-solid fa-print text-blue-400 mr-1"></i> Imprimir
                         </button>
                         ${isAdmin ? `
-                            <button onclick="openAddFacturaModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-md">
-                                <i class="fa-solid fa-camera mr-1"></i> Subir Foto Evidencia
+                            <button onclick="openAddFacturaModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-md">
+                                <i class="fa-solid fa-camera mr-1"></i> Subir Evidencia
                             </button>
                         ` : ''}
                     </div>
                 </div>
 
-                <div id="report-printable-area" class="bg-white text-gray-900 border border-gray-200 rounded-2xl p-8 space-y-6 shadow-sm">
+                <div id="report-printable-area" class="bg-white text-gray-900 border border-gray-300 rounded-2xl p-8 space-y-6 shadow-sm">
                     <div class="border-b border-gray-200 pb-4">
                         <h1 class="text-2xl font-bold text-gray-900">Jadever Bodega — Informe</h1>
-                        <p class="text-sm font-semibold text-amber-600 mt-1">Reporte de hoy (${todayStr} a ${todayStr})</p>
-                        <p class="text-xs font-medium text-gray-700 mt-2">
+                        <p class="text-sm font-bold text-amber-600 mt-1">Reporte del día (${todayStr})</p>
+                        <p class="text-xs font-semibold text-gray-700 mt-2">
                             Entradas: <span class="font-bold text-emerald-600">${totalEntradas} und</span> · 
                             Salidas: <span class="font-bold text-amber-600">${totalSalidas} und</span> · 
                             Balance: <span class="font-bold text-gray-900">${balance}</span> · 
@@ -1528,12 +1567,12 @@
                                         </tr>
                                     ` : state.movimientos.map(m => `
                                         <tr class="hover:bg-gray-100">
-                                            <td class="py-3 px-4 text-gray-500">${m.fecha}</td>
+                                            <td class="py-3 px-4 text-gray-600 font-medium">${m.fecha}</td>
                                             <td class="py-3 px-4 font-bold ${m.tipo === 'ENTRADA' ? 'text-emerald-600' : 'text-amber-600'}">${m.tipo}</td>
                                             <td class="py-3 px-4 font-mono font-bold text-amber-600">${m.sku}</td>
-                                            <td class="py-3 px-4 font-semibold text-gray-900">${m.producto}</td>
+                                            <td class="py-3 px-4 font-bold text-gray-900">${m.producto}</td>
                                             <td class="py-3 px-4 font-bold text-gray-900">${m.cantidad}</td>
-                                            <td class="py-3 px-4 text-gray-500">${m.responsable}</td>
+                                            <td class="py-3 px-4 text-gray-600 font-medium">${m.responsable}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -1544,20 +1583,20 @@
 
                 <div class="${cardBg} border rounded-2xl p-6 space-y-4 no-print">
                     <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Evidencias de Facturas & Fotos (Ordenadas por Fecha)</h3>
-                        <span class="text-xs text-amber-500 font-semibold">${state.evidenciasFacturas.length} Evidencias</span>
+                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Evidencias de Facturas & Fotos</h3>
+                        <span class="text-xs text-amber-600 font-bold">${state.evidenciasFacturas.length} Evidencias</span>
                     </div>
 
                     ${state.evidenciasFacturas.length === 0 ? `
-                        <p class="text-xs text-gray-400 text-center py-8">Aún no has subido fotos de evidencias. Presiona "Subir Foto Evidencia" para agregar una.</p>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} text-center py-8">Aún no has subido fotos de evidencias. Presiona "Subir Evidencia" para agregar una.</p>
                     ` : `
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             ${state.evidenciasFacturas.sort((a,b) => b.timestamp - a.timestamp).map(ev => `
-                                <div class="rounded-xl border ${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'} p-3 space-y-2">
-                                    <img src="${ev.foto}" alt="Evidencia" class="w-full h-40 object-cover rounded-lg border border-gray-800">
+                                <div class="rounded-xl border ${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-300 text-gray-900'} p-3 space-y-2">
+                                    <img src="${ev.foto}" alt="Evidencia" class="w-full h-40 object-cover rounded-lg border border-gray-300 dark:border-gray-800">
                                     <div class="flex items-center justify-between text-xs">
-                                        <span class="font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">${ev.titulo || 'Evidencia Factura'}</span>
-                                        <span class="text-gray-400 text-[10px]">${ev.fecha}</span>
+                                        <span class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">${ev.titulo || 'Evidencia Factura'}</span>
+                                        <span class="${state.darkMode ? 'text-gray-400' : 'text-gray-600'} text-[10px] font-medium">${ev.fecha}</span>
                                     </div>
                                 </div>
                             `).join('')}
@@ -1583,13 +1622,12 @@
             const todayStr = new Date().toISOString().split('T')[0];
             const opt = {
                 margin:       0.4,
-                filename:     `informe-${todayStr}_${todayStr}.pdf`,
+                filename:     `informe-${todayStr}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
                 jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
             
-            // Temporarily force white background for PDF generation
             const originalClassName = element.className;
             element.className = "bg-white text-gray-900 border border-gray-200 rounded-2xl p-8 space-y-6 shadow-sm";
             
@@ -1604,23 +1642,23 @@
 
         function openAddFacturaModal() {
             openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
                     <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
                         <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Subir Foto de Evidencia / Factura</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
+                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400 flex items-center justify-center">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
                     <form onsubmit="handleSaveFactura(event)" class="space-y-3">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Título / Factura N°</label>
-                            <input type="text" id="fac-titulo" required placeholder="Ej: Factura 4509 - Compra Martillos" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Título / Factura N°</label>
+                            <input type="text" id="fac-titulo" required placeholder="Ej: Factura 4509 - Compra Martillos" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900 font-medium'} border rounded-xl px-3.5 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Imagen (Foto)</label>
+                            <label class="block text-xs font-bold ${state.darkMode ? 'text-gray-400' : 'text-gray-700'} mb-1">Imagen (Foto)</label>
                             <input type="file" id="fac-foto" accept="image/*" required class="w-full text-xs text-gray-400">
                         </div>
-                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg">
                             Guardar Evidencia
                         </button>
                     </form>
@@ -1656,27 +1694,27 @@
         // ================= 5. MÁS =================
         function renderMas(container) {
             const isAdmin = state.currentUserRole === 'admin';
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
+            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800 text-gray-100' : 'bg-white border-gray-300 text-gray-900 shadow-sm';
 
             container.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Copia de Seguridad</h2>
-                        <p class="text-xs text-gray-400">Gestión de respaldo y datos del sistema</p>
+                        <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Copia de Seguridad & Ajustes</h2>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">Gestión de respaldo y datos del sistema</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="${cardBg} border rounded-2xl p-5 space-y-4">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-sm">Respaldo Automático</h3>
-                        <p class="text-xs text-gray-400">Toda la información se guarda automáticamente cada 12 horas y al salir de la aplicación.</p>
+                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-sm">Respaldo Automático en la Nube</h3>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">Toda la información del inventario y movimientos se sincroniza en tiempo real con Firebase en todos tus dispositivos.</p>
                     </div>
 
                     ${isAdmin ? `
                         <div class="${cardBg} border rounded-2xl p-5 space-y-4">
                             <h3 class="font-bold text-red-500 text-sm">Reiniciar Datos (Poner en 0)</h3>
-                            <p class="text-xs text-gray-400">Restablecer la aplicación a 0 todo el sistema.</p>
-                            <button onclick="resetAllData()" class="w-full bg-red-600 hover:bg-red-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-md">
+                            <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">Restablecer la aplicación a 0 limpiando productos, movimientos y pedidos.</p>
+                            <button onclick="requestResetAllDataModal()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">
                                 Limpiar todo a 0
                             </button>
                         </div>
@@ -1685,43 +1723,60 @@
             `;
         }
 
-        function resetAllData() {
-            if (confirm("¿ADVERTENCIA: Deseas borrar todo el inventario, movimientos e informes? Esta acción dejará la app en 0.")) {
-                state.inventario = [];
-                state.movimientos = [];
-                state.pedidos = [];
-                state.informesGuardados = [];
-                state.evidenciasFacturas = [];
-                saveState();
-                renderView();
-                showToast("Sistema restablecido completamente a 0", "success");
-            }
+        function requestResetAllDataModal() {
+            openModalHTML(`
+                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+                    <div class="w-14 h-14 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center text-2xl mx-auto">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">¿Reiniciar todos los datos?</h3>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2">Esta acción borrará inventario, movimientos, pedidos y evidencias. No se puede deshacer.</p>
+                    </div>
+                    <div class="flex items-center space-x-3 pt-2">
+                        <button onclick="closeModal()" class="flex-1 bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Rechazar</button>
+                        <button onclick="confirmResetAllData()" class="flex-1 bg-red-600 text-white hover:bg-red-500 font-bold py-2.5 rounded-xl text-xs transition shadow">Aceptar</button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function confirmResetAllData() {
+            state.inventario = [];
+            state.movimientos = [];
+            state.pedidos = [];
+            state.informesGuardados = [];
+            state.evidenciasFacturas = [];
+            saveState();
+            closeModal();
+            renderView();
+            showToast("Sistema restablecido completamente a 0", "success");
         }
 
         // ================= 6. CARGA MASIVA =================
         function renderCargaMasiva(container) {
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
+            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800 text-gray-100' : 'bg-white border-gray-300 text-gray-900 shadow-sm';
 
             container.innerHTML = `
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Carga Masiva de Productos</h2>
-                        <p class="text-xs text-gray-400">Importación rápida mediante archivos Excel (.xlsx) o CSV</p>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">Importación rápida mediante archivos Excel (.xlsx) o CSV</p>
                     </div>
                 </div>
 
                 <div class="${cardBg} border rounded-2xl p-8 text-center space-y-4">
-                    <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl mx-auto">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl mx-auto">
                         <i class="fa-solid fa-file-excel"></i>
                     </div>
                     <div>
                         <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Arrastra o Selecciona tu archivo Excel / CSV</h3>
-                        <p class="text-xs text-gray-400 mt-1">Soporta columnas: SKU, Producto, Categoría, Ubicación, Cantidad y Precio</p>
+                        <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1">Soporta columnas: SKU, Producto, Categoría, Ubicación, Cantidad y Precio</p>
                     </div>
 
                     <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" onchange="handleExcelFileUpload(event)" class="hidden">
 
-                    <button onclick="document.getElementById('excel-file-input').click()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-3 rounded-xl text-sm transition shadow-lg inline-flex items-center space-x-2">
+                    <button onclick="document.getElementById('excel-file-input').click()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-xl text-sm transition shadow-lg inline-flex items-center space-x-2">
                         <i class="fa-solid fa-upload"></i>
                         <span>Seleccionar Archivo desde el Equipo</span>
                     </button>
@@ -1748,14 +1803,14 @@
                     }
 
                     openModalHTML(`
-                        <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
+                        <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-300'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
                             <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-lg">Opciones de Importación</h3>
-                            <p class="text-xs text-gray-400">Se leyeron ${pendingParsedRows.length} productos del archivo.</p>
+                            <p class="text-xs ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}">Se leyeron ${pendingParsedRows.length} productos del archivo.</p>
                             <div class="space-y-2 pt-2">
-                                <button onclick="processExcelImport('update')" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow">
+                                <button onclick="processExcelImport('update')" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-sm transition shadow">
                                     Actualizar / Fusionar (Merge & Add)
                                 </button>
-                                <button onclick="processExcelImport('replace')" class="w-full bg-red-600 hover:bg-red-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow">
+                                <button onclick="processExcelImport('replace')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl text-sm transition shadow">
                                     Subir y Reemplazar Todo (Overwrite)
                                 </button>
                             </div>
@@ -1771,7 +1826,7 @@
 
         window.onload = function() {
             updateDailyDate();
-            loadState();
+            loadStateLocal();
             applyTheme();
         };
     </script>
