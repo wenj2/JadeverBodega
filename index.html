@@ -30,8 +30,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- SheetJS for Excel parsing -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- html2pdf for PDF export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        window.firebaseModules = {
+            initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
+            getFirestore, doc, setDoc, getDoc, onSnapshot, collection
+        };
+        window.dispatchEvent(new Event('firebase-loaded'));
+    </script>
     <style>
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -44,7 +54,7 @@
         }
     </style>
 </head>
-<body id="app-body" class="bg-gray-900 text-gray-100 flex h-screen overflow-hidden">
+<body id="app-body" class="bg-gray-100 text-gray-800 flex h-screen overflow-hidden">
 
     <!-- Toast Notification container -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2"></div>
@@ -52,19 +62,17 @@
     <!-- Modal Container -->
     <div id="global-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"></div>
 
-    <!-- PANTALLA DE BLOQUEO Y ACCESO POR CLAVE -->
+    <!-- PANTALLA DE BLOQUEO Y ACCESO POR CLAVE (12 horas) -->
     <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-950 flex items-center justify-center p-4">
         <div class="max-w-md w-full bg-gray-900 border border-gray-800 rounded-3xl p-8 space-y-6 text-center shadow-2xl">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white text-2xl mx-auto shadow-lg shadow-amber-600/30">
                 <i class="fa-solid fa-lock"></i>
             </div>
-            
             <div>
                 <h2 class="text-xl font-bold text-white tracking-tight">JadeverBodega</h2>
                 <p class="text-xs text-amber-500 font-semibold tracking-wide uppercase mt-1">Acceso Protegido</p>
-                <p class="text-xs text-gray-400 mt-2">Ingresa tu PIN de acceso para continuar</p>
+                <p class="text-xs text-gray-400 mt-2">Ingresa tu PIN de acceso (válido por 12 horas)</p>
             </div>
-
             <form onsubmit="handleAuthLogin(event)" class="space-y-4">
                 <div class="relative">
                     <input type="password" id="auth-pin-input" maxlength="10" placeholder="••••" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3.5 text-center text-2xl tracking-widest text-white focus:outline-none focus:border-amber-500 transition">
@@ -73,27 +81,26 @@
                     Ingresar al Sistema
                 </button>
             </form>
-
             <div class="border-t border-gray-800 pt-4 text-[11px] text-gray-500">
-                <span>Modos disponibles: Administrador (Control Total) u Observador (Solo Lectura)</span>
+                <span>PIN Admin: 2626 | PIN Observador: 123</span>
             </div>
         </div>
     </div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl shrink-0">
+    <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-30 shadow-xl shrink-0 text-gray-800">
         <!-- Logo Header -->
-        <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+        <div class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
             <div class="flex items-center space-x-3 overflow-hidden">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-600/30 shrink-0">
                     <i class="fa-solid fa-screwdriver-wrench"></i>
                 </div>
                 <div class="sidebar-text">
-                    <h1 id="logo-title" class="font-bold text-base tracking-tight text-white leading-tight">JadeverBodega</h1>
+                    <h1 id="logo-title" class="font-bold text-base tracking-tight text-gray-900 leading-tight">JadeverBodega</h1>
                     <span class="text-xs text-amber-500 font-semibold tracking-wide">FERRETERÍA & CONTROL</span>
                 </div>
             </div>
-            <button onclick="toggleSidebar()" title="Plegar / Expandir Menú" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition">
+            <button onclick="toggleSidebar()" title="Plegar / Expandir Menú" class="text-gray-400 hover:text-gray-700 dark:hover:text-white p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
                 <i class="fa-solid fa-bars text-sm"></i>
             </button>
         </div>
@@ -108,40 +115,35 @@
                 <span id="badge-inventario" class="sidebar-text px-2 py-0.5 text-xs bg-white/20 rounded-full font-bold">0</span>
             </button>
 
-            <button onclick="switchTab('movimientos')" id="nav-movimientos" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
+            <button onclick="switchTab('movimientos')" id="nav-movimientos" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
                 <i class="fa-solid fa-right-left w-5 text-center"></i>
                 <span class="sidebar-text">Movimientos</span>
             </button>
 
-            <button onclick="switchTab('pedidos')" id="nav-pedidos" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
+            <button onclick="switchTab('pedidos')" id="nav-pedidos" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
                 <i class="fa-solid fa-cart-shopping w-5 text-center"></i>
                 <span class="sidebar-text">Pedidos</span>
             </button>
 
-            <button onclick="switchTab('informes')" id="nav-informes" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
+            <button onclick="switchTab('informes')" id="nav-informes" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
                 <i class="fa-solid fa-chart-pie w-5 text-center"></i>
                 <span class="sidebar-text">Informes</span>
             </button>
 
-            <button onclick="switchTab('mas')" id="nav-mas" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
+            <button onclick="switchTab('mas')" id="nav-mas" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
                 <i class="fa-solid fa-gear w-5 text-center"></i>
                 <span class="sidebar-text">Más</span>
-            </button>
-
-            <button onclick="switchTab('cargamasiva')" id="nav-cargamasiva" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800/50 hover:text-white transition-colors">
-                <i class="fa-solid fa-file-excel w-5 text-center text-emerald-400"></i>
-                <span class="sidebar-text">Carga masiva</span>
             </button>
         </nav>
 
         <!-- Dark Mode Toggle & User Profile -->
-        <div class="p-4 border-t border-gray-800 space-y-3">
-            <div id="theme-card" class="flex items-center justify-between bg-gray-900 border border-gray-800 p-2.5 rounded-xl">
-                <div class="flex items-center space-x-2 text-xs font-medium text-gray-300 sidebar-text" id="theme-label-box">
-                    <i class="fa-solid fa-moon text-amber-500" id="theme-icon"></i>
-                    <span id="theme-text">Modo Oscuro</span>
+        <div class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
+            <div id="theme-card" class="flex items-center justify-between bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-2.5 rounded-xl">
+                <div class="flex items-center space-x-2 text-xs font-medium text-gray-700 dark:text-gray-300 sidebar-text" id="theme-label-box">
+                    <i class="fa-solid fa-sun text-amber-500" id="theme-icon"></i>
+                    <span id="theme-text">Modo Claro</span>
                 </div>
-                <button onclick="toggleTheme()" class="p-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-amber-400 transition">
+                <button onclick="toggleTheme()" class="p-1.5 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-amber-500 transition">
                     <i class="fa-solid fa-circle-half-stroke text-sm"></i>
                 </button>
             </div>
@@ -152,14 +154,14 @@
                         WH
                     </div>
                     <div class="overflow-hidden sidebar-text">
-                        <p id="user-name" class="text-sm font-semibold text-white truncate">Wendy Hernandez</p>
+                        <p id="user-name" class="text-sm font-semibold text-gray-900 dark:text-white truncate">Wendy Hernandez</p>
                         <p id="user-role" class="text-xs text-amber-500 font-medium flex items-center space-x-1">
                             <i class="fa-solid fa-shield-halved text-[10px]"></i>
-                            <span>Administrator</span>
+                            <span>Administrador</span>
                         </p>
                     </div>
                 </div>
-                <button onclick="logoutAuth()" title="Cerrar Sesión" class="text-gray-400 hover:text-red-400 text-xs p-1 sidebar-text">
+                <button onclick="logoutAuth()" title="Cerrar Sesión" class="text-gray-400 hover:text-red-500 text-xs p-1 sidebar-text">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
@@ -167,25 +169,29 @@
     </aside>
 
     <!-- MAIN CONTENT AREA -->
-    <main id="app-main" class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-900">
+    <main id="app-main" class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-100">
         
         <!-- TOP APP BAR -->
-        <header id="top-header" class="h-16 bg-gray-950 border-b border-gray-800 px-6 flex items-center justify-between z-20">
+        <header id="top-header" class="h-16 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 flex items-center justify-between z-20 text-gray-800">
             <div class="flex items-center space-x-4">
-                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-2 rounded-lg bg-gray-900 border border-gray-800 hover:bg-gray-800 transition">
+                <button onclick="toggleSidebar()" class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white p-2 rounded-lg bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 transition">
                     <i class="fa-solid fa-bars text-sm"></i>
                 </button>
-                <div class="text-xs text-gray-400 font-medium hidden md:block">
+                <div class="text-xs text-gray-500 dark:text-gray-400 font-medium hidden md:block">
                     <span id="current-date-header" class="font-semibold uppercase tracking-wider"></span>
                 </div>
             </div>
 
             <div class="flex items-center space-x-3">
-                <button id="btn-top-excel" onclick="switchTab('cargamasiva')" class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition shadow-sm">
-                    <i class="fa-solid fa-file-excel text-emerald-400"></i>
-                    <span>Cargar Excel</span>
+                <button onclick="openMovimientoModal('ENTRADA')" class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md transition">
+                    <i class="fa-solid fa-arrow-down"></i>
+                    <span>+ Entrada</span>
                 </button>
-                <button id="btn-top-add-product" onclick="openAddProductModal()" class="flex items-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-amber-600/30 transition">
+                <button onclick="openMovimientoModal('SALIDA')" class="flex items-center space-x-2 bg-rose-600 hover:bg-rose-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md transition">
+                    <i class="fa-solid fa-arrow-up"></i>
+                    <span>- Salida</span>
+                </button>
+                <button onclick="openAddProductModal()" class="flex items-center space-x-2 bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg shadow-amber-600/30 transition">
                     <i class="fa-solid fa-plus"></i>
                     <span>+ Producto</span>
                 </button>
@@ -201,146 +207,86 @@
 
     <!-- APPLICATION LOGIC & STATE -->
     <script>
-        // --- APP STATE ---
         let state = {
             currentTab: 'inventario',
-            darkMode: false, // Default to light mode (white) as requested
+            darkMode: false, // Default Light mode
             sidebarCollapsed: false,
-            currentUserRole: null, // 'admin' | 'observer'
+            currentUserRole: null,
             lastLoginTime: null,
-            inventario: [],
+            inventario: [
+                { sku: "JDHM1305", nombre: "MARTILLO MAQUINISTA", categoria: "Herramientas Manuales", ubicacion: "Pasillo 1 - Estante 2", cantidad: 15, precio: 12.50 },
+                { sku: "JDCDS520", nombre: "TALADRO INALÁMBRICO 12V", categoria: "Herramientas Eléctricas", ubicacion: "Pasillo 2 - Estante 1", cantidad: 8, precio: 85.00 },
+                { sku: "DT4376", nombre: "SPRAY BLANCO MATE", categoria: "Pinturas y Acabados", ubicacion: "Pasillo 4 - Estante 3", cantidad: 25, precio: 6.00 }
+            ],
             movimientos: [],
             pedidos: [],
             informesGuardados: [],
             evidenciasFacturas: []
         };
 
-        let pendingParsedRows = null;
+        let db = null;
+        let auth = null;
+        let unsubscribeFirestore = null;
+        let isSyncingFromCloud = false;
+
         let invSearch = '';
         let invCategory = 'Todas';
 
-        const defaultCategories = [
-            'Herramientas Manuales',
-            'Herramientas Eléctricas',
-            'Fijación y Tornillería',
-            'Fontanería y Plomería',
-            'Pinturas y Acabados',
-            'Seguridad e Iluminación',
-            'Construcción y Medición'
-        ];
+        // Lote temporal para Entradas y Salidas múltiples
+        let loteMovimientoItems = [];
 
-        function toggleSidebar() {
-            state.sidebarCollapsed = !state.sidebarCollapsed;
-            applySidebarState();
-        }
+        window.addEventListener('firebase-loaded', async () => {
+            try {
+                const appId = 'jadeverbodega-app-v2';
+                const firebaseConfig = {
+                    apiKey: "AIzaSyB4hiDPrrUhiu8HHoH_gdbFVX5nU0vOgM",
+                    authDomain: "jadeverbodega.firebaseapp.com",
+                    projectId: "jadeverbodega",
+                    storageBucket: "jadeverbodega.appspot.com",
+                    messagingSenderId: "801005563673",
+                    appId: "1:801005563673:web:01ad1465257cf9e9b3df88"
+                };
 
-        function applySidebarState() {
-            const sidebar = document.getElementById('sidebar');
-            const texts = document.querySelectorAll('.sidebar-text');
-            if (state.sidebarCollapsed) {
-                sidebar.classList.remove('w-64');
-                sidebar.classList.add('w-20');
-                texts.forEach(el => el.classList.add('hidden'));
-            } else {
-                sidebar.classList.remove('w-20');
-                sidebar.classList.add('w-64');
-                texts.forEach(el => el.classList.remove('hidden'));
+                const app = window.firebaseModules.initializeApp(firebaseConfig);
+                db = window.firebaseModules.getFirestore(app);
+                auth = window.firebaseModules.getAuth(app);
+                await window.firebaseModules.signInAnonymously(auth);
+
+                initRealtimeSync(appId);
+            } catch(e) {
+                console.warn("Cloud Firestore offline mode:", e);
+                loadStateLocal();
             }
-        }
+        });
 
-        function suggestCategoryByName(name) {
-            const n = name.toLowerCase();
-            if (n.includes('taladro') || n.includes('esmeril') || n.includes('sierra') || n.includes('aspiradora') || n.includes('pulidora')) return 'Herramientas Eléctricas';
-            if (n.includes('llave') || n.includes('destornillador') || n.includes('alicate') || n.includes('martillo') || n.includes('cizalla')) return 'Herramientas Manuales';
-            if (n.includes('tornillo') || n.includes('clavo') || n.includes('remache') || n.includes('tuerca') || n.includes('arandela')) return 'Fijación y Tornillería';
-            if (n.includes('tubo') || n.includes('codo') || n.includes('valvula') || n.includes('grifo') || n.includes('llave de chorro') || n.includes('pvc')) return 'Fontanería y Plomería';
-            if (n.includes('pintura') || n.includes('brocha') || n.includes('rodillo') || n.includes('silicona') || n.includes('sellador')) return 'Pinturas y Acabados';
-            if (n.includes('casco') || n.includes('guante') || n.includes('cable') || n.includes('foco') || n.includes('linterna') || n.includes('bombillo')) return 'Seguridad e Iluminación';
-            if (n.includes('automotriz') || n.includes('aceite') || n.includes('filtro') || n.includes('bateria') || n.includes('carro')) return 'Automotriz';
-            return 'Construcción y Medición';
-        }
-
-        function handleAuthLogin(e) {
-            e.preventDefault();
-            const pin = document.getElementById('auth-pin-input').value.trim();
-            const overlay = document.getElementById('auth-overlay');
-
-            if (pin === '2626') {
-                state.currentUserRole = 'admin';
-                state.lastLoginTime = Date.now();
-                showToast("Acceso como Administrador", "success");
-            } else if (pin === '123') {
-                state.currentUserRole = 'observer';
-                state.lastLoginTime = Date.now();
-                showToast("Acceso como Observador (Solo Lectura)", "success");
-            } else {
-                showToast("PIN incorrecto. Intenta nuevamente.", "error");
-                return;
-            }
-
-            document.getElementById('auth-pin-input').value = '';
-            if (overlay) overlay.classList.add('hidden');
-            saveState();
-            updateUserUI();
-            renderView();
-        }
-
-        function checkAuthSessionValidity() {
-            const overlay = document.getElementById('auth-overlay');
-            const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
-
-            if (state.currentUserRole && state.lastLoginTime) {
-                const now = Date.now();
-                const elapsed = now - state.lastLoginTime;
-
-                if (elapsed < TWELVE_HOURS_MS) {
-                    if (overlay) overlay.classList.add('hidden');
-                    updateUserUI();
-                    return true;
+        function initRealtimeSync(appId) {
+            if (!db || !auth) return;
+            const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'appState');
+            if (unsubscribeFirestore) unsubscribeFirestore();
+            unsubscribeFirestore = window.firebaseModules.onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const cloudData = docSnap.data();
+                    if (cloudData && cloudData.payload) {
+                        isSyncingFromCloud = true;
+                        try {
+                            const parsed = JSON.parse(cloudData.payload);
+                            state = { ...state, ...parsed };
+                            updateBadges();
+                            checkAuthSessionValidity();
+                            renderView();
+                        } catch(err) { console.error("Error parsing cloud state", err); }
+                        isSyncingFromCloud = false;
+                    }
                 } else {
-                    state.currentUserRole = null;
-                    state.lastLoginTime = null;
                     saveState();
-                    showToast("Tu sesión de 12 horas ha expirado. Ingresa tu PIN nuevamente.", "error");
                 }
-            }
-
-            if (overlay) overlay.classList.remove('hidden');
-            return false;
+            }, (error) => { loadStateLocal(); });
         }
 
-        function logoutAuth() {
-            state.currentUserRole = null;
-            state.lastLoginTime = null;
-            saveState();
-            const overlay = document.getElementById('auth-overlay');
-            if (overlay) overlay.classList.remove('hidden');
-        }
-
-        function updateUserUI() {
-            const userName = document.getElementById('user-name');
-            const userRole = document.getElementById('user-role');
-            const userAvatar = document.getElementById('user-avatar');
-            const btnTopExcel = document.getElementById('btn-top-excel');
-            const btnTopAddProduct = document.getElementById('btn-top-add-product');
-            const navCargaMasiva = document.getElementById('nav-cargamasiva');
-
-            if (state.currentUserRole === 'admin') {
-                if (userName) userName.innerText = "Wendy Hernandez";
-                if (userAvatar) userAvatar.innerText = "WH";
-                if (userRole) userRole.innerHTML = `<i class="fa-solid fa-shield-halved text-[10px]"></i><span>Administrador</span>`;
-                if (btnTopExcel) btnTopExcel.style.display = 'flex';
-                if (btnTopAddProduct) btnTopAddProduct.style.display = 'flex';
-                if (navCargaMasiva) navCargaMasiva.style.display = 'flex';
-            } else {
-                if (userName) userName.innerText = "Usuario Observador";
-                if (userAvatar) userAvatar.innerText = "OB";
-                if (userRole) userRole.innerHTML = `<i class="fa-solid fa-eye text-[10px]"></i><span>Solo Lectura</span>`;
-                if (btnTopExcel) btnTopExcel.style.display = 'none';
-                if (btnTopAddProduct) btnTopAddProduct.style.display = 'none';
-                if (navCargaMasiva) navCargaMasiva.style.display = 'none';
-            }
-        }
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStateLocal();
+            updateDailyDate();
+        });
 
         function updateDailyDate() {
             const now = new Date();
@@ -350,44 +296,44 @@
             if (headerDate) headerDate.innerText = formatted;
         }
 
-        function loadState() {
-            const saved = localStorage.getItem('jadever_bodega_v4');
+        function loadStateLocal() {
+            const saved = localStorage.getItem('jadever_bodega_v5');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
                     state = { ...state, ...parsed };
-                } catch(e) { console.error("Error loading local storage", e); }
-            } else {
-                state.darkMode = false; // Default explicitly to white on clean start
+                } catch(e) {}
             }
+            applyTheme();
             updateBadges();
             checkAuthSessionValidity();
             renderView();
         }
 
         function saveState() {
-            localStorage.setItem('jadever_bodega_v4', JSON.stringify({
+            const payloadString = JSON.stringify({
                 inventario: state.inventario,
                 movimientos: state.movimientos,
                 pedidos: state.pedidos,
-                informesGuardados: state.informesGuardados,
-                evidenciasFacturas: state.evidenciasFacturas,
                 darkMode: state.darkMode,
                 currentUserRole: state.currentUserRole,
                 lastLoginTime: state.lastLoginTime
-            }));
+            });
+            localStorage.setItem('jadever_bodega_v5', payloadString);
             updateBadges();
+
+            if (db && auth && !isSyncingFromCloud) {
+                const appId = 'jadeverbodega-app-v2';
+                const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'appState');
+                window.firebaseModules.setDoc(docRef, { payload: payloadString, updatedAt: Date.now() }, { merge: true }).catch(err => {});
+            }
         }
 
-        window.addEventListener('beforeunload', function() {
-            saveState();
-        });
+        window.addEventListener('beforeunload', () => { saveState(); });
 
         function updateBadges() {
             const badge = document.getElementById('badge-inventario');
-            if (badge) {
-                badge.innerText = state.inventario.length;
-            }
+            if (badge) badge.innerText = state.inventario.length;
         }
 
         function toggleTheme() {
@@ -402,26 +348,16 @@
             const main = document.getElementById('app-main');
             const sidebar = document.getElementById('sidebar');
             const topHeader = document.getElementById('top-header');
-            const logoTitle = document.getElementById('logo-title');
-            const userName = document.getElementById('user-name');
-            const themeCard = document.getElementById('theme-card');
-            const themeLabelBox = document.getElementById('theme-label-box');
-            const themeIcon = document.getElementById('theme-icon');
-            const themeText = document.getElementById('theme-text');
 
             if (state.darkMode) {
                 html.classList.add('dark');
                 html.classList.remove('light');
                 body.className = "bg-gray-900 text-gray-100 flex h-screen overflow-hidden";
                 main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-900";
-                sidebar.className = "w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl";
+                sidebar.className = "w-64 bg-gray-950 border-r border-gray-800 flex flex-col transition-all duration-300 z-30 shadow-xl text-gray-100";
                 topHeader.className = "h-16 bg-gray-950 border-b border-gray-800 px-6 flex items-center justify-between z-20 text-white";
-                if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-white leading-tight";
-                if (userName) userName.className = "text-sm font-semibold text-white truncate";
-                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-900 border border-gray-800 p-2.5 rounded-xl";
-                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-medium text-gray-300";
-                if (themeIcon) themeIcon.className = "fa-solid fa-moon text-amber-500";
-                if (themeText) themeText.innerText = "Modo Oscuro";
+                document.getElementById('theme-icon').className = "fa-solid fa-moon text-amber-500";
+                document.getElementById('theme-text').innerText = "Modo Oscuro";
             } else {
                 html.classList.remove('dark');
                 html.classList.add('light');
@@ -429,53 +365,119 @@
                 main.className = "flex-1 flex flex-col h-screen overflow-hidden bg-gray-100";
                 sidebar.className = "w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-30 shadow-xl text-gray-800";
                 topHeader.className = "h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between z-20 text-gray-800";
-                if (logoTitle) logoTitle.className = "font-bold text-base tracking-tight text-gray-900 leading-tight";
-                if (userName) userName.className = "text-sm font-semibold text-gray-900 truncate";
-                if (themeCard) themeCard.className = "flex items-center justify-between bg-gray-50 border border-gray-200 p-2.5 rounded-xl";
-                if (themeLabelBox) themeLabelBox.className = "flex items-center space-x-2 text-xs font-medium text-gray-700";
-                if (themeIcon) themeIcon.className = "fa-solid fa-sun text-amber-500";
-                if (themeText) themeText.innerText = "Modo Claro";
+                document.getElementById('theme-icon').className = "fa-solid fa-sun text-amber-500";
+                document.getElementById('theme-text').innerText = "Modo Claro";
             }
+        }
+
+        function toggleSidebar() {
+            state.sidebarCollapsed = !state.sidebarCollapsed;
+            const sidebar = document.getElementById('sidebar');
+            const texts = document.querySelectorAll('.sidebar-text');
+            if (state.sidebarCollapsed) {
+                sidebar.classList.remove('w-64'); sidebar.classList.add('w-20');
+                texts.forEach(el => el.classList.add('hidden'));
+            } else {
+                sidebar.classList.remove('w-20'); sidebar.classList.add('w-64');
+                texts.forEach(el => el.classList.remove('hidden'));
+            }
+        }
+
+        function handleAuthLogin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('auth-pin-input').value.trim();
+            if (pin === '2626') {
+                state.currentUserRole = 'admin';
+                state.lastLoginTime = Date.now();
+                showToast("Acceso Administrador concedido", "success");
+            } else if (pin === '123') {
+                state.currentUserRole = 'observer';
+                state.lastLoginTime = Date.now();
+                showToast("Acceso Observador (Lectura)", "success");
+            } else {
+                showToast("PIN incorrecto", "error");
+                return;
+            }
+            document.getElementById('auth-pin-input').value = '';
+            document.getElementById('auth-overlay').classList.add('hidden');
+            saveState();
+            updateUserUI();
             renderView();
+        }
+
+        function checkAuthSessionValidity() {
+            const overlay = document.getElementById('auth-overlay');
+            const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+            if (state.currentUserRole && state.lastLoginTime) {
+                if (Date.now() - state.lastLoginTime < TWELVE_HOURS) {
+                    overlay.classList.add('hidden');
+                    updateUserUI();
+                    return true;
+                }
+            }
+            overlay.classList.remove('hidden');
+            return false;
+        }
+
+        function logoutAuth() {
+            state.currentUserRole = null;
+            state.lastLoginTime = null;
+            saveState();
+            document.getElementById('auth-overlay').classList.remove('hidden');
+        }
+
+        function updateUserUI() {
+            const userName = document.getElementById('user-name');
+            const userRole = document.getElementById('user-role');
+            if (state.currentUserRole === 'admin') {
+                userName.innerText = "Wendy Hernandez";
+                userRole.innerHTML = `<i class="fa-solid fa-shield-halved text-[10px]"></i><span>Administrador</span>`;
+            } else {
+                userName.innerText = "Observador";
+                userRole.innerHTML = `<i class="fa-solid fa-eye text-[10px]"></i><span>Solo Lectura</span>`;
+            }
         }
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = `flex items-center space-x-3 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium text-white transition-all transform translate-y-2 opacity-0 ${
-                type === 'success' ? 'bg-emerald-600 border border-emerald-500' : 'bg-red-600 border border-red-500'
-            }`;
+            toast.className = `flex items-center space-x-3 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium text-white ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`;
             toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i><span>${message}</span>`;
             container.appendChild(toast);
-            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            setTimeout(() => toast.remove(), 3000);
         }
 
         function switchTab(tab) {
             state.currentTab = tab;
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.className = `nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium ${state.darkMode ? 'text-gray-400 hover:bg-gray-800/50 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'} transition-colors`;
+                btn.className = `nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium ${state.darkMode ? 'text-gray-400 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-100'} transition-colors`;
             });
-            const activeBtn = document.getElementById(`nav-${tab}`);
-            if (activeBtn) {
-                activeBtn.className = "nav-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors bg-amber-600 text-white shadow-md";
-            }
+            const active = document.getElementById(`nav-${tab}`);
+            if (active) active.className = "nav-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors bg-amber-600 text-white shadow-md";
             renderView();
         }
 
-        function openModalHTML(htmlContent) {
-            const container = document.getElementById('global-modal');
-            container.innerHTML = htmlContent;
-            container.classList.remove('hidden');
+        function openModalHTML(html) {
+            const modal = document.getElementById('global-modal');
+            modal.innerHTML = html;
+            modal.classList.remove('hidden');
         }
 
         function closeModal() {
-            const container = document.getElementById('global-modal');
-            container.classList.add('hidden');
-            container.innerHTML = '';
+            const modal = document.getElementById('global-modal');
+            modal.classList.add('hidden');
+            modal.innerHTML = '';
+        }
+
+        function suggestCategoryByName(name) {
+            const n = name.toLowerCase();
+            if (n.includes('taladro') || n.includes('sierra')) return 'Herramientas Eléctricas';
+            if (n.includes('martillo') || n.includes('llave')) return 'Herramientas Manuales';
+            if (n.includes('tornillo') || n.includes('clavo')) return 'Fijación y Tornillería';
+            if (n.includes('tubo') || n.includes('pvc')) return 'Fontanería y Plomería';
+            if (n.includes('pintura') || n.includes('brocha')) return 'Pinturas y Acabados';
+            if (n.includes('automotriz') || n.includes('aceite') || n.includes('filtro')) return 'Automotriz';
+            return 'Construcción y Medición';
         }
 
         function renderView() {
@@ -488,7 +490,6 @@
                 case 'pedidos': renderPedidos(container); break;
                 case 'informes': renderInformes(container); break;
                 case 'mas': renderMas(container); break;
-                case 'cargamasiva': renderCargaMasiva(container); break;
             }
             updateBadges();
             updateUserUI();
@@ -496,935 +497,500 @@
 
         // ================= 1. INVENTARIO =================
         function renderInventario(container) {
-            const isAdmin = state.currentUserRole === 'admin';
-            const totalRef = state.inventario.length;
-            const totalUnits = state.inventario.reduce((acc, item) => acc + (Number(item.cantidad) || 0), 0);
-            const reorderAlerts = state.inventario.filter(item => Number(item.cantidad) <= Number(item.minimo)).length;
-            const totalMovimientos = state.movimientos.length;
-
-            const presentCategories = Array.from(new Set([
-                ...defaultCategories,
-                ...state.inventario.map(i => i.categoria).filter(Boolean)
-            ]));
-            const categories = ['Todas', ...presentCategories];
-
-            const filteredItems = state.inventario.filter(item => {
-                const matchSearch = item.nombre.toLowerCase().includes(invSearch.toLowerCase()) || item.sku.toLowerCase().includes(invSearch.toLowerCase()) || item.ubicacion.toLowerCase().includes(invSearch.toLowerCase());
-                const matchCat = invCategory === 'Todas' || item.categoria === invCategory;
-                return matchSearch && matchCat;
+            const categories = ['Todas', ...new Set(state.inventario.map(p => p.categoria))];
+            const filtered = state.inventario.filter(p => {
+                const matchCat = invCategory === 'Todas' || p.categoria === invCategory;
+                const matchQuery = p.nombre.toLowerCase().includes(invSearch.toLowerCase()) || p.sku.toLowerCase().includes(invSearch.toLowerCase());
+                return matchCat && matchQuery;
             });
 
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-            const tableHeaderBg = state.darkMode ? 'bg-gray-900/50 text-gray-400' : 'bg-gray-100 text-gray-600';
-            const tableRowHover = state.darkMode ? 'hover:bg-gray-900/40' : 'hover:bg-gray-50';
-
             container.innerHTML = `
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
+                <div class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Referencias (SKU)</p>
-                            <h3 class="text-2xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} mt-1">${totalRef}</h3>
+                            <h1 class="text-2xl font-bold tracking-tight">Inventario de Bodega</h1>
+                            <p class="text-xs text-gray-500">Control en tiempo real y categorización inteligente</p>
                         </div>
-                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-boxes-stacked"></i>
+                        <div class="flex items-center space-x-3">
+                            <input type="text" value="${invSearch}" oninput="invSearch=this.value; renderInventario(document.getElementById('main-content-view'))" placeholder="Buscar SKU o nombre..." class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:border-amber-500">
                         </div>
-                    </div>
-                    <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Unidades Totales en Stock</p>
-                            <h3 class="text-2xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} mt-1">${totalUnits.toLocaleString('es-ES')} un.</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-cubes"></i>
-                        </div>
-                    </div>
-                    <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Alertas de Reorden</p>
-                            <h3 class="text-2xl font-bold text-amber-500 mt-1">${reorderAlerts}</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                    </div>
-                    <div class="${cardBg} border p-5 rounded-2xl flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Movimientos Registrados</p>
-                            <h3 class="text-2xl font-bold text-purple-400 mt-1">${totalMovimientos}</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-bolt"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="${cardBg} border rounded-2xl p-5 space-y-4">
-                    <div class="relative">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
-                        <input type="text" value="${invSearch}" oninput="invSearch = this.value; renderView();" placeholder="Buscar por SKU, producto o ubicación..." class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-800'} border rounded-xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-amber-500">
                     </div>
 
-                    <div class="flex items-center space-x-2 overflow-x-auto pb-2 custom-scrollbar">
-                        ${categories.map(cat => `
-                            <button onclick="invCategory = '${cat}'; renderView();" class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
-                                invCategory === cat 
-                                    ? 'bg-amber-600 text-white shadow-md' 
-                                    : (state.darkMode ? 'bg-gray-900 text-gray-400 border-gray-800' : 'bg-gray-100 text-gray-600 border-gray-200') + ' border'
-                            }">
-                                ${cat}
-                            </button>
+                    <!-- Pestañas de Categorías Dinámicas -->
+                    <div class="flex items-center space-x-2 overflow-x-auto pb-2">
+                        ${categories.map(c => `
+                            <button onclick="invCategory='${c}'; renderInventario(document.getElementById('main-content-view'))" class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${invCategory === c ? 'bg-amber-600 text-white shadow-md' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50'}">${c}</button>
                         `).join('')}
                     </div>
-                </div>
 
-                <div class="${cardBg} border rounded-2xl overflow-hidden">
-                    ${filteredItems.length === 0 ? `
-                        <div class="py-16 text-center space-y-3">
-                            <div class="w-16 h-16 ${state.darkMode ? 'bg-gray-900' : 'bg-gray-100'} text-gray-400 rounded-full flex items-center justify-center mx-auto text-xl">
-                                <i class="fa-solid fa-box-open"></i>
-                            </div>
-                            <h4 class="text-base font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">No hay productos en esta selección</h4>
-                            <p class="text-xs text-gray-400">${isAdmin ? 'Carga un Excel o presiona "+ Producto" arriba.' : 'Sin datos disponibles.'}</p>
-                        </div>
-                    ` : `
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} ${tableHeaderBg} text-xs font-semibold uppercase tracking-wider">
-                                        <th class="py-3.5 px-4">SKU</th>
-                                        <th class="py-3.5 px-4">Producto</th>
-                                        <th class="py-3.5 px-4">Categoría</th>
-                                        <th class="py-3.5 px-4">Ubicación</th>
-                                        <th class="py-3.5 px-4">Cantidad</th>
-                                        ${isAdmin ? '<th class="py-3.5 px-4 text-right">Acciones</th>' : ''}
+                    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 uppercase">
+                                    <th class="p-4">SKU</th>
+                                    <th class="p-4">Producto</th>
+                                    <th class="p-4">Categoría</th>
+                                    <th class="p-4">Ubicación</th>
+                                    <th class="p-4 text-center">Stock</th>
+                                    <th class="p-4 text-right">Precio ($)</th>
+                                    <th class="p-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                                ${filtered.length === 0 ? `<tr><td colspan="7" class="p-8 text-center text-gray-400">No se encontraron productos en el inventario.</td></tr>` :
+                                filtered.map(p => `
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                        <td class="p-4 font-mono font-bold text-amber-600 dark:text-amber-400">${p.sku}</td>
+                                        <td class="p-4 font-semibold">${p.nombre}</td>
+                                        <td class="p-4"><span class="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded-full text-xs font-medium">${p.categoria}</span></td>
+                                        <td class="p-4 text-gray-500 dark:text-gray-400 text-xs">${p.ubicacion}</td>
+                                        <td class="p-4 text-center font-bold ${p.cantidad <= 3 ? 'text-red-500' : ''}">${p.cantidad}</td>
+                                        <td class="p-4 text-right font-medium">$${Number(p.precio).toFixed(2)}</td>
+                                        <td class="p-4 text-center space-x-2">
+                                            <button onclick="openEditProductModal('${p.sku}')" class="text-blue-500 hover:text-blue-700 p-1"><i class="fa-solid fa-pen"></i></button>
+                                            <button onclick="deleteProduct('${p.sku}')" class="text-red-500 hover:text-red-700 p-1"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody class="divide-y ${state.darkMode ? 'divide-gray-800/60' : 'divide-gray-200'} text-sm">
-                                    ${filteredItems.map(item => `
-                                        <tr class="${tableRowHover} transition">
-                                            <td class="py-3.5 px-4 font-mono font-medium text-amber-500">${item.sku}</td>
-                                            <td class="py-3.5 px-4 font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">
-                                                ${item.nombre}
-                                                ${Number(item.cantidad) <= Number(item.minimo) ? '<span class="ml-2 px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-500 font-bold border border-amber-500/20">REORDEN</span>' : ''}
-                                            </td>
-                                            <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-lg text-xs ${state.darkMode ? 'bg-gray-900 border-gray-800 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-700'} border">${item.categoria}</span></td>
-                                            <td class="py-3.5 px-4 text-gray-400 text-xs">${item.ubicacion}</td>
-                                            <td class="py-3.5 px-4 font-bold ${Number(item.cantidad) <= Number(item.minimo) ? 'text-amber-500' : (state.darkMode ? 'text-white' : 'text-gray-900')}">${item.cantidad} un.</td>
-                                            ${isAdmin ? `
-                                                <td class="py-3.5 px-4 text-right space-x-1.5">
-                                                    <button onclick="openEditProductModal('${item.sku}')" title="Editar Producto" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                        <i class="fa-solid fa-pen"></i>
-                                                    </button>
-                                                    <button onclick="quickMoveModal('${item.sku}', 'Entrada')" title="Entrada" class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                        <i class="fa-solid fa-arrow-down"></i>
-                                                    </button>
-                                                    <button onclick="quickMoveModal('${item.sku}', 'Salida')" title="Salida (Con cliente y Foto)" class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                        <i class="fa-solid fa-arrow-up"></i>
-                                                    </button>
-                                                    <button onclick="deleteProduct('${item.sku}')" title="Borrar Producto" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition inline-flex items-center justify-center text-xs">
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            ` : ''}
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `}
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             `;
         }
 
-        function openAddProductModal() {
+        function openAddProductModal(preSku = '', preNombre = '') {
+            const catSug = suggestCategoryByName(preNombre);
             openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">+ Nuevo Producto</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                    <form onsubmit="handleAddProduct(event)" class="space-y-3">
+                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+                    <h3 class="text-lg font-bold">Registrar Nuevo Producto</h3>
+                    <form onsubmit="saveNewProduct(event)" class="space-y-3">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre del Producto</label>
-                            <input type="text" id="add-name" required oninput="autoSuggestCategory(this.value)" placeholder="Ej: Taladro Percutor 650W" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">SKU / Código</label>
+                            <input type="text" id="m-sku" value="${preSku}" required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">SKU / Código</label>
-                            <input type="text" id="add-sku" required placeholder="Ej: JD-1002" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Nombre del Producto</label>
+                            <input type="text" id="m-nombre" value="${preNombre}" required oninput="document.getElementById('m-categoria').value=suggestCategoryByName(this.value)" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Categoría</label>
-                            <select id="add-cat" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                                ${defaultCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
-                                <option value="Automotriz">Automotriz</option>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Categoría</label>
+                            <select id="m-categoria" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
+                                <option value="Herramientas Manuales" ${catSug==='Herramientas Manuales'?'selected':''}>Herramientas Manuales</option>
+                                <option value="Herramientas Eléctricas" ${catSug==='Herramientas Eléctricas'?'selected':''}>Herramientas Eléctricas</option>
+                                <option value="Fijación y Tornillería" ${catSug==='Fijación y Tornillería'?'selected':''}>Fijación y Tornillería</option>
+                                <option value="Fontanería y Plomería" ${catSug==='Fontanería y Plomería'?'selected':''}>Fontanería y Plomería</option>
+                                <option value="Pinturas y Acabados" ${catSug==='Pinturas y Acabados'?'selected':''}>Pinturas y Acabados</option>
+                                <option value="Seguridad e Iluminación" ${catSug==='Seguridad e Iluminación'?'selected':''}>Seguridad e Iluminación</option>
+                                <option value="Construcción y Medición" ${catSug==='Construcción y Medición'?'selected':''}>Construcción y Medición</option>
+                                <option value="Automotriz" ${catSug==='Automotriz'?'selected':''}>Automotriz</option>
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Ubicación</label>
-                                <input type="text" id="add-ub" required placeholder="Ej: Estante C3" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Stock Inicial</label>
-                                <input type="number" id="add-cant" min="0" value="1" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                            </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Ubicación</label>
+                            <input type="text" id="m-ubicacion" placeholder="Ej. Pasillo 2 - Estante 1" required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Stock Mínimo</label>
-                                <input type="number" id="add-min" min="1" value="3" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Cantidad Inicial</label>
+                                <input type="number" id="m-cantidad" min="0" value="1" required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Precio ($)</label>
-                                <input type="number" step="0.01" id="add-precio" min="0" value="0.00" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Precio Unitario ($)</label>
+                                <input type="number" step="0.01" id="m-precio" min="0" value="0.00" required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
-                            Crear Producto
-                        </button>
+                        <div class="flex justify-end space-x-2 pt-2">
+                            <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">Cancelar</button>
+                            <button type="submit" class="px-5 py-2 bg-amber-600 text-white rounded-xl text-sm font-semibold">Guardar Producto</button>
+                        </div>
                     </form>
                 </div>
             `);
         }
 
-        function autoSuggestCategory(name) {
-            const catSelect = document.getElementById('add-cat');
-            if (catSelect && name.length > 2) {
-                catSelect.value = suggestCategoryByName(name);
-            }
-        }
-
-        function processExcelImport(mode) {
-            if (!pendingParsedRows) return;
-            
-            if (mode === 'replace') {
-                state.inventario = [];
-            }
-
-            let added = 0, updated = 0;
-
-            pendingParsedRows.forEach((r, idxRow) => {
-                const findVal = (keys) => {
-                    for (const k of Object.keys(r)) {
-                        const cleanKey = k.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                        for (const target of keys) {
-                            if (cleanKey.includes(target)) {
-                                const val = String(r[k]).trim();
-                                if (val && val !== 'undefined' && val !== 'null') return val;
-                            }
-                        }
-                    }
-                    return null;
-                };
-
-                const values = Object.values(r).map(v => String(v).trim()).filter(Boolean);
-
-                let sku = findVal(['sku', 'cod', 'ref', 'item', 'id', 'clave']);
-                if (!sku && values.length > 0) {
-                    if (values[0].length <= 20 && !values[0].includes(' ')) sku = values[0];
-                }
-                if (!sku) sku = 'JD-' + String(1000 + idxRow).padStart(4, '0');
-
-                let nombre = findVal(['producto', 'nombre', 'descripcion', 'art', 'detalle', 'desc']);
-                if (!nombre) {
-                    const textCandidates = values.filter(v => v !== sku && isNaN(v));
-                    if (textCandidates.length > 0) {
-                        nombre = textCandidates.reduce((a, b) => a.length >= b.length ? a : b);
-                    }
-                }
-                if (!nombre || nombre.length < 2) nombre = `Producto ${sku}`;
-
-                let categoria = findVal(['categoria', 'cat', 'grupo', 'fam', 'rubro']) || suggestCategoryByName(nombre);
-                let ubicacion = findVal(['ubicacion', 'ubi', 'estante', 'bodega', 'pasillo']) || 'Bodega Principal';
-
-                let cantStr = findVal(['cantidad', 'cant', 'stock', 'unid', 'existencia']);
-                let cantidad = 0;
-                if (cantStr !== null) {
-                    cantidad = Number(cantStr.replace(/[^0-9.-]/g, '')) || 0;
-                } else {
-                    const numVal = values.find(v => !isNaN(v) && v !== sku);
-                    if (numVal) cantidad = Number(numVal) || 0;
-                }
-
-                let minStr = findVal(['minimo', 'min', 'reorden']);
-                let minimo = minStr ? (Number(minStr.replace(/[^0-9.-]/g, '')) || 3) : 3;
-
-                let precioStr = findVal(['precio', 'costo', 'valor', 'pvp', '$']);
-                let precio = precioStr ? (Number(precioStr.replace(/[^0-9.-]/g, '')) || 0) : 0;
-
-                const existingIdx = state.inventario.findIndex(i => i.sku.toLowerCase() === sku.toLowerCase());
-                if (existingIdx !== -1) {
-                    if (mode === 'replace') {
-                        state.inventario[existingIdx] = { sku, nombre, categoria, ubicacion, cantidad, minimo, precio };
-                    } else {
-                        state.inventario[existingIdx].cantidad += cantidad;
-                        if (nombre) state.inventario[existingIdx].nombre = nombre;
-                        if (categoria) state.inventario[existingIdx].categoria = categoria;
-                        if (precio > 0) state.inventario[existingIdx].precio = precio;
-                    }
-                    updated++;
-                } else {
-                    state.inventario.push({ sku, nombre, categoria, ubicacion, cantidad, minimo, precio });
-                    added++;
-                }
-            });
-
-            state.inventario.sort((a,b) => a.sku.localeCompare(b.sku));
-            pendingParsedRows = null;
-            saveState();
-            closeModal();
-            switchTab('inventario');
-            showToast(mode === 'replace' ? `Inventario cargado (${added} productos procesados)` : `Excel fusionado: ${added} nuevos, ${updated} actualizados`, "success");
-        }
-
-        function handleAddProduct(e) {
+        function saveNewProduct(e) {
             e.preventDefault();
-            const name = document.getElementById('add-name').value.trim();
-            const sku = document.getElementById('add-sku').value.trim();
-            const cat = document.getElementById('add-cat').value;
-            const ub = document.getElementById('add-ub').value.trim();
-            const cant = Number(document.getElementById('add-cant').value) || 0;
-            const min = Number(document.getElementById('add-min').value) || 3;
-            const precio = Number(document.getElementById('add-precio').value) || 0;
+            const sku = document.getElementById('m-sku').value.trim();
+            const nombre = document.getElementById('m-nombre').value.trim();
+            const categoria = document.getElementById('m-categoria').value;
+            const ubicacion = document.getElementById('m-ubicacion').value.trim();
+            const cantidad = parseInt(document.getElementById('m-cantidad').value);
+            const precio = parseFloat(document.getElementById('m-precio').value);
 
-            const existingIdx = state.inventario.findIndex(i => i.sku.toLowerCase() === sku.toLowerCase());
-            if (existingIdx !== -1) {
-                showToast("El SKU ya existe en el inventario", "error");
+            if (state.inventario.some(p => p.sku === sku)) {
+                showToast("Ya existe un producto con este SKU", "error");
                 return;
             }
 
-            state.inventario.push({ sku, nombre: name, categoria: cat, ubicacion: ub, cantidad: cant, minimo: min, precio: precio });
-            state.inventario.sort((a,b) => a.sku.localeCompare(b.sku));
+            state.inventario.push({ sku, nombre, categoria, ubicacion, cantidad, precio });
             saveState();
             closeModal();
+            showToast("Producto registrado correctamente", "success");
             renderView();
-            showToast("Producto creado exitosamente", "success");
         }
 
         function openEditProductModal(sku) {
-            const item = state.inventario.find(i => i.sku === sku);
-            if (!item) return;
-
+            const p = state.inventario.find(x => x.sku === sku);
+            if (!p) return;
             openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Editar Producto (${item.sku})</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                    <form onsubmit="handleSaveEditProduct(event, '${item.sku}')" class="space-y-3">
+                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+                    <h3 class="text-lg font-bold">Editar Producto</h3>
+                    <form onsubmit="updateProduct(event, '${sku}')" class="space-y-3">
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre del Producto</label>
-                            <input type="text" id="edit-name" value="${item.nombre}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">SKU</label>
+                            <input type="text" id="e-sku" value="${p.sku}" required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Categoría</label>
-                            <select id="edit-cat" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                                ${defaultCategories.map(cat => `<option value="${cat}" ${item.categoria === cat ? 'selected' : ''}>${cat}</option>`).join('')}
-                                <option value="Automotriz" ${item.categoria === 'Automotriz' ? 'selected' : ''}>Automotriz</option>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Nombre</label>
+                            <input type="text" id="e-nombre" value="${p.nombre}" required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Categoría</label>
+                            <select id="e-categoria" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
+                                <option value="${p.categoria}" selected>${p.categoria}</option>
+                                <option value="Herramientas Manuales">Herramientas Manuales</option>
+                                <option value="Herramientas Eléctricas">Herramientas Eléctricas</option>
+                                <option value="Fijación y Tornillería">Fijación y Tornillería</option>
+                                <option value="Fontanería y Plomería">Fontanería y Plomería</option>
+                                <option value="Pinturas y Acabados">Pinturas y Acabados</option>
+                                <option value="Seguridad e Iluminación">Seguridad e Iluminación</option>
+                                <option value="Construcción y Medición">Construcción y Medición</option>
+                                <option value="Automotriz">Automotriz</option>
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Ubicación</label>
-                                <input type="text" id="edit-ub" value="${item.ubicacion}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Cantidad / Stock</label>
-                                <input type="number" id="edit-cant" min="0" value="${item.cantidad}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                            </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Ubicación</label>
+                            <input type="text" id="e-ubicacion" value="${p.ubicacion}" required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Stock Mínimo</label>
-                                <input type="number" id="edit-min" min="1" value="${item.minimo}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Cantidad</label>
+                                <input type="number" id="e-cantidad" min="0" value="${p.cantidad}" required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Precio ($)</label>
-                                <input type="number" step="0.01" id="edit-precio" min="0" value="${item.precio || 0}" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
+                                <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Precio ($)</label>
+                                <input type="number" step="0.01" id="e-precio" min="0" value="${p.precio}" required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
-                            Guardar Cambios
-                        </button>
+                        <div class="flex justify-end space-x-2 pt-2">
+                            <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">Cancelar</button>
+                            <button type="submit" class="px-5 py-2 bg-amber-600 text-white rounded-xl text-sm font-semibold">Actualizar</button>
+                        </div>
                     </form>
                 </div>
             `);
         }
 
-        function handleSaveEditProduct(event, sku) {
-            event.preventDefault();
-            const item = state.inventario.find(i => i.sku === sku);
-            if (!item) return;
-
-            item.nombre = document.getElementById('edit-name').value.trim();
-            item.categoria = document.getElementById('edit-cat').value;
-            item.ubicacion = document.getElementById('edit-ub').value.trim();
-            item.cantidad = Number(document.getElementById('edit-cant').value) || 0;
-            item.minimo = Number(document.getElementById('edit-min').value) || 1;
-            item.precio = Number(document.getElementById('edit-precio').value) || 0;
-
+        function updateProduct(e, oldSku) {
+            e.preventDefault();
+            const idx = state.inventario.findIndex(x => x.sku === oldSku);
+            if (idx === -1) return;
+            state.inventario[idx] = {
+                sku: document.getElementById('e-sku').value.trim(),
+                nombre: document.getElementById('e-nombre').value.trim(),
+                categoria: document.getElementById('e-categoria').value,
+                ubicacion: document.getElementById('e-ubicacion').value.trim(),
+                cantidad: parseInt(document.getElementById('e-cantidad').value),
+                precio: parseFloat(document.getElementById('e-precio').value)
+            };
             saveState();
             closeModal();
-            renderView();
             showToast("Producto actualizado", "success");
+            renderView();
         }
 
         function deleteProduct(sku) {
-            if (confirm(`¿Estás seguro de eliminar el producto ${sku}?`)) {
-                state.inventario = state.inventario.filter(i => i.sku !== sku);
+            if (confirm("¿Estás seguro de eliminar este producto?")) {
+                state.inventario = state.inventario.filter(x => x.sku !== sku);
                 saveState();
-                renderView();
                 showToast("Producto eliminado", "success");
+                renderView();
             }
         }
 
-        function quickMoveModal(sku, tipo) {
-            const item = state.inventario.find(i => i.sku === sku);
-            if (!item) return;
-
-            openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Registrar ${tipo} - ${item.sku}</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                    <form onsubmit="handleQuickMove(event, '${sku}', '${tipo}')" class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Producto</label>
-                            <input type="text" value="${item.nombre}" disabled class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-600'} border rounded-xl px-3.5 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Cantidad</label>
-                            <input type="number" id="move-cant" min="1" max="${tipo === 'Salida' ? item.cantidad : 99999}" value="1" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                        </div>
-                        ${tipo === 'Salida' ? `
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Cliente / Quien se llevó el listado</label>
-                                <input type="text" id="move-cliente" required placeholder="Nombre del cliente o comprador" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Evidencia Fotográfica (Opcional)</label>
-                                <input type="file" id="move-foto" accept="image/*" class="w-full text-xs text-gray-400">
-                            </div>
-                        ` : ''}
-                        <button type="submit" class="w-full ${tipo === 'Entrada' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-amber-600 hover:bg-amber-500'} text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
-                            Confirmar ${tipo}
-                        </button>
-                    </form>
-                </div>
-            `);
-        }
-
-        function handleQuickMove(e, sku, tipo) {
-            e.preventDefault();
-            const item = state.inventario.find(i => i.sku === sku);
-            if (!item) return;
-
-            const cant = Number(document.getElementById('move-cant').value) || 0;
-            let cliente = 'Entrada Stock';
-
-            if (tipo === 'Salida') {
-                if (cant > item.cantidad) {
-                    showToast("No hay suficiente stock para realizar esta salida", "error");
-                    return;
-                }
-                cliente = document.getElementById('move-cliente').value.trim() || 'Cliente General';
-                const fileInput = document.getElementById('move-foto');
-                if (fileInput && fileInput.files && fileInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        saveMovementBatch([{ item, sku, cantidad: cant }], tipo, cliente, evt.target.result);
-                    };
-                    reader.readAsDataURL(fileInput.files[0]);
-                    return;
-                }
-            }
-
-            saveMovementBatch([{ item, sku, cantidad: cant }], tipo, cliente, null);
-        }
-
-        function saveMovementBatch(batchItems, tipo, cliente, foto) {
-            const now = new Date();
-            const fechaStr = now.toLocaleString('es-ES');
-            const timestamp = now.getTime();
-            const responsable = state.currentUserRole === 'admin' ? 'Wendy Hernandez' : 'Usuario Observador';
-
-            batchItems.forEach(b => {
-                if (tipo.toUpperCase() === 'ENTRADA') {
-                    b.item.cantidad += b.cantidad;
-                } else {
-                    b.item.cantidad -= b.cantidad;
-                }
-
-                state.movimientos.unshift({
-                    id: Date.now() + Math.random(),
-                    fecha: fechaStr,
-                    timestamp: timestamp,
-                    tipo: tipo.toUpperCase(),
-                    sku: b.sku,
-                    producto: b.item.nombre,
-                    cliente: cliente,
-                    cantidad: b.cantidad,
-                    responsable: responsable,
-                    foto: foto
-                });
-            });
-
-            saveState();
-            closeModal();
-            renderView();
-            showToast(`${tipo} masiva registrada con éxito`, "success");
-        }
-
-        // ================= 2. MOVIMIENTOS =================
+        // ================= 2. MOVIMIENTOS (Entrada / Salida por Lotes con Factura y Foto) =================
         function renderMovimientos(container) {
-            const isAdmin = state.currentUserRole === 'admin';
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-
             container.innerHTML = `
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Bitácora de Movimientos</h2>
-                        <p class="text-xs text-gray-400">Historial completo de entradas y salidas registradas</p>
+                <div class="space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold tracking-tight">Movimientos de Almacén</h1>
+                            <p class="text-xs text-gray-500">Gestión de entradas y salidas con listado múltiple y evidencia fotográfica</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="openMovimientoModal('ENTRADA')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-md"><i class="fa-solid fa-arrow-down mr-1"></i> Registrar Entrada</button>
+                            <button onclick="openMovimientoModal('SALIDA')" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-md"><i class="fa-solid fa-arrow-up mr-1"></i> Registrar Salida</button>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        ${isAdmin ? `
-                            <button onclick="openBatchMoveModal('Entrada')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-arrow-down"></i>
-                                <span>+ Entrada Múltiple</span>
-                            </button>
-                            <button onclick="openBatchMoveModal('Salida')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-1.5">
-                                <i class="fa-solid fa-arrow-up"></i>
-                                <span>- Salida Múltiple (Con Foto)</span>
-                            </button>
-                        ` : ''}
-                        ${isAdmin && state.movimientos.length > 0 ? `
-                            <button onclick="clearAllMovements()" class="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold transition border border-red-500/20">
-                                <i class="fa-solid fa-trash mr-1"></i> Borrar
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
 
-                <div class="${cardBg} border rounded-2xl overflow-hidden">
-                    ${state.movimientos.length === 0 ? `
-                        <div class="py-16 text-center space-y-3">
-                            <div class="w-16 h-16 ${state.darkMode ? 'bg-gray-900' : 'bg-gray-100'} text-gray-400 rounded-full flex items-center justify-center mx-auto text-xl">
-                                <i class="fa-solid fa-right-left"></i>
-                            </div>
-                            <h4 class="text-base font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">No hay movimientos registrados</h4>
-                            <p class="text-xs text-gray-400">Usa los botones superiores de "+ Entrada Múltiple" o "- Salida Múltiple" para registrar lotes.</p>
-                        </div>
-                    ` : `
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} ${state.darkMode ? 'bg-gray-900/50 text-gray-400' : 'bg-gray-100 text-gray-600'} text-xs font-semibold uppercase tracking-wider">
-                                        <th class="py-3.5 px-4">Fecha</th>
-                                        <th class="py-3.5 px-4">Tipo</th>
-                                        <th class="py-3.5 px-4">SKU</th>
-                                        <th class="py-3.5 px-4">Producto</th>
-                                        <th class="py-3.5 px-4">Cliente / Dueño Factura</th>
-                                        <th class="py-3.5 px-4">Cant.</th>
-                                        <th class="py-3.5 px-4">Evidencia</th>
-                                        <th class="py-3.5 px-4">Responsable</th>
-                                        ${isAdmin ? '<th class="py-3.5 px-4 text-right">Acción</th>' : ''}
+                    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 uppercase">
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Tipo</th>
+                                    <th class="p-4">Responsable / Dueño Factura</th>
+                                    <th class="p-4">Detalle de Productos</th>
+                                    <th class="p-4 text-center">Evidencia / Foto</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                                ${state.movimientos.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-400">No hay movimientos registrados.</td></tr>` :
+                                state.movimientos.map(m => `
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                        <td class="p-4 text-xs text-gray-500">${m.fecha}</td>
+                                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${m.tipo === 'ENTRADA' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${m.tipo}</span></td>
+                                        <td class="p-4 font-medium">${m.cliente}</td>
+                                        <td class="p-4 text-xs">${m.items.map(i => `${i.cantidad}x ${i.nombre} (${i.sku})`).join(', ')}</td>
+                                        <td class="p-4 text-center">
+                                            ${m.foto ? `<button onclick="verFotoMovimiento('${encodeURIComponent(m.foto)}')" class="text-amber-500 underline text-xs font-semibold">Ver Factura/Foto</button>` : '<span class="text-gray-400 text-xs">Sin foto</span>'}
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody class="divide-y ${state.darkMode ? 'divide-gray-800/60' : 'divide-gray-200'} text-sm">
-                                    ${state.movimientos.map(m => `
-                                        <tr class="${state.darkMode ? 'hover:bg-gray-900/40' : 'hover:bg-gray-50'} transition">
-                                            <td class="py-3.5 px-4 text-xs text-gray-400">${m.fecha}</td>
-                                            <td class="py-3.5 px-4 font-bold text-xs">
-                                                <span class="px-2.5 py-1 rounded-lg ${m.tipo === 'ENTRADA' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}">
-                                                    ${m.tipo}
-                                                </span>
-                                            </td>
-                                            <td class="py-3.5 px-4 font-mono text-amber-500 text-xs font-medium">${m.sku}</td>
-                                            <td class="py-3.5 px-4 font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">${m.producto}</td>
-                                            <td class="py-3.5 px-4 text-gray-300 text-xs font-medium">${m.cliente || '-'}</td>
-                                            <td class="py-3.5 px-4 font-bold">${m.cantidad} un.</td>
-                                            <td class="py-3.5 px-4 text-xs">
-                                                ${m.foto ? `
-                                                    <button onclick="viewMovementFoto('${m.id}')" class="text-amber-500 hover:text-amber-400 underline font-semibold flex items-center space-x-1">
-                                                        <i class="fa-solid fa-image"></i>
-                                                        <span>Ver Foto</span>
-                                                    </button>
-                                                ` : '<span class="text-gray-500 font-normal">Sin foto</span>'}
-                                            </td>
-                                            <td class="py-3.5 px-4 text-xs text-gray-400">${m.responsable}</td>
-                                            ${isAdmin ? `
-                                                <td class="py-3.5 px-4 text-right">
-                                                    <button onclick="deleteMovement(${m.id})" class="text-gray-400 hover:text-red-400 p-1">
-                                                        <i class="fa-solid fa-trash-can text-xs"></i>
-                                                    </button>
-                                                </td>
-                                            ` : ''}
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `}
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             `;
         }
 
-        let currentBatchItems = [];
-
-        function openBatchMoveModal(tipo) {
-            currentBatchItems = [];
-            renderBatchModalContent(tipo);
-        }
-
-        function renderBatchModalContent(tipo) {
+        let tipoMovActual = 'ENTRADA';
+        function openMovimientoModal(tipo) {
+            tipoMovActual = tipo;
+            loteMovimientoItems = [];
             openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Registrar ${tipo} Múltiple (Lote / Pedidos)</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-
+                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 max-w-xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+                    <h3 class="text-lg font-bold">Registrar ${tipo === 'ENTRADA' ? 'Entrada de Mercancía' : 'Salida con Factura'}</h3>
+                    
                     <div class="space-y-3">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            <div class="sm:col-span-2">
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Buscar Producto o SKU</label>
-                                <input type="text" id="batch-item-search" list="inventario-datalist-batch" placeholder="Escribe nombre o SKU..." class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3 py-2 text-sm">
-                                <datalist id="inventario-datalist-batch">
-                                    ${state.inventario.map(i => `<option value="${i.sku}">${i.nombre} (Stock: ${i.cantidad})</option>`).join('')}
-                                </datalist>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Cantidad</label>
-                                <div class="flex space-x-2">
-                                    <input type="number" id="batch-item-cant" min="1" value="1" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3 py-2 text-sm">
-                                    <button type="button" onclick="addItemToBatch('${tipo}')" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
-                                        <i class="fa-solid fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="border ${state.darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-gray-200 bg-gray-50'} rounded-xl p-3 space-y-2">
-                            <p class="text-xs font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Productos en la lista actual (${currentBatchItems.length}):</p>
-                            ${currentBatchItems.length === 0 ? `
-                                <p class="text-xs text-gray-400 italic">Agrega productos usando el buscador superior.</p>
-                            ` : `
-                                <div class="space-y-1.5 max-h-40 overflow-y-auto">
-                                    ${currentBatchItems.map((b, idx) => `
-                                        <div class="flex items-center justify-between bg-gray-800/40 px-3 py-2 rounded-lg text-xs">
-                                            <span class="font-semibold text-white">${b.item.nombre} <span class="text-amber-500 font-mono">(${b.sku})</span></span>
-                                            <div class="flex items-center space-x-3">
-                                                <span class="font-bold">${b.cantidad} un.</span>
-                                                <button type="button" onclick="removeBatchItem(${idx}, '${tipo}')" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            `}
-                        </div>
-
-                        ${tipo === 'Salida' ? `
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Nombre del Cliente / Dueño de la factura</label>
-                                <input type="text" id="batch-move-cliente" required placeholder="Nombre del cliente o comprador" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 mb-1">Foto / Evidencia de Salida (Opcional)</label>
-                                <input type="file" id="batch-move-foto" accept="image/*" class="w-full text-xs text-gray-400">
-                            </div>
-                        ` : ''}
-
-                        <button type="button" onclick="submitBatchMove('${tipo}')" class="w-full ${tipo === 'Entrada' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-amber-600 hover:bg-amber-500'} text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
-                            Guardar Lote de ${tipo}s (${currentBatchItems.length} items)
-                        </button>
-                    </div>
-                </div>
-            `);
-        }
-
-        function addItemToBatch(tipo) {
-            const searchVal = document.getElementById('batch-item-search').value.trim();
-            const cant = Number(document.getElementById('batch-item-cant').value) || 1;
-
-            if (!searchVal) {
-                showToast("Escribe o selecciona un producto", "error");
-                return;
-            }
-
-            let item = state.inventario.find(i => i.sku.toLowerCase() === searchVal.toLowerCase() || i.nombre.toLowerCase() === searchVal.toLowerCase());
-
-            if (!item && tipo === 'Entrada') {
-                item = {
-                    sku: 'JD-' + Math.floor(1000 + Math.random() * 9000),
-                    nombre: searchVal,
-                    categoria: suggestCategoryByName(searchVal),
-                    ubicacion: 'Bodega Principal',
-                    cantidad: 0,
-                    minimo: 3,
-                    precio: 0
-                };
-                state.inventario.push(item);
-                state.inventario.sort((a,b) => a.sku.localeCompare(b.sku));
-            }
-
-            if (!item) {
-                showToast("El producto no existe en el inventario", "error");
-                return;
-            }
-
-            if (tipo === 'Salida' && cant > item.cantidad) {
-                showToast(`Stock insuficiente para ${item.nombre} (Disponibles: ${item.cantidad})`, "error");
-                return;
-            }
-
-            currentBatchItems.push({ item, sku: item.sku, cantidad: cant });
-            document.getElementById('batch-item-search').value = '';
-            document.getElementById('batch-item-cant').value = '1';
-            renderBatchModalContent(tipo);
-        }
-
-        function removeBatchItem(idx, tipo) {
-            currentBatchItems.splice(idx, 1);
-            renderBatchModalContent(tipo);
-        }
-
-        function submitBatchMove(tipo) {
-            if (currentBatchItems.length === 0) {
-                showToast("Agrega al menos un producto a la lista", "error");
-                return;
-            }
-
-            let cliente = tipo === 'Entrada' ? 'Entrada Encomienda Lote' : 'Cliente General';
-            if (tipo === 'Salida') {
-                cliente = document.getElementById('batch-move-cliente').value.trim() || 'Cliente General';
-                const fileInput = document.getElementById('batch-move-foto');
-                if (fileInput && fileInput.files && fileInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        saveMovementBatch(currentBatchItems, tipo, cliente, evt.target.result);
-                    };
-                    reader.readAsDataURL(fileInput.files[0]);
-                    return;
-                }
-            }
-
-            saveMovementBatch(currentBatchItems, tipo, cliente, null);
-        }
-
-        function viewMovementFoto(movId) {
-            const mov = state.movimientos.find(m => String(m.id) === String(movId));
-            if (!mov || !mov.foto) return;
-
-            openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
                         <div>
-                            <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Evidencia de Salida</h3>
-                            <p class="text-xs text-gray-400">${mov.producto} - ${mov.cliente}</p>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">${tipo === 'ENTRADA' ? 'Proveedor / Responsable' : 'Nombre del Cliente / Dueño de la Factura'}</label>
+                            <input type="text" id="mov-cliente" placeholder="Nombre..." required class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
                         </div>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+                        ${tipo === 'SALIDA' ? `
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Adjuntar Foto / Factura</label>
+                            <input type="file" id="mov-foto-file" accept="image/*" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+                        </div>` : ''}
                     </div>
-                    <div class="rounded-xl overflow-hidden border ${state.darkMode ? 'border-gray-800' : 'border-gray-200'}">
-                        <img src="${mov.foto}" alt="Evidencia Salida" class="w-full h-auto max-h-96 object-contain">
+
+                    <div class="border-t border-gray-200 dark:border-gray-800 pt-3 space-y-2">
+                        <label class="block text-xs font-semibold uppercase text-gray-500">Agregar Producto al Lote</label>
+                        <div class="flex gap-2">
+                            <select id="mov-select-prod" class="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
+                                ${state.inventario.map(p => `<option value="${p.sku}">${p.sku} - ${p.nombre} (Stock: ${p.cantidad})</option>`).join('')}
+                            </select>
+                            <input type="number" id="mov-cant-prod" min="1" value="1" class="w-20 px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
+                            <button type="button" onclick="agregarItemLote()" class="px-4 py-2 bg-gray-800 text-white rounded-xl text-sm font-semibold">Añadir</button>
+                        </div>
+                        <div id="lote-items-container" class="border border-gray-200 dark:border-gray-800 rounded-xl p-3 max-h-40 overflow-y-auto space-y-2 text-xs">
+                            <p class="text-gray-400 text-center">No hay productos en el lote actual.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-2 pt-3">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">Cancelar</button>
+                        <button type="button" onclick="guardarLoteMovimiento()" class="px-5 py-2 bg-amber-600 text-white rounded-xl text-sm font-semibold">Procesar Movimiento</button>
                     </div>
                 </div>
             `);
         }
 
-        function clearAllMovements() {
-            if (confirm("¿Deseas vaciar todo el historial de movimientos?")) {
-                state.movimientos = [];
+        function agregarItemLote() {
+            const sku = document.getElementById('mov-select-prod').value;
+            const cantidad = parseInt(document.getElementById('mov-cant-prod').value) || 1;
+            const p = state.inventario.find(x => x.sku === sku);
+            if (!p) return;
+
+            const existing = loteMovimientoItems.find(x => x.sku === sku);
+            if (existing) {
+                existing.cantidad += cantidad;
+            } else {
+                loteMovimientoItems.push({ sku: p.sku, nombre: p.nombre, cantidad });
+            }
+
+            const container = document.getElementById('lote-items-container');
+            container.innerHTML = loteMovimientoItems.map((item, idx) => `
+                <div class="flex items-center justify-between bg-gray-50 dark:bg-gray-950 p-2 rounded-lg">
+                    <span><b>${item.cantidad}x</b> ${item.nombre} (${item.sku})</span>
+                    <button onclick="loteMovimientoItems.splice(${idx},1); agregarItemLote();" class="text-red-500"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function guardarLoteMovimiento() {
+            const cliente = document.getElementById('mov-cliente').value.trim() || 'General';
+            if (loteMovimientoItems.length === 0) {
+                showToast("Agrega al menos un producto al lote", "error");
+                return;
+            }
+
+            const fileInput = document.getElementById('mov-foto-file');
+            let fotoData = null;
+
+            const finalizar = (fotoUrl) => {
+                for (let item of loteMovimientoItems) {
+                    const prod = state.inventario.find(x => x.sku === item.sku);
+                    if (prod) {
+                        if (tipoMovActual === 'ENTRADA') {
+                            prod.cantidad += item.cantidad;
+                        } else {
+                            prod.cantidad = Math.max(0, prod.cantidad - item.cantidad);
+                        }
+                    }
+                }
+
+                state.movimientos.unshift({
+                    fecha: new Date().toLocaleString(),
+                    tipo: tipoMovActual,
+                    cliente,
+                    items: [...loteMovimientoItems],
+                    foto: fotoUrl,
+                    responsable: "Wendy"
+                });
                 saveState();
+                closeModal();
+                showToast("Movimiento registrado con éxito", "success");
                 renderView();
-                showToast("Historial de movimientos borrado", "success");
+            };
+
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => finalizar(e.target.result);
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                finalizar(null);
             }
         }
 
-        function deleteMovement(id) {
-            state.movimientos = state.movimientos.filter(m => m.id !== id);
-            saveState();
-            renderView();
-            showToast("Movimiento eliminado", "success");
+        function verFotoMovimiento(urlEncoded) {
+            const url = decodeURIComponent(urlEncoded);
+            openModalHTML(`
+                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 text-center">
+                    <h3 class="font-bold text-lg">Evidencia Fotográfica / Factura</h3>
+                    <img src="${url}" class="max-h-96 mx-auto rounded-xl shadow-md">
+                    <button onclick="closeModal()" class="w-full bg-gray-800 text-white py-2 rounded-xl text-sm font-semibold">Cerrar</button>
+                </div>
+            `);
         }
 
         // ================= 3. PEDIDOS =================
         function renderPedidos(container) {
-            const isAdmin = state.currentUserRole === 'admin';
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-
             container.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Reabastecimiento & Pedidos</h2>
-                        <p class="text-xs text-gray-400">Control de pedidos pendientes por surtir</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    ${isAdmin ? `
-                        <div class="${cardBg} border rounded-2xl p-5 space-y-4">
-                            <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-sm">Anotar lo que hace falta</h3>
-                            <form onsubmit="handleAddPedido(event)" class="space-y-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Producto / SKU</label>
-                                    <select id="ped-sku" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                                        <option value="">-- Seleccionar de Inventario --</option>
-                                        ${state.inventario.map(i => `<option value="${i.sku}">${i.sku} - ${i.nombre}</option>`).join('')}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Cantidad Faltante</label>
-                                    <input type="number" id="ped-cant" min="1" value="1" required class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-400 mb-1">Proveedor / Observaciones</label>
-                                    <input type="text" id="ped-obs" placeholder="Ej: Pedir a Ferretería El Sol" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                                </div>
-                                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-md">
-                                    + Agregar Pedido
-                                </button>
-                            </form>
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold tracking-tight">Pedidos a Proveedores</h1>
+                            <p class="text-xs text-gray-500">Control de compras y requerimientos pendientes</p>
                         </div>
-                    ` : ''}
+                        <button onclick="openPedidoModal()" class="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs font-semibold shadow-md"><i class="fa-solid fa-plus mr-1"></i> Nuevo Pedido</button>
+                    </div>
 
-                    <div class="${isAdmin ? 'lg:col-span-2' : 'lg:col-span-3'} ${cardBg} border rounded-2xl p-5 space-y-4">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-sm">Control de Pedidos por Surtir (${state.pedidos.length})</h3>
-                        ${state.pedidos.length === 0 ? `
-                            <div class="py-12 text-center text-gray-400 text-xs">
-                                No hay pedidos pendientes registrados.
-                            </div>
-                        ` : `
-                            <div class="space-y-3">
-                                ${state.pedidos.map(p => `
-                                    <div class="flex items-center justify-between p-3.5 rounded-xl ${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'} border">
-                                        <div>
-                                            <p class="font-bold text-sm ${state.darkMode ? 'text-white' : 'text-gray-900'}">${p.producto} (${p.sku})</p>
-                                            <p class="text-xs text-gray-400">Cantidad: <span class="text-amber-500 font-semibold">${p.cantidad} un.</span> · ${p.obs || 'Sin observaciones'}</p>
-                                        </div>
-                                        ${isAdmin ? `
-                                            <button onclick="resolvePedido(${p.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow">
-                                                Completar
-                                            </button>
-                                        ` : ''}
-                                    </div>
+                    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-500 uppercase">
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Proveedor</th>
+                                    <th class="p-4">Detalle</th>
+                                    <th class="p-4 text-center">Estado</th>
+                                    <th class="p-4 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                                ${state.pedidos.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-400">No hay pedidos registrados.</td></tr>` :
+                                state.pedidos.map((p, idx) => `
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                        <td class="p-4 text-xs text-gray-500">${p.fecha}</td>
+                                        <td class="p-4 font-semibold">${p.proveedor}</td>
+                                        <td class="p-4 text-xs">${p.detalle}</td>
+                                        <td class="p-4 text-center"><span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full text-xs">${p.estado}</span></td>
+                                        <td class="p-4 text-center"><button onclick="state.pedidos.splice(${idx},1); saveState(); renderView();" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
+                                    </tr>
                                 `).join('')}
-                            </div>
-                        `}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             `;
         }
 
-        function handleAddPedido(e) {
-            e.preventDefault();
-            const sku = document.getElementById('ped-sku').value;
-            const cant = Number(document.getElementById('ped-cant').value) || 1;
-            const obs = document.getElementById('ped-obs').value.trim();
-            const item = state.inventario.find(i => i.sku === sku);
-
-            state.pedidos.push({
-                id: Date.now(),
-                sku: sku,
-                producto: item ? item.nombre : sku,
-                cantidad: cant,
-                obs: obs
-            });
+        function openPedidoModal() {
+            const proveedor = prompt("Proveedor:");
+            if (!proveedor) return;
+            const detalle = prompt("Productos solicitados:");
+            if (!detalle) return;
+            state.pedidos.unshift({ fecha: new Date().toLocaleDateString(), proveedor, detalle, estado: "Pendiente" });
             saveState();
             renderView();
-            showToast("Pedido agregado", "success");
         }
 
-        function resolvePedido(id) {
-            state.pedidos = state.pedidos.filter(p => p.id !== id);
-            saveState();
-            renderView();
-            showToast("Pedido completado", "success");
-        }
-
-        // ================= 4. INFORMES =================
+        // ================= 4. INFORMES (Impresión y PDF impecables en blanco) =================
         function renderInformes(container) {
-            const isAdmin = state.currentUserRole === 'admin';
-            const totalEntradas = state.movimientos.filter(m => m.tipo === 'ENTRADA').reduce((a,b) => a + Number(b.cantidad), 0);
-            const totalSalidas = state.movimientos.filter(m => m.tipo === 'SALIDA').reduce((a,b) => a + Number(b.cantidad), 0);
-            const balance = totalEntradas - totalSalidas;
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-
-            const todayStr = new Date().toISOString().split('T')[0];
+            const entradasCount = state.movimientos.filter(m => m.tipo === 'ENTRADA').reduce((acc, m) => acc + m.items.reduce((a,b)=>a+b.cantidad,0), 0);
+            const salidasCount = state.movimientos.filter(m => m.tipo === 'SALIDA').reduce((acc, m) => acc + m.items.reduce((a,b)=>a+b.cantidad,0), 0);
+            const valorTotal = state.inventario.reduce((acc, p) => acc + (p.cantidad * p.precio), 0);
 
             container.innerHTML = `
-                <div class="flex flex-wrap items-center justify-between gap-3 no-print">
-                    <div>
-                        <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Analítica & Auditoría</h2>
-                        <p class="text-xs text-gray-400">Resumen operativo y reporte listo para exportación</p>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="saveCurrentReport()" class="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-md">
-                            + Guardar Informe
-                        </button>
-                        <button onclick="downloadPDF()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition">
-                            <i class="fa-solid fa-file-pdf text-red-400 mr-1"></i> Descargar PDF
-                        </button>
-                        <button onclick="triggerPrintReport()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold border border-gray-700 transition">
-                            <i class="fa-solid fa-print text-blue-400 mr-1"></i> Imprimir
-                        </button>
-                        ${isAdmin ? `
-                            <button onclick="openAddFacturaModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition shadow-md">
-                                <i class="fa-solid fa-camera mr-1"></i> Subir Foto Evidencia
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-
-                <div id="report-printable-area" class="${state.darkMode ? 'bg-gray-950 border-gray-800 text-white' : 'bg-white border-gray-200 text-gray-900'} border rounded-2xl p-8 space-y-6 shadow-sm">
-                    <div class="border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-4">
-                        <h1 class="text-2xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Jadever Bodega — Informe</h1>
-                        <p class="text-sm font-semibold text-amber-600 mt-1">Reporte de hoy (${todayStr} a ${todayStr})</p>
-                        <p class="text-xs font-medium ${state.darkMode ? 'text-gray-300' : 'text-gray-600'} mt-2">
-                            Entradas: <span class="font-bold text-emerald-500">${totalEntradas} und</span> · 
-                            Salidas: <span class="font-bold text-amber-500">${totalSalidas} und</span> · 
-                            Balance: <span class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">${balance}</span> · 
-                            Movimientos: <span class="font-bold text-blue-500">${state.movimientos.length}</span>
-                        </p>
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold tracking-tight">Informes y Reportes</h1>
+                            <p class="text-xs text-gray-500">Resumen y exportación profesional</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="window.print()" class="px-4 py-2 bg-gray-800 text-white rounded-xl text-xs font-semibold shadow-md"><i class="fa-solid fa-print mr-1"></i> Imprimir / PDF</button>
+                        </div>
                     </div>
 
-                    <div>
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">DETALLE DE MOVIMIENTOS DEL PERIODO</h3>
-                        <div class="overflow-x-auto rounded-xl border ${state.darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-gray-200 bg-gray-50'}">
-                            <table class="w-full text-left border-collapse text-xs">
-                                <thead>
-                                    <tr class="bg-amber-600 text-white font-bold uppercase tracking-wider">
-                                        <th class="py-3 px-4">FECHA</th>
-                                        <th class="py-3 px-4">TIPO</th>
-                                        <th class="py-3 px-4">SKU</th>
-                                        <th class="py-3 px-4">PRODUCTO</th>
-                                        <th class="py-3 px-4">CANT.</th>
-                                        <th class="py-3 px-4">RESPONSABLE</th>
+                    <div id="report-printable-area" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-6 text-gray-900 dark:text-gray-100">
+                        <div class="border-b border-gray-200 dark:border-gray-700 pb-4 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-xl font-bold">JadeverBodega - Reporte General</h2>
+                                <p class="text-xs text-gray-500 mt-1">Fecha de corte: ${new Date().toLocaleDateString()}</p>
+                            </div>
+                            <div class="text-right text-xs text-gray-400">Sistema de Control Ferretero</div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+                                <div class="text-xs text-gray-500">Total Productos</div>
+                                <div class="text-xl font-bold mt-1">${state.inventario.length}</div>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+                                <div class="text-xs text-gray-500">Entradas del Período</div>
+                                <div class="text-xl font-bold text-emerald-600 mt-1">${entradasCount} und</div>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+                                <div class="text-xs text-gray-500">Salidas del Período</div>
+                                <div class="text-xl font-bold text-rose-600 mt-1">${salidasCount} und</div>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+                                <div class="text-xs text-gray-500">Valor Inventario</div>
+                                <div class="text-xl font-bold text-amber-600 mt-1">$${valorTotal.toFixed(2)}</div>
+                            </div>
+                        </div>
+
+                        <h3 class="font-bold text-sm pt-4">Detalle Reciente de Movimientos</h3>
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                                    <tr>
+                                        <th class="p-3">Fecha</th>
+                                        <th class="p-3">Tipo</th>
+                                        <th class="p-3">Responsable</th>
+                                        <th class="p-3">Items</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y ${state.darkMode ? 'divide-gray-800 text-gray-200' : 'divide-gray-200 text-gray-800'}">
-                                    ${state.movimientos.length === 0 ? `
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                                    ${state.movimientos.length === 0 ? `<tr><td colspan="4" class="p-4 text-center text-gray-400">Sin movimientos</td></tr>` :
+                                    state.movimientos.map(m => `
                                         <tr>
-                                            <td colspan="6" class="py-6 text-center text-gray-500">Sin movimientos registrados en el periodo seleccionado.</td>
-                                        </tr>
-                                    ` : state.movimientos.map(m => `
-                                        <tr class="${state.darkMode ? 'hover:bg-gray-900/40' : 'hover:bg-gray-100'}">
-                                            <td class="py-3 px-4 text-gray-400">${m.fecha}</td>
-                                            <td class="py-3 px-4 font-bold ${m.tipo === 'ENTRADA' ? 'text-emerald-500' : 'text-amber-500'}">${m.tipo}</td>
-                                            <td class="py-3 px-4 font-mono font-bold text-amber-500">${m.sku}</td>
-                                            <td class="py-3 px-4 font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">${m.producto}</td>
-                                            <td class="py-3 px-4 font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">${m.cantidad}</td>
-                                            <td class="py-3 px-4 text-gray-400">${m.responsable}</td>
+                                            <td class="p-3">${m.fecha}</td>
+                                            <td class="p-3 font-semibold">${m.tipo}</td>
+                                            <td class="p-3">${m.cliente}</td>
+                                            <td class="p-3">${m.items.map(i=>`${i.cantidad}x ${i.nombre}`).join(', ')}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -1432,239 +998,49 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="${cardBg} border rounded-2xl p-6 space-y-4 no-print">
-                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Evidencias de Facturas & Fotos (Ordenadas por Fecha)</h3>
-                        <span class="text-xs text-amber-500 font-semibold">${state.evidenciasFacturas.length} Evidencias</span>
-                    </div>
-
-                    ${state.evidenciasFacturas.length === 0 ? `
-                        <p class="text-xs text-gray-400 text-center py-8">Aún no has subido fotos de evidencias. Presiona "Subir Foto Evidencia" para agregar una.</p>
-                    ` : `
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            ${state.evidenciasFacturas.sort((a,b) => b.timestamp - a.timestamp).map(ev => `
-                                <div class="rounded-xl border ${state.darkMode ? 'bg-gray-900 border-gray-800' : 'bg-gray-50 border-gray-200'} p-3 space-y-2">
-                                    <img src="${ev.foto}" alt="Evidencia" class="w-full h-40 object-cover rounded-lg border border-gray-800">
-                                    <div class="flex items-center justify-between text-xs">
-                                        <span class="font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'}">${ev.titulo || 'Evidencia Factura'}</span>
-                                        <span class="text-gray-400 text-[10px]">${ev.fecha}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `}
-                </div>
             `;
-        }
-
-        function saveCurrentReport() {
-            const todayStr = new Date().toISOString().split('T')[0];
-            state.informesGuardados.push({
-                id: Date.now(),
-                fecha: todayStr,
-                movimientos: state.movimientos.length
-            });
-            saveState();
-            showToast("Informe guardado en el historial", "success");
-        }
-
-        function downloadPDF() {
-            const element = document.getElementById('report-printable-area');
-            const todayStr = new Date().toISOString().split('T')[0];
-            const opt = {
-                margin:       0.4,
-                filename:     `informe-${todayStr}_${todayStr}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-            };
-            
-            // Temporarily force white background for PDF generation
-            const originalClassName = element.className;
-            element.className = "bg-white text-gray-900 border border-gray-200 rounded-2xl p-8 space-y-6 shadow-sm";
-            
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.className = originalClassName;
-            });
-        }
-
-        function triggerPrintReport() {
-            window.print();
-        }
-
-        function openAddFacturaModal() {
-            openModalHTML(`
-                <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-                    <div class="flex items-center justify-between border-b ${state.darkMode ? 'border-gray-800' : 'border-gray-200'} pb-3">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Subir Foto de Evidencia / Factura</h3>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                    <form onsubmit="handleSaveFactura(event)" class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Título / Factura N°</label>
-                            <input type="text" id="fac-titulo" required placeholder="Ej: Factura 4509 - Compra Martillos" class="w-full ${state.darkMode ? 'bg-gray-900 border-gray-800 text-white' : 'bg-gray-50 border-gray-300 text-gray-900'} border rounded-xl px-3.5 py-2 text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-400 mb-1">Imagen (Foto)</label>
-                            <input type="file" id="fac-foto" accept="image/*" required class="w-full text-xs text-gray-400">
-                        </div>
-                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow-lg">
-                            Guardar Evidencia
-                        </button>
-                    </form>
-                </div>
-            `);
-        }
-
-        function handleSaveFactura(e) {
-            e.preventDefault();
-            const titulo = document.getElementById('fac-titulo').value.trim();
-            const fileInput = document.getElementById('fac-foto');
-
-            if (fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    const now = new Date();
-                    state.evidenciasFacturas.push({
-                        id: Date.now(),
-                        titulo: titulo,
-                        foto: evt.target.result,
-                        fecha: now.toLocaleString('es-ES'),
-                        timestamp: now.getTime()
-                    });
-                    saveState();
-                    closeModal();
-                    renderView();
-                    showToast("Evidencia cargada con éxito", "success");
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            }
         }
 
         // ================= 5. MÁS =================
         function renderMas(container) {
-            const isAdmin = state.currentUserRole === 'admin';
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-
             container.innerHTML = `
-                <div class="flex items-center justify-between">
+                <div class="space-y-6 max-w-xl">
                     <div>
-                        <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Copia de Seguridad</h2>
-                        <p class="text-xs text-gray-400">Gestión de respaldo y datos del sistema</p>
+                        <h1 class="text-2xl font-bold tracking-tight">Más Opciones y Ajustes</h1>
+                        <p class="text-xs text-gray-500">Copia de seguridad y mantenimiento del sistema</p>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="${cardBg} border rounded-2xl p-5 space-y-4">
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-sm">Respaldo Automático</h3>
-                        <p class="text-xs text-gray-400">Toda la información se guarda automáticamente cada 12 horas y al salir de la aplicación.</p>
+                    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-3">
+                        <h3 class="font-bold">Copia de Seguridad</h3>
+                        <p class="text-xs text-gray-500">Descarga un archivo con toda la información de tu bodega.</p>
+                        <button onclick="exportarBackup()" class="px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-xl text-xs font-semibold">Descargar Backup (.json)</button>
                     </div>
-
-                    ${isAdmin ? `
-                        <div class="${cardBg} border rounded-2xl p-5 space-y-4">
-                            <h3 class="font-bold text-red-500 text-sm">Reiniciar Datos (Poner en 0)</h3>
-                            <p class="text-xs text-gray-400">Restablecer la aplicación a 0 todo el sistema.</p>
-                            <button onclick="resetAllData()" class="w-full bg-red-600 hover:bg-red-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow-md">
-                                Limpiar todo a 0
-                            </button>
-                        </div>
-                    ` : ''}
+                    <div class="bg-white dark:bg-gray-800 border border-red-200 dark:border-red-900/50 rounded-2xl p-6 shadow-sm space-y-3">
+                        <h3 class="font-bold text-red-600">Reiniciar Datos (Poner en 0)</h3>
+                        <p class="text-xs text-gray-500">Restablece la aplicación a 0 eliminando todo el inventario y movimientos.</p>
+                        <button onclick="reiniciarSistema()" class="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-semibold">Limpiar todo a 0</button>
+                    </div>
                 </div>
             `;
         }
 
-        function resetAllData() {
-            if (confirm("¿ADVERTENCIA: Deseas borrar todo el inventario, movimientos e informes? Esta acción dejará la app en 0.")) {
+        function exportarBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", `jadeverbodega_backup_${new Date().toISOString().split('T')[0]}.json`);
+            dl.click();
+        }
+
+        function reiniciarSistema() {
+            if (confirm("¿Estás seguro de poner todo a 0? Se borrará todo.")) {
                 state.inventario = [];
                 state.movimientos = [];
                 state.pedidos = [];
-                state.informesGuardados = [];
-                state.evidenciasFacturas = [];
                 saveState();
                 renderView();
-                showToast("Sistema restablecido completamente a 0", "success");
+                showToast("Sistema reiniciado a 0", "success");
             }
         }
-
-        // ================= 6. CARGA MASIVA =================
-        function renderCargaMasiva(container) {
-            const cardBg = state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200 text-gray-800 shadow-sm';
-
-            container.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}">Carga Masiva de Productos</h2>
-                        <p class="text-xs text-gray-400">Importación rápida mediante archivos Excel (.xlsx) o CSV</p>
-                    </div>
-                </div>
-
-                <div class="${cardBg} border rounded-2xl p-8 text-center space-y-4">
-                    <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl mx-auto">
-                        <i class="fa-solid fa-file-excel"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-base">Arrastra o Selecciona tu archivo Excel / CSV</h3>
-                        <p class="text-xs text-gray-400 mt-1">Soporta columnas: SKU, Producto, Categoría, Ubicación, Cantidad y Precio</p>
-                    </div>
-
-                    <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" onchange="handleExcelFileUpload(event)" class="hidden">
-
-                    <button onclick="document.getElementById('excel-file-input').click()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-3 rounded-xl text-sm transition shadow-lg inline-flex items-center space-x-2">
-                        <i class="fa-solid fa-upload"></i>
-                        <span>Seleccionar Archivo desde el Equipo</span>
-                    </button>
-                </div>
-            `;
-        }
-
-        function handleExcelFileUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    const data = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    pendingParsedRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-
-                    if (!pendingParsedRows || pendingParsedRows.length === 0) {
-                        showToast("El archivo Excel está vacío o es inválido", "error");
-                        return;
-                    }
-
-                    openModalHTML(`
-                        <div class="${state.darkMode ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'} border rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
-                            <h3 class="font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} text-lg">Opciones de Importación</h3>
-                            <p class="text-xs text-gray-400">Se leyeron ${pendingParsedRows.length} productos del archivo.</p>
-                            <div class="space-y-2 pt-2">
-                                <button onclick="processExcelImport('update')" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow">
-                                    Actualizar / Fusionar (Merge & Add)
-                                </button>
-                                <button onclick="processExcelImport('replace')" class="w-full bg-red-600 hover:bg-red-500 text-white font-semibold py-3 rounded-xl text-sm transition shadow">
-                                    Subir y Reemplazar Todo (Overwrite)
-                                </button>
-                            </div>
-                        </div>
-                    `);
-                } catch(err) {
-                    showToast("Error al leer el archivo Excel", "error");
-                    console.error(err);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        window.onload = function() {
-            updateDailyDate();
-            loadState();
-            applyTheme();
-        };
     </script>
 </body>
 </html>
