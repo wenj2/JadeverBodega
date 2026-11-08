@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,12 +33,12 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         window.firebaseModules = {
-            initializeApp, getAuth, signInAnonymously, signInWithCustomToken,
-            getFirestore, doc, setDoc, getDoc, onSnapshot, collection
+            initializeApp, getAuth, signInAnonymously,
+            getFirestore, doc, setDoc, onSnapshot
         };
         window.dispatchEvent(new Event('firebase-loaded'));
     </script>
@@ -89,7 +89,6 @@
 
     <!-- SIDEBAR -->
     <aside id="sidebar" class="w-64 bg-white border-r border-gray-200 flex flex-col transition-all duration-300 z-30 shadow-xl shrink-0 text-gray-800">
-        <!-- Logo Header -->
         <div class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
             <div class="flex items-center space-x-3 overflow-hidden">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white font-bold shadow-lg shadow-amber-600/30 shrink-0">
@@ -105,7 +104,6 @@
             </button>
         </div>
 
-        <!-- NAVIGATION MENU -->
         <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
             <button onclick="switchTab('inventario')" id="nav-inventario" class="nav-btn w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium transition-colors bg-amber-600 text-white shadow-md">
                 <div class="flex items-center space-x-3">
@@ -130,13 +128,17 @@
                 <span class="sidebar-text">Informes</span>
             </button>
 
+            <button onclick="switchTab('cargamasiva')" id="nav-cargamasiva" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
+                <i class="fa-solid fa-file-excel w-5 text-center text-emerald-500"></i>
+                <span class="sidebar-text">Carga Masiva</span>
+            </button>
+
             <button onclick="switchTab('mas')" id="nav-mas" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors">
                 <i class="fa-solid fa-gear w-5 text-center"></i>
                 <span class="sidebar-text">Más</span>
             </button>
         </nav>
 
-        <!-- Dark Mode Toggle & User Profile -->
         <div class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
             <div id="theme-card" class="flex items-center justify-between bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-2.5 rounded-xl">
                 <div class="flex items-center space-x-2 text-xs font-medium text-gray-700 dark:text-gray-300 sidebar-text" id="theme-label-box">
@@ -161,7 +163,7 @@
                         </p>
                     </div>
                 </div>
-                <button onclick="logoutAuth()" title="Cerrar Sesión" class="text-gray-400 hover:text-red-500 text-xs p-1 sidebar-text">
+                <button onclick="logoutAuth()" title="Cerrar Sesión" class="text-gray-400 hover:text-red-500 text-xs p-1 sidebar-text cursor-pointer">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </button>
             </div>
@@ -170,15 +172,16 @@
 
     <!-- MAIN CONTENT AREA -->
     <main id="app-main" class="flex-1 flex flex-col h-screen overflow-hidden bg-gray-100">
-        
-        <!-- TOP APP BAR -->
         <header id="top-header" class="h-16 bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-6 flex items-center justify-between z-20 text-gray-800">
             <div class="flex items-center space-x-4">
                 <button onclick="toggleSidebar()" class="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white p-2 rounded-lg bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 transition">
                     <i class="fa-solid fa-bars text-sm"></i>
                 </button>
-                <div class="text-xs text-gray-500 dark:text-gray-400 font-medium hidden md:block">
-                    <span id="current-date-header" class="font-semibold uppercase tracking-wider"></span>
+                <!-- Indicador / Foco de Sincronización Cloud -->
+                <div id="sync-status-badge" class="flex items-center space-x-2 px-3 py-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-full text-xs font-semibold text-amber-700 dark:text-amber-400" title="Estado de Sincronización en la Nube">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" id="sync-dot"></span>
+                    <i class="fa-solid fa-lightbulb text-xs"></i>
+                    <span id="sync-text">Sincronizando Cloud...</span>
                 </div>
             </div>
 
@@ -198,41 +201,32 @@
             </div>
         </header>
 
-        <!-- DYNAMIC VIEWS CONTAINER -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar" id="main-content-view">
-            <!-- Dynamic Content -->
-        </div>
-
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar" id="main-content-view"></div>
     </main>
 
-    <!-- APPLICATION LOGIC & STATE -->
+    <!-- LOGICA Y FIREBASE -->
     <script>
         let state = {
             currentTab: 'inventario',
-            darkMode: false, // Default Light mode
+            darkMode: false,
             sidebarCollapsed: false,
-            currentUserRole: null,
-            lastLoginTime: null,
+            currentUserRole: 'admin',
+            lastLoginTime: Date.now(),
             inventario: [
                 { sku: "JDHM1305", nombre: "MARTILLO MAQUINISTA", categoria: "Herramientas Manuales", ubicacion: "Pasillo 1 - Estante 2", cantidad: 15, precio: 12.50 },
                 { sku: "JDCDS520", nombre: "TALADRO INALÁMBRICO 12V", categoria: "Herramientas Eléctricas", ubicacion: "Pasillo 2 - Estante 1", cantidad: 8, precio: 85.00 },
                 { sku: "DT4376", nombre: "SPRAY BLANCO MATE", categoria: "Pinturas y Acabados", ubicacion: "Pasillo 4 - Estante 3", cantidad: 25, precio: 6.00 }
             ],
             movimientos: [],
-            pedidos: [],
-            informesGuardados: [],
-            evidenciasFacturas: []
+            pedidos: []
         };
 
         let db = null;
         let auth = null;
         let unsubscribeFirestore = null;
         let isSyncingFromCloud = false;
-
         let invSearch = '';
         let invCategory = 'Todas';
-
-        // Lote temporal para Entradas y Salidas múltiples
         let loteMovimientoItems = [];
 
         window.addEventListener('firebase-loaded', async () => {
@@ -254,10 +248,23 @@
 
                 initRealtimeSync(appId);
             } catch(e) {
-                console.warn("Cloud Firestore offline mode:", e);
+                setSyncStatus(false, "Modo Local");
                 loadStateLocal();
             }
         });
+
+        function setSyncStatus(isOnline, text) {
+            const dot = document.getElementById('sync-dot');
+            const txt = document.getElementById('sync-text');
+            if (!dot || !txt) return;
+            if (isOnline) {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50";
+                txt.innerText = text || "Sincronizado Cloud";
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
+                txt.innerText = text || "Sin conexión Cloud";
+            }
+        }
 
         function initRealtimeSync(appId) {
             if (!db || !auth) return;
@@ -274,30 +281,22 @@
                             updateBadges();
                             checkAuthSessionValidity();
                             renderView();
-                        } catch(err) { console.error("Error parsing cloud state", err); }
+                            setSyncStatus(true, "Sincronizado con Cloud");
+                        } catch(err) {}
                         isSyncingFromCloud = false;
                     }
                 } else {
                     saveState();
                 }
-            }, (error) => { loadStateLocal(); });
+            }, (error) => { setSyncStatus(false, "Error Cloud"); });
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             loadStateLocal();
-            updateDailyDate();
         });
 
-        function updateDailyDate() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const formatted = now.toLocaleDateString('es-ES', options);
-            const headerDate = document.getElementById('current-date-header');
-            if (headerDate) headerDate.innerText = formatted;
-        }
-
         function loadStateLocal() {
-            const saved = localStorage.getItem('jadever_bodega_v5');
+            const saved = localStorage.getItem('jadever_bodega_v6');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -319,13 +318,15 @@
                 currentUserRole: state.currentUserRole,
                 lastLoginTime: state.lastLoginTime
             });
-            localStorage.setItem('jadever_bodega_v5', payloadString);
+            localStorage.setItem('jadever_bodega_v6', payloadString);
             updateBadges();
 
             if (db && auth && !isSyncingFromCloud) {
                 const appId = 'jadeverbodega-app-v2';
                 const docRef = window.firebaseModules.doc(db, 'artifacts', appId, 'public', 'data', 'appState');
-                window.firebaseModules.setDoc(docRef, { payload: payloadString, updatedAt: Date.now() }, { merge: true }).catch(err => {});
+                window.firebaseModules.setDoc(docRef, { payload: payloadString, updatedAt: Date.now() }, { merge: true })
+                    .then(() => setSyncStatus(true, "Sincronizado con Cloud"))
+                    .catch(err => setSyncStatus(false, "Error al guardar Cloud"));
             }
         }
 
@@ -489,6 +490,7 @@
                 case 'movimientos': renderMovimientos(container); break;
                 case 'pedidos': renderPedidos(container); break;
                 case 'informes': renderInformes(container); break;
+                case 'cargamasiva': renderCargaMasiva(container); break;
                 case 'mas': renderMas(container); break;
             }
             updateBadges();
@@ -516,7 +518,6 @@
                         </div>
                     </div>
 
-                    <!-- Pestañas de Categorías Dinámicas -->
                     <div class="flex items-center space-x-2 overflow-x-auto pb-2">
                         ${categories.map(c => `
                             <button onclick="invCategory='${c}'; renderInventario(document.getElementById('main-content-view'))" class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${invCategory === c ? 'bg-amber-600 text-white shadow-md' : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50'}">${c}</button>
@@ -537,7 +538,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
-                                ${filtered.length === 0 ? `<tr><td colspan="7" class="p-8 text-center text-gray-400">No se encontraron productos en el inventario.</td></tr>` :
+                                ${filtered.length === 0 ? `<tr><td colspan="7" class="p-8 text-center text-gray-400">No se encontraron productos.</td></tr>` :
                                 filtered.map(p => `
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
                                         <td class="p-4 font-mono font-bold text-amber-600 dark:text-amber-400">${p.sku}</td>
@@ -576,14 +577,14 @@
                         <div>
                             <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Categoría</label>
                             <select id="m-categoria" class="w-full px-3 py-2 bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 rounded-xl text-sm">
-                                <option value="Herramientas Manuales" ${catSug==='Herramientas Manuales'?'selected':''}>Herramientas Manuales</option>
-                                <option value="Herramientas Eléctricas" ${catSug==='Herramientas Eléctricas'?'selected':''}>Herramientas Eléctricas</option>
-                                <option value="Fijación y Tornillería" ${catSug==='Fijación y Tornillería'?'selected':''}>Fijación y Tornillería</option>
-                                <option value="Fontanería y Plomería" ${catSug==='Fontanería y Plomería'?'selected':''}>Fontanería y Plomería</option>
-                                <option value="Pinturas y Acabados" ${catSug==='Pinturas y Acabados'?'selected':''}>Pinturas y Acabados</option>
-                                <option value="Seguridad e Iluminación" ${catSug==='Seguridad e Iluminación'?'selected':''}>Seguridad e Iluminación</option>
-                                <option value="Construcción y Medición" ${catSug==='Construcción y Medición'?'selected':''}>Construcción y Medición</option>
-                                <option value="Automotriz" ${catSug==='Automotriz'?'selected':''}>Automotriz</option>
+                                <option value="Herramientas Manuales">Herramientas Manuales</option>
+                                <option value="Herramientas Eléctricas">Herramientas Eléctricas</option>
+                                <option value="Fijación y Tornillería">Fijación y Tornillería</option>
+                                <option value="Fontanería y Plomería">Fontanería y Plomería</option>
+                                <option value="Pinturas y Acabados">Pinturas y Acabados</option>
+                                <option value="Seguridad e Iluminación">Seguridad e Iluminación</option>
+                                <option value="Construcción y Medición">Construcción y Medición</option>
+                                <option value="Automotriz">Automotriz</option>
                             </select>
                         </div>
                         <div>
@@ -709,7 +710,7 @@
             }
         }
 
-        // ================= 2. MOVIMIENTOS (Entrada / Salida por Lotes con Factura y Foto) =================
+        // ================= 2. MOVIMIENTOS =================
         function renderMovimientos(container) {
             container.innerHTML = `
                 <div class="space-y-6">
@@ -827,8 +828,6 @@
             }
 
             const fileInput = document.getElementById('mov-foto-file');
-            let fotoData = null;
-
             const finalizar = (fotoUrl) => {
                 for (let item of loteMovimientoItems) {
                     const prod = state.inventario.find(x => x.sku === item.sku);
@@ -926,7 +925,7 @@
             renderView();
         }
 
-        // ================= 4. INFORMES (Impresión y PDF impecables en blanco) =================
+        // ================= 4. INFORMES =================
         function renderInformes(container) {
             const entradasCount = state.movimientos.filter(m => m.tipo === 'ENTRADA').reduce((acc, m) => acc + m.items.reduce((a,b)=>a+b.cantidad,0), 0);
             const salidasCount = state.movimientos.filter(m => m.tipo === 'SALIDA').reduce((acc, m) => acc + m.items.reduce((a,b)=>a+b.cantidad,0), 0);
@@ -1001,7 +1000,102 @@
             `;
         }
 
-        // ================= 5. MÁS =================
+        // ================= 5. CARGA MASIVA DE EXCEL =================
+        let pendingExcelRows = [];
+
+        function renderCargaMasiva(container) {
+            container.innerHTML = `
+                <div class="space-y-6 max-w-3xl">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">Carga Masiva de Productos</h1>
+                        <p class="text-xs text-gray-500">Importa tu inventario completo mediante archivos Excel (.xlsx) o CSV</p>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
+                        <label class="block text-xs font-semibold uppercase text-gray-500">Seleccionar Archivo Excel o CSV</label>
+                        <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                    </div>
+
+                    <div id="excel-preview-area" class="space-y-4"></div>
+                </div>
+            `;
+        }
+
+        function handleExcelUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.SheetNames[0];
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+                    
+                    if (rows.length < 2) {
+                        showToast("El archivo está vacío o no tiene formato válido", "error");
+                        return;
+                    }
+
+                    pendingExcelRows = [];
+                    for (let i = 1; i < rows.length; i++) {
+                        const r = rows[i];
+                        if (r && r.length > 0) {
+                            pendingExcelRows.push({
+                                sku: String(r[0] || 'SKU-' + Math.floor(Math.random()*1000)),
+                                nombre: String(r[1] || 'Producto sin nombre'),
+                                categoria: String(r[2] || 'Herramientas Manuales'),
+                                ubicacion: String(r[3] || 'Bodega Principal'),
+                                cantidad: parseInt(r[4] || 1),
+                                precio: parseFloat(r[5] || 0.00)
+                            });
+                        }
+                    }
+
+                    const previewArea = document.getElementById('excel-preview-area');
+                    previewArea.innerHTML = `
+                        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm space-y-4">
+                            <h3 class="font-bold text-sm">Vista Previa (${pendingExcelRows.length} productos detectados)</h3>
+                            <div class="max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-xl">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                                        <tr><th class="p-2">SKU</th><th class="p-2">Nombre</th><th class="p-2">Cat.</th><th class="p-2">Stock</th><th class="p-2">Precio</th></tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                                        ${pendingExcelRows.slice(0, 10).map(p => `
+                                            <tr><td class="p-2 font-mono">${p.sku}</td><td class="p-2 font-semibold">${p.nombre}</td><td class="p-2">${p.categoria}</td><td class="p-2">${p.cantidad}</td><td class="p-2">$${p.precio}</td></tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button onclick="confirmarCargaMasiva()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl text-sm font-semibold shadow-md">Confirmar e Importar Inventario</button>
+                        </div>
+                    `;
+                    showToast("Archivo cargado correctamente", "success");
+                } catch(err) {
+                    showToast("Error al leer el archivo Excel", "error");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function confirmarCargaMasiva() {
+            if (pendingExcelRows.length === 0) return;
+            for (let item of pendingExcelRows) {
+                const existing = state.inventario.find(x => x.sku === item.sku);
+                if (existing) {
+                    existing.cantidad += item.cantidad;
+                } else {
+                    state.inventario.push(item);
+                }
+            }
+            saveState();
+            showToast("Inventario importado exitosamente", "success");
+            pendingExcelRows = [];
+            switchTab('inventario');
+        }
+
+        // ================= 6. MÁS =================
         function renderMas(container) {
             container.innerHTML = `
                 <div class="space-y-6 max-w-xl">
